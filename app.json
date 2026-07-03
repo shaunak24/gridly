@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "Gridly",
+    "slug": "gridly",
+    "scheme": "gridly",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1E1B2E"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.gridly.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1E1B2E"
+      },
+      "package": "com.gridly.app"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#F97316"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "2bb4bcf9-2add-4f58-b3bf-df1a18f33351"
+      }
+    }
+  }
+}
