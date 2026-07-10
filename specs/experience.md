@@ -10,10 +10,12 @@ Gridly presents a branded home screen, an interactive how-to-play tutorial, dail
 Home ──► How to Play (interactive tutorial)
   ├──► Daily puzzle
   ├──► Practice puzzle
+  ├──► Create puzzle (custom word + share link)
   ├──► Stats
   └──► Settings
 
 Puzzle ──► Win / Loss (delayed modal → review board)
+Custom puzzle ──► opened via gridly:// deep link
 ```
 
 ## Home screen
@@ -26,8 +28,9 @@ The home screen is the app entry point and carries full Gridly branding.
 - **Wordmark** — “Gridly” with stylized coral “i”.
 - **Tagline** — short line such as “Guess the word in six tries.”
 - **Streak summary** — current streak and games played (when stats exist).
-- **Play daily** / **Continue daily** — today's puzzle; disabled when complete until next local day.
+- **Play daily** / **Continue daily** — today's puzzle; disabled when complete, with a live countdown on the button (`MM:SS` or `H:MM:SS`).
 - **Practice** / **Continue practice** — random unlimited puzzle.
+- **Create puzzle** — set a 5-letter word and copy a share link for friends.
 - **Stats** — opens the stats screen.
 - **How to play** — opens the interactive tutorial.
 - **Top bar** — light-bulb icon toggles dark/light theme; gear icon opens **Settings**.
@@ -60,7 +63,7 @@ Interactive tutorial from home.
 
 ### Layout
 
-- **Header** — **Home** control (always visible); mode label (“Daily” or “Practice”).
+- **Header** — **Home** control (always visible); mode label (“Daily”, “Practice”, or “Custom”).
 - **Board** — 6 rows × 5 columns of tiles with flip animation on submit.
 - **Keyboard** — QWERTY on-screen keyboard below the board while playing; **hidden** after win or loss.
 
@@ -80,14 +83,26 @@ Interactive tutorial from home.
 
 **Win**
 
-- Keyboard hides immediately; prominent result and **Play again** / **Share** below the board.
-- After ~2 seconds, a modal shows guess count; dismissible via ✕ to review the board.
+- Keyboard hides immediately; prominent result and actions below the board.
+- After ~2 seconds, a modal shows guess count with a celebration emoji; dismissible via ✕ to review the board.
+- Daily modals have no action button; practice/custom modals offer **Play again**.
+- Daily end bar offers **Practice**; practice/custom end bar offers **Play again**.
 - **Share** copies emoji grid to clipboard (daily wins).
 
 **Loss**
 
-- Keyboard hides immediately; answer and **Play again** below the board.
-- After ~2 seconds, a modal reveals the answer; dismissible to review guesses.
+- Keyboard hides immediately; answer and actions below the board.
+- After ~2 seconds, a modal reveals the answer with a sympathetic emoji; dismissible to review guesses.
+- Daily modals have no action button; practice/custom modals offer **Play again** / **Practice**.
+
+## Create puzzle
+
+Screen from home for sharing a custom word challenge.
+
+- User enters a 5-letter word (must be in the allowed guess list).
+- **Share puzzle** opens the system share sheet (WhatsApp, Messages, Mail, etc.) with a message and deep link.
+- Recipient opens the link; the app starts a custom game with that word.
+- Custom games do not count toward stats or daily completion.
 
 ## Stats screen
 
@@ -108,13 +123,15 @@ Interactive tutorial from home.
 |------|-----|---------|
 | Home | Daily puzzle | **Play daily** / **Continue daily** |
 | Home | Practice puzzle | **Practice** / **Continue practice** |
+| Home | Create puzzle | **Create puzzle** |
+| Deep link | Custom puzzle | `gridly://game?mode=custom&code=…` |
 | Home | Stats | **Stats** |
 | Home | How to play | **How to play** |
 | Home | Settings | Gear icon |
 | Settings | Home | **Home** (header) |
 | Puzzle | Home | **Home** (header) |
 | Win / Loss modal | Board | Dismiss modal (✕) |
-| Board (after dismiss) | Practice | **Play again** / **Share** |
+| Board (after dismiss) | Practice | **Practice** (daily) or **Play again** (practice/custom) |
 | Tutorial complete | Practice | **Start practice** |
 
 ## Accessibility (baseline)

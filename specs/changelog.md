@@ -2,98 +2,88 @@
 
 Version history and planned work for Gridly. Behavior specs live in the other `specs/` files; this document tracks **what shipped** and **what is next**.
 
-## v1.1 — Current (shipped)
+---
 
-**Status:** Complete — validated on device via Expo Go (SDK 54). Behavior is specified in [v1.1.md](./v1.1.md).
+## Shipped
 
-### Core gameplay
+### v1.2 — Current
+
+**Status:** In progress — see [v1.2.md](./v1.2.md).
+
+#### Player-facing
+
+- Post-game modal shows win/loss emoji; daily modals are dismiss-only (no Practice button in modal)
+- Daily end bar offers **Practice** (not “Play again”); daily cannot be restarted after completion
+- Share text includes puzzle date, attempt count, and the answer word
+- Home shows a live countdown on the disabled daily button when today's puzzle is complete
+- **Create puzzle** — users set a 5-letter word and share via the system share sheet
+- **Create puzzle** — users set a 5-letter word and copy a share link; opening the link starts a custom game
+
+#### Engineering
+
+- `customPuzzle` module for share-link encode/decode
+- `GameMode` extended with `custom`
+- Daily replay guard in `gameStore` and game screen routing
+
+---
+
+### v1.1
+
+**Status:** Complete — validated on device via Expo Go (SDK 54). See [v1.1.md](./v1.1.md).
+
+#### Player-facing
 
 - Daily puzzle (one word per local calendar day; locks after win/loss until midnight)
 - Practice mode (unlimited random words)
-- In-progress daily and practice games **resume** after leaving the game screen or restarting the app
-- Hard mode (revealed hints must be used in every guess)
-- Two-sided tile flip animation on submit
-- Invalid-word and hard-mode rejection with row shake
-
-### Home and navigation
-
+- In-progress daily and practice games resume after leaving the game screen or restarting the app
+- Hard mode, two-sided tile flip animation, invalid-word and hard-mode rejection with row shake
 - Minimal home: Play daily / Continue daily, Practice / Continue practice, Stats, How to play
-- Top bar: light-bulb quick theme toggle (dark ↔ light); gear opens **Settings**
-- Settings screen: hard mode, daily reminder, reminder time, theme (Dark / Light / System)
-
-### How to play
-
-- Interactive tutorial with speech-balloon steps
-- Guided example: **REACT → BRAVE → CRANE** (teal, amber, and slate explained)
-- Real board and keyboard; compact layout while typing
-
-### Stats and share
-
+- Top bar: light-bulb quick theme toggle; gear opens Settings
+- Settings: hard mode, daily reminder, reminder time, theme (Dark / Light / System)
+- Interactive tutorial (REACT → BRAVE → CRANE)
 - Local stats: played, win %, streaks, guess distribution
-- **Share:** copies emoji grid to clipboard after a win (puzzle number + score; no answer spoiler)
-- Stats screen from home
-
-### Theme and notifications
-
+- Share: copies emoji grid to clipboard after a daily win
 - Dark, light, and system themes (persisted)
 - Optional daily reminder at user-selected time (default 8:00 AM local)
-- Local notifications require a **development build**; Expo Go shows an alert if scheduling fails
+- Post-game UX: keyboard hides on win/loss; delayed dismissible modal
 
-### Post-game UX
-
-- Keyboard hides on win/loss; result and actions use the freed space
-- Win/loss modal appears after ~2 seconds (tile flips finish first)
-- Dismissible modal; no redundant “close to review” copy
-
-### Engineering
+#### Engineering
 
 - Pure TS `gameEngine`, `dailyWord`, `hardMode`, `share`, `persistedGame`
 - Zustand: `gameStore`, `statsStore`, `settingsStore`
 - AsyncStorage persistence for stats, settings, in-progress games
-- 30 unit tests (`npm test`)
-- Word lists via `npm run build:words` (ENABLE-1 / system dict)
+- 30+ unit tests (`npm test`)
+- Word lists via `npm run build:words`
 
 ---
 
-## v1.2 — Polish (planned)
+## Backlog
 
-| Feature | Description |
-|---------|-------------|
-| **Native share sheet** | Share wins via system share (WhatsApp, Messages, Mail, etc.) in addition to clipboard copy |
-| **Haptics** | Light feedback on key press; success pattern on win |
-| **ENABLE-1 source file** | Bundle `enable1.txt` for dictionary builds without system dict |
+Unprioritized future work — not assigned to a release version.
 
-Share today: `expo-clipboard` only. v1.2 adds `expo-sharing` or React Native `Share` API so users can pick any installed app.
-
----
-
-## v2 — Cloud and social (planned)
-
-| Feature | Description |
-|---------|-------------|
-| **User accounts** | Sign in (Supabase Auth or Firebase) |
-| **Cross-device sync** | Stats and daily completion follow the account |
-| **Leaderboards** | Optional friend or global streak comparison |
-| **Remote push notifications** | Server-triggered reminders (beyond local daily schedule) |
-
-Backend choice (Supabase vs Firebase) is TBD at v2 planning time.
-
----
-
-## v3 — Exploration (ideas)
-
-- Themed word sets (e.g. science week)
-- Accessibility mode (high contrast, color-blind palettes)
-- Localization
-- Web client sharing the same `gameEngine`
+| Feature | Notes |
+|---------|-------|
+| Native share sheet | Share wins via system share (WhatsApp, Messages, Mail, etc.) in addition to clipboard |
+| Haptics | Light feedback on key press; success pattern on win |
+| ENABLE-1 source file | Bundle `enable1.txt` for dictionary builds without system dict |
+| User accounts | Sign in (Supabase Auth or Firebase) |
+| Cross-device sync | Stats and daily completion follow the account |
+| Leaderboards | Optional friend or global streak comparison |
+| Remote push notifications | Server-triggered reminders (beyond local daily schedule) |
+| Feedback | In-app feedback form |
+| Report a bug | In-app bug report flow (revisit after cloud storage) |
+| Themed word sets | e.g. science week |
+| Accessibility mode | High contrast, color-blind palettes |
+| Localization | Multi-language support |
+| Web client | Shares the same `gameEngine` |
 
 ---
 
 ## Promotion process
 
-A planned feature moves into active scope when:
+A backlog item moves into active scope when:
 
 1. Behavior is specified in [experience.md](./experience.md) and/or [game-rules.md](./game-rules.md).
-2. Acceptance criteria are added to [v1.1.md](./v1.1.md) or a new version section.
+2. Acceptance criteria are added to a version spec (e.g. [v1.2.md](./v1.2.md)).
 3. [architecture.md](./architecture.md) and [test-plan.md](./test-plan.md) are updated to match.
-4. Shipped items are recorded in this changelog.
+4. Shipped items are recorded under **Shipped** in this changelog.

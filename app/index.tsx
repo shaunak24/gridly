@@ -6,9 +6,11 @@ import { GridLogo } from '../src/components/GridLogo';
 import { HeaderIconButton } from '../src/components/HeaderIconButton';
 import { ThemeToggleButton } from '../src/components/ThemeToggleButton';
 import { Wordmark } from '../src/components/Wordmark';
+import { useDailyCountdown } from '../src/hooks/useDailyCountdown';
 import { useGameStore } from '../src/stores/gameStore';
 import { useStatsStore } from '../src/stores/statsStore';
 import { useTheme } from '../src/theme/useTheme';
+import { formatDailyCountdownTimer } from '../src/utils/dailyCountdown';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -18,6 +20,7 @@ export default function HomeScreen() {
   const currentStreak = useStatsStore((s) => s.currentStreak);
   const dailyInProgress = useGameStore((s) => s.dailyInProgress);
   const practiceInProgress = useGameStore((s) => s.practiceInProgress);
+  const remainingMs = useDailyCountdown(dailyDone);
 
   const startDaily = () => {
     router.push({ pathname: '/game', params: { mode: 'daily' } });
@@ -68,15 +71,33 @@ export default function HomeScreen() {
             style={({ pressed }) => [
               styles.primaryButton,
               { backgroundColor: theme.coral },
+              dailyDone && styles.primaryButtonDone,
               dailyDone && styles.disabledButton,
               pressed && !dailyDone && styles.pressed,
             ]}
             onPress={startDaily}
             disabled={dailyDone}
             accessibilityRole="button"
-            accessibilityLabel={dailyLabel}
+            accessibilityLabel={
+              dailyDone
+                ? `${dailyLabel}. Next puzzle in ${formatDailyCountdownTimer(remainingMs)}`
+                : dailyLabel
+            }
           >
-            <Text style={[styles.primaryText, { color: theme.textPrimary }]}>{dailyLabel}</Text>
+            <Text
+              style={[
+                styles.primaryText,
+                dailyDone && styles.primaryTextDone,
+                { color: theme.textPrimary },
+              ]}
+            >
+              {dailyLabel}
+            </Text>
+            {dailyDone ? (
+              <Text style={[styles.countdownText, { color: theme.textPrimary }]}>
+                {formatDailyCountdownTimer(remainingMs)}
+              </Text>
+            ) : null}
           </Pressable>
 
           <Pressable
@@ -90,6 +111,19 @@ export default function HomeScreen() {
             accessibilityLabel={practiceLabel}
           >
             <Text style={[styles.secondaryText, { color: theme.textPrimary }]}>{practiceLabel}</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.secondaryButton,
+              { backgroundColor: theme.card, borderColor: theme.border },
+              pressed && styles.pressed,
+            ]}
+            onPress={() => router.push('/create-puzzle')}
+            accessibilityRole="button"
+            accessibilityLabel="Create puzzle"
+          >
+            <Text style={[styles.secondaryText, { color: theme.textPrimary }]}>Create puzzle</Text>
           </Pressable>
 
           <Pressable
@@ -146,8 +180,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  primaryButtonDone: {
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 56,
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+  },
   disabledButton: { opacity: 0.55 },
   primaryText: { fontSize: 18, fontWeight: '700' },
+  primaryTextDone: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  countdownText: {
+    position: 'absolute',
+    right: 12,
+    bottom: 6,
+    fontSize: 13,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+    opacity: 0.9,
+  },
   secondaryButton: {
     borderRadius: 10,
     minHeight: 48,

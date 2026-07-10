@@ -128,7 +128,7 @@ Behavior, architecture, and roadmap are documented in [`specs/`](specs/):
 | [specs/index.md](specs/index.md) | Index and new-session orientation |
 | [specs/experience.md](specs/experience.md) | Screens and UX |
 | [specs/game-rules.md](specs/game-rules.md) | Scoring and word lists |
-| [specs/v1.1.md](specs/v1.1.md) | Current release scope |
+| [specs/v1.2.md](specs/v1.2.md) | Current release scope |
 | [specs/changelog.md](specs/changelog.md) | Version history and planned work |
 | [specs/tech-stack.md](specs/tech-stack.md) | Dependencies and troubleshooting |
 

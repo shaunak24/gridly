@@ -50,6 +50,7 @@ Corporate npm mirrors may block some packages; installs use `npm install --legac
 |---------|-----------|---------|
 | `@react-native-async-storage/async-storage` | React Native Community | Stats, settings, saved games |
 | `expo-clipboard` | Expo | Copy share grid to clipboard |
+| React Native `Share` | Meta | System share sheet for custom puzzles |
 | `expo-notifications` | Expo | Local daily reminder |
 
 ### Animation

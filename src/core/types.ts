@@ -1,6 +1,6 @@
 export type TileState = 'empty' | 'filled' | 'correct' | 'present' | 'absent';
 
-export type GameMode = 'daily' | 'practice';
+export type GameMode = 'daily' | 'practice' | 'custom';
 
 export type GameStatus = 'idle' | 'playing' | 'won' | 'lost';
 

@@ -5,12 +5,23 @@ import { loadJson, removeKey, saveJson, storageKeys } from '../services/storage'
 export type { PersistedGame } from '../core/persistedGame';
 export { toPersistedGame } from '../core/persistedGame';
 
-function storageKeyForMode(mode: GameMode): string {
-  return mode === 'daily' ? storageKeys.savedDaily : storageKeys.savedPractice;
+function storageKeyForMode(mode: GameMode): string | null {
+  if (mode === 'daily') {
+    return storageKeys.savedDaily;
+  }
+  if (mode === 'practice') {
+    return storageKeys.savedPractice;
+  }
+  return null;
 }
 
 export async function loadPersistedGame(mode: GameMode): Promise<PersistedGame | null> {
-  const saved = await loadJson<PersistedGame>(storageKeyForMode(mode));
+  const key = storageKeyForMode(mode);
+  if (!key) {
+    return null;
+  }
+
+  const saved = await loadJson<PersistedGame>(key);
   if (!saved || saved.status !== 'playing' || saved.mode !== mode) {
     return null;
   }
@@ -23,11 +34,19 @@ export async function loadPersistedGame(mode: GameMode): Promise<PersistedGame |
 }
 
 export async function savePersistedGame(game: PersistedGame): Promise<void> {
-  await saveJson(storageKeyForMode(game.mode), game);
+  const key = storageKeyForMode(game.mode);
+  if (!key) {
+    return;
+  }
+  await saveJson(key, game);
 }
 
 export async function clearPersistedGame(mode: GameMode): Promise<void> {
-  await removeKey(storageKeyForMode(mode));
+  const key = storageKeyForMode(mode);
+  if (!key) {
+    return;
+  }
+  await removeKey(key);
 }
 
 export async function hasPersistedGameInProgress(mode: GameMode): Promise<boolean> {

@@ -34,8 +34,8 @@ interface GameState {
   dailyInProgress: boolean;
   practiceInProgress: boolean;
   hydrateProgress: () => Promise<void>;
-  resumeOrStartGame: (mode: GameMode) => Promise<void>;
-  startGame: (mode: GameMode) => void;
+  resumeOrStartGame: (mode: GameMode, options?: { secretWord?: string }) => Promise<boolean>;
+  startGame: (mode: GameMode, options?: { secretWord?: string }) => void;
   appendLetter: (letter: string) => void;
   removeLetter: () => void;
   submitGuess: () => boolean;
@@ -54,7 +54,10 @@ function createEmptyBoard(): GuessRow[] {
   return Array.from({ length: MAX_GUESSES }, emptyRow);
 }
 
-function pickSecret(mode: GameMode): string {
+function pickSecret(mode: GameMode, customWord?: string): string {
+  if (mode === 'custom' && customWord) {
+    return customWord.toUpperCase();
+  }
   if (mode === 'daily') {
     return getDailyWord(new Date(), wordLists.answers);
   }
@@ -74,6 +77,10 @@ function isInMemoryGameResumable(state: GameState, mode: GameMode): boolean {
 }
 
 async function persistIfPlaying(state: GameState): Promise<void> {
+  if (state.mode === 'custom') {
+    return;
+  }
+
   const snapshot = toPersistedGame(state);
   if (snapshot) {
     await savePersistedGame(snapshot);
@@ -111,11 +118,23 @@ export const useGameStore = create<GameState>((set, get) => ({
     await refreshProgressFlags(set);
   },
 
-  resumeOrStartGame: async (mode) => {
+  resumeOrStartGame: async (mode, options) => {
+    if (mode === 'daily' && useStatsStore.getState().isDailyCompleteToday()) {
+      const saved = await loadPersistedGame('daily');
+      if (!saved) {
+        return false;
+      }
+    }
+
     const current = get();
 
+    if (mode === 'custom' && options?.secretWord) {
+      get().startGame('custom', options);
+      return true;
+    }
+
     if (isInMemoryGameResumable(current, mode)) {
-      return;
+      return true;
     }
 
     const saved = await loadPersistedGame(mode);
@@ -133,19 +152,24 @@ export const useGameStore = create<GameState>((set, get) => ({
         shakeRow: false,
       });
       await refreshProgressFlags(set);
-      return;
+      return true;
     }
 
-    get().startGame(mode);
+    if (mode === 'daily' && useStatsStore.getState().isDailyCompleteToday()) {
+      return false;
+    }
+
+    get().startGame(mode, options);
+    return true;
   },
 
-  startGame: (mode) => {
+  startGame: (mode, options) => {
     const dateKey = mode === 'daily' ? getLocalDateKey() : '';
     set({
       status: 'playing',
       mode,
       dateKey,
-      secretWord: pickSecret(mode),
+      secretWord: pickSecret(mode, options?.secretWord),
       guesses: createEmptyBoard(),
       currentGuess: '',
       currentRowIndex: 0,
@@ -155,9 +179,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     });
 
     void (async () => {
-      await clearPersistedGame(mode);
+      if (mode !== 'custom') {
+        await clearPersistedGame(mode);
+      }
       const next = get();
-      await persistIfPlaying(next);
+      if (mode !== 'custom') {
+        await persistIfPlaying(next);
+      }
       await refreshProgressFlags(set);
     })();
   },
@@ -238,12 +266,16 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     const next = get();
     if (isWin || isLoss) {
-      void clearPersistedGame(state.mode);
+      if (state.mode !== 'custom') {
+        void clearPersistedGame(state.mode);
+      }
       void refreshProgressFlags(set);
-      const stats = useStatsStore.getState();
-      void stats.recordResult(isWin, isWin ? rowIndex + 1 : 0);
-      if (state.mode === 'daily') {
-        void stats.markDailyComplete();
+      if (state.mode !== 'custom') {
+        const stats = useStatsStore.getState();
+        void stats.recordResult(isWin, isWin ? rowIndex + 1 : 0);
+        if (state.mode === 'daily') {
+          void stats.markDailyComplete();
+        }
       }
     } else {
       void persistIfPlaying(next);

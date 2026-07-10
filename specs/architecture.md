@@ -42,16 +42,18 @@
 
 | Module | Responsibility |
 |--------|----------------|
-| `app/index.tsx` | Home — branding, play actions, theme bulb, settings gear |
+| `app/index.tsx` | Home — branding, play actions, daily countdown, theme bulb, settings gear |
+| `app/create-puzzle.tsx` | Custom puzzle word entry and share link |
 | `app/settings.tsx` | Hard mode, reminder, reminder time, theme |
 | `app/how-to-play.tsx` | Interactive tutorial |
 | `app/stats.tsx` | Stats and distribution chart |
-| `app/game.tsx` | Puzzle — board, keyboard, end states, delayed modal |
+| `app/game.tsx` | Puzzle — board, keyboard, end states, delayed modal (daily/practice/custom) |
 | `src/components/Board` | 6 rows of tiles; optional compact size |
 | `src/components/Tile` | Single cell; two-sided flip animation |
 | `src/components/Keyboard` | QWERTY layout; key coloring |
-| `src/components/GameModal` | Win/loss overlays |
+| `src/components/GameModal` | Win/loss overlays with emoji; optional primary action |
 | `src/components/GameEndBar` | Post-game result and actions |
+| `src/hooks/useDailyCountdown` | Live countdown hook for daily reset |
 | `src/components/SpeechBalloon` | Tutorial message bubbles |
 | `src/components/ReminderTimePicker` | Reminder time modal |
 | `src/components/ThemeToggleButton` | Home quick theme toggle |
@@ -83,6 +85,7 @@ UI components read from stores and call store actions. They do not implement sco
 |--------|----------------|
 | `gameEngine.ts` | `scoreGuess`, `isValidGuess`, `pickRandomWord`, `mergeLetterStates` |
 | `dailyWord.ts` | `getDailyWord`, `getLocalDateKey`, puzzle number |
+| `customPuzzle.ts` | Share-link encode/decode for custom puzzles |
 | `hardMode.ts` | `violatesHardMode` |
 | `share.ts` | `formatShareGrid` for clipboard |
 | `persistedGame.ts` | Serializable in-progress game shape |

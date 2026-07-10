@@ -8,12 +8,12 @@ Testing focuses on **game engine correctness** (pure logic) and **manual device 
 
 | Layer | Tool | Scope |
 |-------|------|-------|
-| Unit | Jest | `gameEngine`, `dailyWord`, `hardMode`, `share`, `persistedGame`, `formatTime` |
+| Unit | Jest | `gameEngine`, `dailyWord`, `hardMode`, `share`, `customPuzzle`, `persistedGame`, `formatTime`, `dailyCountdown` |
 | Component | React Native Testing Library | Deferred |
 | E2E | Detox or Maestro | Deferred |
 | Manual | Expo Go on device | Full acceptance |
 
-**Current:** 30 unit tests in 7 suites (`npm test`).
+**Current:** 38+ unit tests in 9 suites (`npm test`).
 
 ## Unit tests — game engine
 

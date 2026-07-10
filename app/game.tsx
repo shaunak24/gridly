@@ -9,18 +9,34 @@ import { GameEndBar } from '../src/components/GameEndBar';
 import { GameModal } from '../src/components/GameModal';
 import { HeaderHomeButton } from '../src/components/HeaderHomeButton';
 import { Keyboard } from '../src/components/Keyboard';
+import { decodeCustomWord } from '../src/core/customPuzzle';
 import { formatShareGrid } from '../src/core/share';
 import type { GameMode } from '../src/core/types';
 import { useGameStore } from '../src/stores/gameStore';
+import { useStatsStore } from '../src/stores/statsStore';
 import { useTheme } from '../src/theme/useTheme';
 
 const END_MODAL_DELAY_MS = 2000;
 
+function resolveMode(modeParam?: string): GameMode {
+  if (modeParam === 'daily') {
+    return 'daily';
+  }
+  if (modeParam === 'custom') {
+    return 'custom';
+  }
+  return 'practice';
+}
+
 export default function GameScreen() {
   const router = useRouter();
   const theme = useTheme();
-  const { mode: modeParam } = useLocalSearchParams<{ mode?: string }>();
-  const mode: GameMode = modeParam === 'daily' ? 'daily' : 'practice';
+  const { mode: modeParam, code: codeParam } = useLocalSearchParams<{
+    mode?: string;
+    code?: string;
+  }>();
+  const mode = resolveMode(modeParam);
+  const customCode = typeof codeParam === 'string' ? codeParam : undefined;
 
   const [endModalVisible, setEndModalVisible] = useState(false);
   const {
@@ -41,8 +57,34 @@ export default function GameScreen() {
   } = useGameStore();
 
   useEffect(() => {
-    void resumeOrStartGame(mode);
-  }, [resumeOrStartGame, mode]);
+    const init = async () => {
+      if (mode === 'custom') {
+        const word = customCode ? decodeCustomWord(customCode) : null;
+        if (!word) {
+          Alert.alert('Invalid puzzle', 'This custom puzzle link is not valid.');
+          router.replace('/');
+          return;
+        }
+        const started = await resumeOrStartGame('custom', { secretWord: word });
+        if (!started) {
+          router.replace('/');
+        }
+        return;
+      }
+
+      if (mode === 'daily' && useStatsStore.getState().isDailyCompleteToday()) {
+        const started = await resumeOrStartGame('daily');
+        if (!started) {
+          router.replace('/');
+        }
+        return;
+      }
+
+      await resumeOrStartGame(mode);
+    };
+
+    void init();
+  }, [resumeOrStartGame, mode, customCode, router]);
 
   useEffect(() => {
     if (status !== 'won' && status !== 'lost') {
@@ -55,10 +97,22 @@ export default function GameScreen() {
     return () => clearTimeout(timer);
   }, [status]);
 
-  const handlePlayAgain = useCallback(() => {
+  const handlePractice = useCallback(() => {
     setEndModalVisible(false);
     startGame('practice');
   }, [startGame]);
+
+  const handlePlayAgain = useCallback(() => {
+    setEndModalVisible(false);
+    if (mode === 'custom') {
+      const word = customCode ? decodeCustomWord(customCode) : null;
+      if (word) {
+        startGame('custom', { secretWord: word });
+      }
+      return;
+    }
+    startGame('practice');
+  }, [startGame, mode, customCode]);
 
   const handleShare = useCallback(async () => {
     const text = formatShareGrid(
@@ -66,10 +120,12 @@ export default function GameScreen() {
       currentRowIndex,
       status === 'won',
       mode,
+      new Date(),
+      secretWord,
     );
     await Clipboard.setStringAsync(text);
     Alert.alert('Copied', 'Results copied to clipboard.');
-  }, [guesses, currentRowIndex, status, mode]);
+  }, [guesses, currentRowIndex, status, mode, secretWord]);
 
   const goHome = useCallback(() => {
     router.replace('/');
@@ -78,6 +134,7 @@ export default function GameScreen() {
   const isPlaying = status === 'playing';
   const isFinished = status === 'won' || status === 'lost';
   const winGuessCount = currentRowIndex;
+  const isDailyFinished = mode === 'daily' && isFinished;
 
   const endMessage =
     status === 'won'
@@ -86,7 +143,13 @@ export default function GameScreen() {
         ? `The word was ${secretWord}`
         : '';
 
-  const headerLabel = mode === 'daily' ? 'Daily' : 'Practice';
+  const headerLabel =
+    mode === 'daily' ? 'Daily' : mode === 'custom' ? 'Custom' : 'Practice';
+
+  const endBarLabel = isDailyFinished ? 'Practice' : 'Play again';
+  const endBarAction = isDailyFinished ? handlePractice : handlePlayAgain;
+  const modalPrimaryLabel = mode === 'daily' ? undefined : 'Play again';
+  const modalPrimaryAction = mode === 'daily' ? undefined : handlePlayAgain;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -113,8 +176,9 @@ export default function GameScreen() {
         <View style={styles.endArea}>
           <GameEndBar
             message={endMessage}
-            onPlayAgain={handlePlayAgain}
-            onShare={status === 'won' ? handleShare : undefined}
+            onPlayAgain={endBarAction}
+            playAgainLabel={endBarLabel}
+            onShare={status === 'won' && mode === 'daily' ? handleShare : undefined}
             shareLabel={mode === 'daily' ? 'Share' : undefined}
             prominent
           />
@@ -132,19 +196,21 @@ export default function GameScreen() {
 
       <GameModal
         visible={status === 'won' && endModalVisible}
+        emoji="🎉"
         title="You got it!"
         message={endMessage}
-        primaryLabel={mode === 'daily' ? 'Practice' : 'Play again'}
-        onPrimary={handlePlayAgain}
+        primaryLabel={modalPrimaryLabel}
+        onPrimary={modalPrimaryAction}
         onDismiss={() => setEndModalVisible(false)}
       />
 
       <GameModal
         visible={status === 'lost' && endModalVisible}
+        emoji="😔"
         title="Nice try"
         message={endMessage}
-        primaryLabel="Practice"
-        onPrimary={handlePlayAgain}
+        primaryLabel={modalPrimaryLabel}
+        onPrimary={modalPrimaryAction}
         onDismiss={() => setEndModalVisible(false)}
       />
     </SafeAreaView>

@@ -4,7 +4,9 @@ import { useTheme } from '../theme/useTheme';
 
 interface GameEndBarProps {
   message: string;
-  onPlayAgain: () => void;
+  onPlayAgain?: () => void;
+  playAgainLabel?: string;
+  playAgainDisabled?: boolean;
   onShare?: () => void;
   shareLabel?: string;
   prominent?: boolean;
@@ -13,6 +15,8 @@ interface GameEndBarProps {
 export function GameEndBar({
   message,
   onPlayAgain,
+  playAgainLabel = 'Play again',
+  playAgainDisabled = false,
   onShare,
   shareLabel = 'Share',
   prominent = false,
@@ -43,16 +47,20 @@ export function GameEndBar({
             <Text style={[styles.secondaryText, { color: theme.textPrimary }]}>{shareLabel}</Text>
           </Pressable>
         ) : null}
-        <Pressable
-          style={({ pressed }) => [
-            styles.primaryButton,
-            { backgroundColor: theme.coral },
-            pressed && styles.pressed,
-          ]}
-          onPress={onPlayAgain}
-        >
-          <Text style={[styles.primaryText, { color: theme.textPrimary }]}>Play again</Text>
-        </Pressable>
+        {onPlayAgain ? (
+          <Pressable
+            style={({ pressed }) => [
+              styles.primaryButton,
+              { backgroundColor: theme.coral },
+              playAgainDisabled && styles.disabledButton,
+              pressed && !playAgainDisabled && styles.pressed,
+            ]}
+            onPress={onPlayAgain}
+            disabled={playAgainDisabled}
+          >
+            <Text style={[styles.primaryText, { color: theme.textPrimary }]}>{playAgainLabel}</Text>
+          </Pressable>
+        ) : null}
       </View>
     </View>
   );
@@ -79,6 +87,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
   },
+  disabledButton: { opacity: 0.55 },
   primaryText: { fontSize: 16, fontWeight: '700' },
   secondaryText: { fontSize: 16, fontWeight: '600' },
   pressed: { opacity: 0.85 },

@@ -4,15 +4,17 @@ import { useTheme } from '../theme/useTheme';
 
 interface GameModalProps {
   visible: boolean;
+  emoji?: string;
   title: string;
   message: string;
-  primaryLabel: string;
-  onPrimary: () => void;
+  primaryLabel?: string;
+  onPrimary?: () => void;
   onDismiss: () => void;
 }
 
 export function GameModal({
   visible,
+  emoji,
   title,
   message,
   primaryLabel,
@@ -20,6 +22,7 @@ export function GameModal({
   onDismiss,
 }: GameModalProps) {
   const theme = useTheme();
+  const showPrimary = Boolean(primaryLabel && onPrimary);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onDismiss}>
@@ -34,14 +37,17 @@ export function GameModal({
           >
             <Text style={[styles.closeText, { color: theme.textSecondary }]}>✕</Text>
           </Pressable>
+          {emoji ? <Text style={styles.emoji}>{emoji}</Text> : null}
           <Text style={[styles.title, { color: theme.textPrimary }]}>{title}</Text>
           <Text style={[styles.message, { color: theme.textSecondary }]}>{message}</Text>
-          <Pressable
-            style={[styles.primaryButton, { backgroundColor: theme.coral }]}
-            onPress={onPrimary}
-          >
-            <Text style={[styles.primaryText, { color: theme.textPrimary }]}>{primaryLabel}</Text>
-          </Pressable>
+          {showPrimary ? (
+            <Pressable
+              style={[styles.primaryButton, { backgroundColor: theme.coral }]}
+              onPress={onPrimary}
+            >
+              <Text style={[styles.primaryText, { color: theme.textPrimary }]}>{primaryLabel}</Text>
+            </Pressable>
+          ) : null}
         </Pressable>
       </Pressable>
     </Modal>
@@ -75,6 +81,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   closeText: { fontSize: 16, fontWeight: '600' },
+  emoji: { fontSize: 48, textAlign: 'center' },
   title: { fontSize: 24, fontWeight: '700', textAlign: 'center' },
   message: { fontSize: 16, textAlign: 'center' },
   primaryButton: {

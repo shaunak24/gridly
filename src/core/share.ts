@@ -7,12 +7,21 @@ const TILE_EMOJI: Record<string, string> = {
   absent: '⬛',
 };
 
+function formatShareDate(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
 export function formatShareGrid(
   guesses: GuessRow[],
   guessCount: number,
   won: boolean,
-  mode: 'daily' | 'practice',
+  mode: 'daily' | 'practice' | 'custom',
   date: Date = new Date(),
+  secretWord = '',
 ): string {
   const rows = guesses
     .filter((row) => row.states.some((s) => s === 'correct' || s === 'present' || s === 'absent'))
@@ -27,10 +36,17 @@ export function formatShareGrid(
         .join(''),
     );
 
+  const attempts = won ? `${guessCount}/6` : 'X/6';
+  const answer = secretWord.toUpperCase();
+
   const header =
     mode === 'daily'
-      ? `Gridly Daily ${getDailyPuzzleNumber(date)} ${won ? guessCount : 'X'}/6`
-      : `Gridly Practice ${won ? guessCount : 'X'}/6`;
+      ? `Gridly Daily #${getDailyPuzzleNumber(date)} · ${formatShareDate(date)}`
+      : mode === 'custom'
+        ? 'Gridly Custom Puzzle'
+        : 'Gridly Practice';
 
-  return [header, '', ...rows].join('\n');
+  const meta = answer ? `${attempts} · ${answer}` : attempts;
+
+  return [header, meta, '', ...rows].join('\n');
 }
