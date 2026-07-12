@@ -32,7 +32,8 @@
           "icon": "./assets/icon.png",
           "color": "#F97316"
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "extra": {
       "eas": {

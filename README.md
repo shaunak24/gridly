@@ -1,32 +1,42 @@
 # Gridly
 
-Gridly is a cross-platform mobile word puzzle where you guess a hidden five-letter word in six tries. Each guess must be a real word — tiles flip to **teal** when a letter is in the right spot, **amber** when it’s in the word but the wrong place, and **slate** when it’s not there at all.
+Gridly is a cross-platform **grid-based games** app. The platform home lists games; **Word Hunt** is a five-letter word puzzle (Wordle-style), and **Grid Snap** is an image jigsaw where you drag and connect tiles.
 
 Built with **Expo SDK 54**, **React Native**, and **TypeScript**. Runs on iOS and Android from one codebase.
 
 ## Features
 
+### Platform
+
+- **Game hub** — Word Hunt and Grid Snap cards
+- **App settings** — dark, light, or system theme on the platform home
+
+### Word Hunt
+
 - **Daily puzzle** — one shared word per day (local timezone)
 - **Practice** — unlimited random words
-- **Resume** — in-progress games survive leaving the app or restarting
-- **Stats** — streaks, win rate, guess distribution (saved on device)
-- **Share** — copy emoji grid to clipboard after a win
-- **Hard mode** — every guess must use all revealed hints
-- **Interactive tutorial** — guided how-to-play with speech balloons
-- **Themes** — dark, light, or system; quick toggle on home
-- **Daily reminder** — optional local notification at a chosen time (standalone builds only)
+- **Custom puzzles** — share a word via deep link
+- **Resume** — in-progress games survive leaving the app
+- **Stats**, **hard mode**, **tutorial**, **daily reminder**
+
+### Grid Snap
+
+- **Daily challenge** and **practice** image puzzles
+- **Drag and snap** — matching neighbors connect with animation
+- **Difficulty** — Easy 4×4, Medium 6×6, Hard 8×8
+- **Stats** and **how to play**
 
 ## Tech stack
 
 | Layer | Tools |
 |-------|--------|
 | App | Expo 54, React Native 0.81, Expo Router |
-| State | Zustand |
-| Storage | AsyncStorage |
-| Animation | Reanimated 4 |
-| Tests | Jest (30 unit tests) |
+| State | Zustand (per game + app) |
+| Storage | AsyncStorage (namespaced) |
+| Animation | Reanimated 4, Gesture Handler |
+| Tests | Jest (45 unit tests) |
 
-Game logic lives in pure TypeScript (`src/core/`) with no React Native imports.
+Game logic lives in pure TypeScript under `src/games/<id>/core/` with no React Native imports.
 
 ## Prerequisites
 
@@ -93,8 +103,8 @@ Project ID is configured in `app.json` under `extra.eas.projectId`.
 
 ## Word lists
 
-- **Answers:** `src/data/words.json` (~530 words)
-- **Allowed guesses:** `src/data/allowed-guesses.json` (~10,000 words, ENABLE-1 style)
+- **Answers:** `src/data/words.json` (~8,600 five-letter ENABLE-1 words)
+- **Allowed guesses:** `src/data/allowed-guesses.json` (~8,600 words, ENABLE-1)
 
 Regenerate from source:
 

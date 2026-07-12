@@ -8,16 +8,16 @@ Testing focuses on **game engine correctness** (pure logic) and **manual device 
 
 | Layer | Tool | Scope |
 |-------|------|-------|
-| Unit | Jest | `gameEngine`, `dailyWord`, `hardMode`, `share`, `customPuzzle`, `persistedGame`, `formatTime`, `dailyCountdown` |
+| Unit | Jest | Word Hunt + Grid Snap core modules, utilities |
 | Component | React Native Testing Library | Deferred |
 | E2E | Detox or Maestro | Deferred |
 | Manual | Expo Go on device | Full acceptance |
 
-**Current:** 38+ unit tests in 9 suites (`npm test`).
+**Current:** 45+ unit tests in 10 suites (`npm test`).
 
 ## Unit tests — game engine
 
-File: `src/core/__tests__/gameEngine.test.ts`
+File: `src/games/word-hunt/core/__tests__/gameEngine.test.ts`
 
 ### `scoreGuess(secret, guess)`
 
@@ -40,7 +40,7 @@ File: `src/core/__tests__/gameEngine.test.ts`
 
 ## Unit tests — daily word
 
-File: `src/core/__tests__/dailyWord.test.ts`
+File: `src/games/word-hunt/core/__tests__/dailyWord.test.ts`
 
 | Case | Expected |
 |------|----------|
@@ -49,7 +49,7 @@ File: `src/core/__tests__/dailyWord.test.ts`
 
 ## Unit tests — hard mode
 
-File: `src/core/__tests__/hardMode.test.ts`
+File: `src/games/word-hunt/core/__tests__/hardMode.test.ts`
 
 | Case | Expected |
 |------|----------|
@@ -59,7 +59,7 @@ File: `src/core/__tests__/hardMode.test.ts`
 
 ## Unit tests — share
 
-File: `src/core/__tests__/share.test.ts`
+File: `src/games/word-hunt/core/__tests__/share.test.ts`
 
 | Case | Expected |
 |------|----------|
@@ -68,12 +68,33 @@ File: `src/core/__tests__/share.test.ts`
 
 ## Unit tests — persisted game
 
-File: `src/core/__tests__/persistedGame.test.ts`
+File: `src/games/word-hunt/core/__tests__/persistedGame.test.ts`
 
 | Case | Expected |
 |------|----------|
 | Playing game serializes | Non-null snapshot |
 | Won/idle | Returns null |
+
+## Manual test checklist — v2.0
+
+### Platform
+
+- [ ] Platform home shows Word Hunt and Grid Snap cards
+- [ ] Theme toggle and app settings work from platform home
+- [ ] Each game hub back button returns to platform home
+
+### Word Hunt
+
+- [ ] Daily, practice, create puzzle, stats, how to play work from game hub
+- [ ] In-game Home returns to Word Hunt hub (not platform home)
+- [ ] Legacy `gridly://game?mode=custom&code=…` opens custom puzzle
+
+### Grid Snap
+
+- [ ] Daily and practice load an image puzzle
+- [ ] Dragging tiles works; matching neighbors group correctly; win modal appears on solve
+- [ ] Completing puzzle shows win state
+- [ ] Stats and settings persist
 
 ## Manual test checklist — v1.1
 

@@ -61,6 +61,12 @@ Corporate npm mirrors may block some packages; installs use `npm install --legac
 | `react-native-worklets` | Software Mansion | Reanimated 4 peer (SDK 54) |
 | `react-native-gesture-handler` | Software Mansion | Gesture support |
 
+### Feedback
+
+| Package | Publisher | Purpose |
+|---------|-----------|---------|
+| `expo-audio` | Expo | Win/loss sounds on game end (`gameEndSound` service) |
+
 ### Dev and test
 
 | Package | Publisher | Purpose |

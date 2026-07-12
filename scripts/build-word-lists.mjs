@@ -1,8 +1,8 @@
 /**
- * Builds allowed-guesses.json from a dictionary source file.
+ * Builds words.json (answer words) and allowed-guesses.json from a dictionary source.
  *
  * Preferred source: ENABLE-1 (the same word-list family used by Wordle).
- * Place enable1.txt in src/data/sources/enable1.txt (one word per line).
+ * Place enable1.txt in src/games/word-hunt/data/sources/enable1.txt (one word per line).
  *
  * Fallback (macOS/Linux): /usr/share/dict/words
  *
@@ -15,11 +15,11 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const sourcesDir = join(root, 'src/data/sources');
+const sourcesDir = join(root, 'src/games/word-hunt/data/sources');
 const enablePath = join(sourcesDir, 'enable1.txt');
 const systemDict = '/usr/share/dict/words';
-const answersPath = join(root, 'src/data/words.json');
-const outputPath = join(root, 'src/data/allowed-guesses.json');
+const answersPath = join(root, 'src/games/word-hunt/data/words.json');
+const outputPath = join(root, 'src/games/word-hunt/data/allowed-guesses.json');
 
 function readLines(path) {
   return readFileSync(path, 'utf8')
@@ -43,7 +43,7 @@ let sourceName;
 let words;
 
 if (existsSync(enablePath)) {
-  sourceName = 'ENABLE-1 (src/data/sources/enable1.txt)';
+  sourceName = 'ENABLE-1 (src/games/word-hunt/data/sources/enable1.txt)';
   words = readLines(enablePath);
 } else if (existsSync(systemDict)) {
   sourceName = `system dictionary (${systemDict})`;
@@ -52,17 +52,14 @@ if (existsSync(enablePath)) {
   throw new Error('No dictionary source available.');
 }
 
-const answers = JSON.parse(readFileSync(answersPath, 'utf8')).answers;
-const allowed = [...new Set([...words, ...answers])].sort();
+const answers = [...new Set(words)].sort();
+const allowed = answers;
 
+writeFileSync(answersPath, `${JSON.stringify({ answers }, null, 2)}\n`);
 writeFileSync(outputPath, JSON.stringify(allowed));
 
-const missingAnswers = answers.filter((w) => !allowed.includes(w));
-if (missingAnswers.length > 0) {
-  console.warn('Answers not in allowed list:', missingAnswers.join(', '));
-}
-
 console.log(`Source: ${sourceName}`);
-console.log(`Allowed guesses: ${allowed.length}`);
 console.log(`Answer words: ${answers.length}`);
+console.log(`Allowed guesses: ${allowed.length}`);
+console.log(`Wrote ${answersPath}`);
 console.log(`Wrote ${outputPath}`);

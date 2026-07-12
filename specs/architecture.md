@@ -2,151 +2,129 @@
 
 ## Principles
 
-- **Separation of concerns** — game logic lives in pure TypeScript; UI components only render state and dispatch actions.
-- **Testability** — the game engine runs in Node/Jest without a device or simulator.
-- **Incremental growth** — modules expose extension points for native share, haptics, and cloud sync without rewrites.
+- **Separation of concerns** — game logic lives in pure TypeScript per game; UI components only render state and dispatch actions.
+- **Testability** — game engines run in Node/Jest without a device or simulator.
+- **Incremental growth** — `gameRegistry` and per-game modules make adding games straightforward.
 
 ## Layer diagram
 
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  UI Layer (React Native + Expo Router)                   │
-│  Screens · Board · Tile · Keyboard · SpeechBalloon · …   │
+│  Platform home · Game hubs · Play screens · Components   │
 └─────────────────────────┬────────────────────────────────┘
                           │
 ┌─────────────────────────▼────────────────────────────────┐
-│  State Layer (Zustand)                                   │
-│  gameStore · statsStore · settingsStore                  │
+│  Platform Layer                                          │
+│  gameRegistry · GameCard                                 │
 └─────────────────────────┬────────────────────────────────┘
                           │
 ┌─────────────────────────▼────────────────────────────────┐
-│  Services                                                │
-│  storage · notifications                                 │
+│  State Layer (Zustand, per game + app)                   │
+│  appSettingsStore · word-hunt stores · grid-snap stores  │
 └─────────────────────────┬────────────────────────────────┘
                           │
 ┌─────────────────────────▼────────────────────────────────┐
-│  Core Layer (pure TypeScript)                            │
-│  gameEngine · dailyWord · hardMode · share · persistedGame│
-│  tutorialScript · types · wordLists                      │
+│  Services (shared + per game)                            │
+│  storage · notifications · imageService · shareSheet     │
+└─────────────────────────┬────────────────────────────────┘
+                          │
+┌─────────────────────────▼────────────────────────────────┐
+│  Core Layer (pure TypeScript, per game)                  │
+│  word-hunt: gameEngine, dailyWord, share, …              │
+│  grid-snap: puzzleEngine, dailyPuzzle, …                 │
 └─────────────────────────┬────────────────────────────────┘
                           │
 ┌─────────────────────────▼────────────────────────────────┐
 │  Data Layer                                              │
-│  words.json · allowed-guesses.json · AsyncStorage        │
+│  word lists JSON · AsyncStorage (namespaced keys)        │
 └──────────────────────────────────────────────────────────┘
+```
+
+## Directory layout
+
+```
+app/
+  index.tsx                 # Platform home
+  settings.tsx              # App theme
+  game.tsx                  # Legacy deep-link redirect
+  games/
+    word-hunt/              # Hub, play, stats, settings, …
+    grid-snap/
+
+src/
+  platform/                 # gameRegistry, GameCard
+  shared/                   # theme, app settings, storage, header components
+  games/
+    word-hunt/              # core, components, stores, data, hooks
+    grid-snap/              # core, components, stores, services
+  services/                 # notifications, shareSheet (shared infra)
 ```
 
 ## Modules
 
-### UI layer
+### Platform
 
 | Module | Responsibility |
 |--------|----------------|
-| `app/index.tsx` | Home — branding, play actions, daily countdown, theme bulb, settings gear |
-| `app/create-puzzle.tsx` | Custom puzzle word entry and share link |
-| `app/settings.tsx` | Hard mode, reminder, reminder time, theme |
-| `app/how-to-play.tsx` | Interactive tutorial |
-| `app/stats.tsx` | Stats and distribution chart |
-| `app/game.tsx` | Puzzle — board, keyboard, end states, delayed modal (daily/practice/custom) |
-| `src/components/Board` | 6 rows of tiles; optional compact size |
-| `src/components/Tile` | Single cell; two-sided flip animation |
-| `src/components/Keyboard` | QWERTY layout; key coloring |
-| `src/components/GameModal` | Win/loss overlays with emoji; optional primary action |
-| `src/components/GameEndBar` | Post-game result and actions |
-| `src/hooks/useDailyCountdown` | Live countdown hook for daily reset |
-| `src/components/SpeechBalloon` | Tutorial message bubbles |
-| `src/components/ReminderTimePicker` | Reminder time modal |
-| `src/components/ThemeToggleButton` | Home quick theme toggle |
-| `src/components/HeaderIconButton` | Header icon buttons |
-| `src/components/HeaderHomeButton` | Home navigation control |
+| `app/index.tsx` | Platform home — game cards, theme toggle, app settings link |
+| `app/settings.tsx` | App-level theme (Dark / Light / System) |
+| `src/platform/gameRegistry.ts` | Registered games for hub cards |
+| `src/platform/components/GameCard.tsx` | Game card UI |
 
-UI components read from stores and call store actions. They do not implement scoring or validation.
-
-### State layer
-
-| Store | Responsibility |
-|-------|----------------|
-| `gameStore` | Active puzzle: mode, secret word, guesses, row index, status, resume/start |
-| `statsStore` | Games played, streak, distribution, daily completion date |
-| `settingsStore` | Theme, hard mode, notifications, reminder time |
-
-`gameStore` persists in-progress games via `gamePersistence.ts` on each guess. `statsStore` and `settingsStore` use `src/services/storage.ts` (AsyncStorage).
-
-### Services
+### Word Hunt
 
 | Module | Responsibility |
 |--------|----------------|
-| `storage.ts` | AsyncStorage keys and load/save helpers |
-| `notifications.ts` | Daily reminder scheduling; Expo Go detection |
+| `app/games/word-hunt/index.tsx` | Game hub — daily, practice, create, stats links |
+| `app/games/word-hunt/play.tsx` | Board, keyboard, end states |
+| `src/games/word-hunt/core/gameEngine.ts` | Scoring, validation |
+| `src/games/word-hunt/stores/gameStore.ts` | Active puzzle state |
+| `src/games/word-hunt/stores/statsStore.ts` | Stats and daily completion |
+| `src/games/word-hunt/stores/wordHuntSettingsStore.ts` | Hard mode, reminders |
 
-### Core layer
+### Grid Snap
 
 | Module | Responsibility |
 |--------|----------------|
-| `gameEngine.ts` | `scoreGuess`, `isValidGuess`, `pickRandomWord`, `mergeLetterStates` |
-| `dailyWord.ts` | `getDailyWord`, `getLocalDateKey`, puzzle number |
-| `customPuzzle.ts` | Share-link encode/decode for custom puzzles |
-| `hardMode.ts` | `violatesHardMode` |
-| `share.ts` | `formatShareGrid` for clipboard |
-| `persistedGame.ts` | Serializable in-progress game shape |
-| `tutorialScript.ts` | Tutorial steps and example words |
-| `wordLists.ts` | Loads bundled JSON word lists |
-| `types.ts` | Shared types and constants |
+| `app/games/grid-snap/index.tsx` | Game hub |
+| `app/games/grid-snap/play.tsx` | Puzzle canvas, drag/snap |
+| `src/games/grid-snap/core/puzzleEngine.ts` | Grid split, adjacency, groups, win |
+| `src/games/grid-snap/stores/gridSnapStore.ts` | Puzzle session state |
+| `src/games/grid-snap/services/imageService.ts` | Picsum / optional Pexels images |
 
-`gameEngine.ts` has **no** imports from `react`, `react-native`, or `expo`.
+### Shared
 
-### Data layer
-
-| Source | Purpose |
-|--------|---------|
-| `words.json` | Answer words (~530) |
-| `allowed-guesses.json` | Guess validation (~10,000 words) |
-| AsyncStorage | Stats, settings, daily completion, saved games |
-
-## Game flow (state machine)
-
-```
-idle → playing → won | lost
-         ↑          │
-         └──────────┘  play again / resume
-```
-
-| State | Transitions |
-|-------|-------------|
-| `idle` | `resumeOrStartGame()` → `playing` (restore saved or new game) |
-| `playing` | valid guess + match → `won`; 6 guesses, no match → `lost`; valid guess, rows remain → `playing` |
-| `won` / `lost` | `startGame()` → `playing`; navigate home → state persisted if still `playing` |
-
-In-progress games save to AsyncStorage on each letter change and guess. Completed games clear saved state.
+| Module | Responsibility |
+|--------|----------------|
+| `src/shared/stores/appSettingsStore.ts` | App theme preference |
+| `src/shared/services/storage.ts` | AsyncStorage + v1.x key migration |
+| `src/shared/theme/` | Colors, `useTheme` |
+| `src/shared/components/GameModal.tsx` | Win/loss celebration modal (all games) |
+| `src/shared/components/GameEndBar.tsx` | Post-game action bar (all games) |
+| `src/shared/components/GameEndExperience.tsx` | Composes end bar + modals for play screens |
+| `src/shared/hooks/useGameEndFlow.ts` | Delayed modal timing, daily vs practice actions |
+| `src/shared/gameEnd/gameEndConfig.ts` | Shared copy, delay constant, `onGameEndPresented` hook for haptics |
+| `src/shared/services/gameEndSound.ts` | Win/loss sound playback via `expo-audio` |
 
 ## Navigation
 
-**Expo Router** file-based routes:
+**Expo Router** file-based routes. See [experience.md](./experience.md).
 
-```
-app/
-  _layout.tsx        # Root stack, hydrates stores
-  index.tsx          # Home
-  game.tsx           # Puzzle
-  stats.tsx          # Stats
-  settings.tsx       # Settings
-  how-to-play.tsx    # Interactive tutorial
-```
-
-## Extension points (planned)
+## Extension points
 
 | Hook | Location | Next use |
 |------|----------|----------|
-| `formatShareGrid()` | `src/core/share.ts` | Native share sheet (v1.2) |
-| `expo-haptics` | new service | Key press and win feedback (v1.2) |
-| Remote API | future layer | Account sync, leaderboards (v2) |
+| `GAMES` registry | `src/platform/gameRegistry.ts` | Add third game |
+| `formatShareGrid()` | `src/games/word-hunt/core/share.ts` | Native share (v2.1) |
+| `expo-haptics` | `onGameEndPresented` in `src/shared/gameEnd/gameEndConfig.ts` | Win/loss haptics (v2.1) |
 
-See [changelog.md](./changelog.md) for the full roadmap.
+See [v2.1.md](./v2.1.md) for the full roadmap.
 
 ## Dependencies between specs
 
 - [experience.md](./experience.md) defines what each screen does.
-- [game-rules.md](./game-rules.md) defines engine behavior.
+- [game-rules.md](./game-rules.md) defines Word Hunt engine behavior.
 - [tech-stack.md](./tech-stack.md) defines frameworks and packages.
 - [test-plan.md](./test-plan.md) defines verification.
-- [changelog.md](./changelog.md) defines version history and planned features.
+- [changelog.md](./changelog.md) defines version history.

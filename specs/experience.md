@@ -2,52 +2,99 @@
 
 ## Overview
 
-Gridly presents a branded home screen, an interactive how-to-play tutorial, daily and practice modes, stats, settings, and a focused puzzle screen. Navigation is shallow: users reach the puzzle in one or two taps from home.
+Gridly is a **multi-game platform**. The platform home shows game cards. Each game has its own hub (daily, practice, stats, how to play, settings) and play screen. App-wide theme lives on the platform home; game-specific settings live on each game hub.
 
 ## Screen map
 
 ```
-Home ──► How to Play (interactive tutorial)
-  ├──► Daily puzzle
-  ├──► Practice puzzle
-  ├──► Create puzzle (custom word + share link)
-  ├──► Stats
-  └──► Settings
+Platform Home (/)
+  ├── App Settings (theme)
+  ├── Word Hunt hub (/games/word-hunt)
+  │     ├── Play daily / practice / custom
+  │     ├── Stats · How to play · Settings (hard mode, reminder)
+  │     └── Back → Platform Home
+  └── Grid Snap hub (/games/grid-snap)
+        ├── Play daily / practice
+        ├── Stats · How to play · Settings (difficulty)
+        └── Back → Platform Home
 
-Puzzle ──► Win / Loss (delayed modal → review board)
-Custom puzzle ──► opened via gridly:// deep link
+Word Hunt custom puzzle ──► gridly://games/word-hunt/play?mode=custom&code=…
+Legacy link gridly://game?… ──► redirects to Word Hunt play
 ```
 
-## Home screen
+## Platform home
 
-The home screen is the app entry point and carries full Gridly branding.
+The platform home is the app entry point.
 
 ### Layout
 
 - **App icon** — 5×6 grid logo (see [branding.md](./branding.md)).
 - **Wordmark** — “Gridly” with stylized coral “i”.
-- **Tagline** — short line such as “Guess the word in six tries.”
-- **Streak summary** — current streak and games played (when stats exist).
-- **Play daily** / **Continue daily** — today's puzzle; disabled when complete, with a live countdown on the button (`MM:SS` or `H:MM:SS`).
-- **Practice** / **Continue practice** — random unlimited puzzle.
-- **Create puzzle** — set a 5-letter word and copy a share link for friends.
-- **Stats** — opens the stats screen.
-- **How to play** — opens the interactive tutorial.
-- **Top bar** — light-bulb icon toggles dark/light theme; gear icon opens **Settings**.
+- **Tagline** — “Grid-based games.”
+- **Game cards** — Word Hunt, Grid Snap (title + tagline each).
+- **Top bar** — light-bulb theme toggle; gear opens **app settings** (theme only).
 
 ### Behavior
 
+- Tapping a game card opens that game’s hub.
 - Safe area insets respected on notched devices.
-- Theme quick-toggle on home switches between dark and light; Settings offers Dark / Light / System.
 
-## Settings
+## App settings
 
-Dedicated screen opened from the gear icon on home.
+Opened from the gear icon on the platform home.
+
+- **Theme** — cycles Dark, Light, and System.
+
+## Word Hunt hub
+
+Former v1.x home screen. Carries Word Hunt branding context.
+
+### Layout
+
+- **Back to Gridly** — returns to platform home.
+- **Tagline** — “Guess the word in six tries.”
+- **Streak summary** — current streak and games played (when stats exist).
+- **Play daily** / **Continue daily** — disabled when complete, with live countdown.
+- **Practice** / **Continue practice**
+- **Create puzzle** — custom word + share link.
+- **Stats** · **How to play**
+- **Settings** (gear) — hard mode, daily reminder, reminder time.
+
+## Word Hunt settings
 
 - **Hard mode** — revealed hints must be used in every guess.
-- **Daily reminder** — optional local notification at a user-selected time (default 8:00 AM).
-- **Reminder time** — hour and minute picker (5-minute steps); enabled when reminder is on.
-- **Theme** — cycles Dark, Light, and System.
+- **Daily reminder** — optional local notification (default 8:00 AM).
+- **Reminder time** — hour and minute picker.
+
+## Grid Snap hub
+
+Mirrors Word Hunt hub structure for the image jigsaw game.
+
+### Layout
+
+- **Back to Gridly**
+- **Tagline** — “Connect the pieces.”
+- **Streak summary** when stats exist.
+- **Play daily** / **Continue daily** — countdown when complete.
+- **Practice** / **Continue practice**
+- **Stats** · **How to play**
+- **Settings** (gear) — default difficulty (Easy 4×4, Medium 6×6, Hard 8×8).
+
+## Grid Snap play
+
+- Photo split into a square grid; every cell always holds exactly one tile.
+- Tiles start shuffled across cells; the board is always fully filled.
+- Visible grid lines show cell boundaries.
+- Dragging a tile to another cell **swaps** the two tiles (e.g. cell 1 ↔ cell 4).
+- Two tiles snap into a group only when they are **image neighbors placed in the correct relative position** (the piece to the right of another is the piece that truly sits to its right). Groups are recomputed after every move: they grow when correct neighbors line up and split again when a tile is dragged away.
+- Dragging a tile in a snapped group moves the whole group when there is room; otherwise the dragged tile swaps with the target cell.
+- Win when every tile is in its correct cell. A **GameModal** celebration (matching Word Hunt) appears after a short delay, with a **GameEndBar** below the board for Play again / Practice.
+
+### Test mode
+
+Setting `EXPO_PUBLIC_GRID_SNAP_TEST=1` (via `npm run start:test` or `npm run start:test:tunnel`) renders each tile as a numbered colored cell instead of an image slice and skips the image download. Tiles are numbered by their correct position (row-major, 1-based), so a solved grid reads `1, 2, 3, …` left-to-right, top-to-bottom. Use this to verify swap and snap behavior without solving a photo.
+
+## Word Hunt — legacy sections below
 
 ## How to play
 
@@ -121,15 +168,21 @@ Screen from home for sharing a custom word challenge.
 
 | From | To | Trigger |
 |------|-----|---------|
-| Home | Daily puzzle | **Play daily** / **Continue daily** |
-| Home | Practice puzzle | **Practice** / **Continue practice** |
-| Home | Create puzzle | **Create puzzle** |
-| Deep link | Custom puzzle | `gridly://game?mode=custom&code=…` |
-| Home | Stats | **Stats** |
-| Home | How to play | **How to play** |
-| Home | Settings | Gear icon |
-| Settings | Home | **Home** (header) |
-| Puzzle | Home | **Home** (header) |
+| Home | Daily puzzle | **Play daily** / **Continue daily** (Word Hunt hub) |
+| Home | Practice puzzle | **Practice** (Word Hunt hub) |
+| Platform home | Word Hunt | Game card |
+| Platform home | Grid Snap | Game card |
+| Word Hunt hub | Play | Daily / Practice / Custom |
+| Grid Snap hub | Play | Daily / Practice |
+| Deep link | Custom puzzle | `gridly://games/word-hunt/play?mode=custom&code=…` |
+| Legacy deep link | Custom puzzle | `gridly://game?…` redirects |
+| Word Hunt hub | Stats | **Stats** |
+| Word Hunt hub | How to play | **How to play** |
+| Word Hunt hub | Settings | Gear icon |
+| Platform home | App settings | Gear icon |
+| Word Hunt play | Word Hunt hub | **Home** (header) |
+| Grid Snap play | Grid Snap hub | **Home** (header) |
+| Game hub | Platform home | **Gridly** back button |
 | Win / Loss modal | Board | Dismiss modal (✕) |
 | Board (after dismiss) | Practice | **Practice** (daily) or **Play again** (practice/custom) |
 | Tutorial complete | Practice | **Start practice** |

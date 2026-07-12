@@ -6,9 +6,37 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
-### v1.2 — Current
+### v2.0 — Current
 
-**Status:** In progress — see [v1.2.md](./v1.2.md).
+**Status:** In progress — see [v2.0.md](./v2.0.md).
+
+#### Player-facing
+
+- **Platform home** — Gridly hub with game cards for Word Hunt and Grid Snap
+- **App settings** — theme (Dark / Light / System) on platform home; per-game settings on each game hub
+- **Word Hunt** — existing daily, practice, custom puzzles, stats, and tutorial under `/games/word-hunt` (behavior unchanged)
+- **Grid Snap** — new image jigsaw game with daily challenge, practice, stats, how-to-play, and settings
+- Grid Snap difficulty levels: Easy 4×4, Medium 6×6, Hard 8×8
+- Grid Snap is a swap puzzle: the grid is always fully filled and dragging a tile onto another cell swaps them
+- Grid Snap tiles snap into a group only when they are image neighbors in the correct relative position; groups recompute each move (they split when pulled apart)
+- Grid Snap win celebration uses the shared **GameEndExperience** flow (same as Word Hunt)
+- Shared game-end layer: `GameEndExperience`, `useGameEndFlow`, `onGameEndPresented` in `src/shared/` (single place for modal timing, copy, and future haptics)
+- Win/loss sounds on game end via `expo-audio` and bundled `assets/sounds/` tones
+
+#### Engineering
+
+- Multi-game code layout: `src/platform/`, `src/games/<id>/`, `src/shared/`
+- Game registry (`src/platform/gameRegistry.ts`) for hub cards
+- Namespaced AsyncStorage keys with migration from v1.x
+- Grid Snap pure TS `puzzleEngine` with unit tests (slot-based swap, direction-aware connections, connected-component grouping)
+- Grid Snap test mode (`EXPO_PUBLIC_GRID_SNAP_TEST=1`, `npm run start:test`) renders numbered tiles instead of an image for verifying drag/snap
+- Legacy `gridly://game` deep links redirect to Word Hunt play
+
+---
+
+### v1.2
+
+**Status:** Complete — see [v1.2.md](./v1.2.md).
 
 #### Player-facing
 
@@ -24,6 +52,8 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 - `customPuzzle` module for share-link encode/decode
 - `GameMode` extended with `custom`
 - Daily replay guard in `gameStore` and game screen routing
+- ENABLE-1 dictionary bundled at `src/games/word-hunt/data/sources/enable1.txt`; `npm run build:words` generates `words.json` and `allowed-guesses.json` (~8,600 five-letter words each)
+- Daily word selection uses mixed hashing (`gridly-daily-v2`) so consecutive days do not pick consecutive alphabetically sorted words
 
 ---
 
@@ -59,23 +89,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Backlog
 
-Unprioritized future work — not assigned to a release version.
-
-| Feature | Notes |
-|---------|-------|
-| Native share sheet | Share wins via system share (WhatsApp, Messages, Mail, etc.) in addition to clipboard |
-| Haptics | Light feedback on key press; success pattern on win |
-| ENABLE-1 source file | Bundle `enable1.txt` for dictionary builds without system dict |
-| User accounts | Sign in (Supabase Auth or Firebase) |
-| Cross-device sync | Stats and daily completion follow the account |
-| Leaderboards | Optional friend or global streak comparison |
-| Remote push notifications | Server-triggered reminders (beyond local daily schedule) |
-| Feedback | In-app feedback form |
-| Report a bug | In-app bug report flow (revisit after cloud storage) |
-| Themed word sets | e.g. science week |
-| Accessibility mode | High contrast, color-blind palettes |
-| Localization | Multi-language support |
-| Web client | Shares the same `gameEngine` |
+See [v2.1.md](./v2.1.md) for planned future work.
 
 ---
 
@@ -83,7 +97,7 @@ Unprioritized future work — not assigned to a release version.
 
 A backlog item moves into active scope when:
 
-1. Behavior is specified in [experience.md](./experience.md) and/or [game-rules.md](./game-rules.md).
-2. Acceptance criteria are added to a version spec (e.g. [v1.2.md](./v1.2.md)).
+1. Behavior is specified in [experience.md](./experience.md) and/or game rules specs.
+2. Acceptance criteria are added to a version spec (e.g. [v2.0.md](./v2.0.md)).
 3. [architecture.md](./architecture.md) and [test-plan.md](./test-plan.md) are updated to match.
 4. Shipped items are recorded under **Shipped** in this changelog.
