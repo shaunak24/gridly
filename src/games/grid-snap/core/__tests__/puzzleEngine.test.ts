@@ -19,6 +19,12 @@ function piece(id: string, originRow: number, originCol: number, slotRow: number
 describe('puzzleEngine', () => {
   const pieceSize = 80;
 
+  it('creates grids sized by difficulty', () => {
+    expect(createPuzzle('easy', 'size-test').pieces).toHaveLength(16);
+    expect(createPuzzle('medium', 'size-test').pieces).toHaveLength(36);
+    expect(createPuzzle('hard', 'size-test').pieces).toHaveLength(64);
+  });
+
   it('creates a full grid with one piece per cell and no pre-formed groups', () => {
     const puzzle = createPuzzle('easy', 'test-seed');
     expect(puzzle.pieces).toHaveLength(16);

@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { WordHuntIcon } from '../../../src/games/word-hunt/components/WordHuntIcon';
 import { useDailyCountdown } from '../../../src/games/word-hunt/hooks/useDailyCountdown';
 import { useGameStore } from '../../../src/games/word-hunt/stores/gameStore';
 import { useStatsStore } from '../../../src/games/word-hunt/stores/statsStore';
@@ -42,6 +43,7 @@ export default function WordHuntHubScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.content}>
+          <WordHuntIcon size={96} />
           <Text style={[styles.tagline, { color: theme.textSecondary }]}>
             Guess the word in six tries.
           </Text>

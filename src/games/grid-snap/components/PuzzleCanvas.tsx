@@ -9,11 +9,7 @@ import { useTheme } from '../../../shared/theme/useTheme';
 
 const HINT_HEIGHT = 32;
 
-interface PuzzleCanvasProps {
-  compact?: boolean;
-}
-
-export function PuzzleCanvas({ compact = false }: PuzzleCanvasProps) {
+export function PuzzleCanvas() {
   const theme = useTheme();
   const activeGroupId = useSharedValue('');
   const dragX = useSharedValue(0);
@@ -96,6 +92,7 @@ export function PuzzleCanvas({ compact = false }: PuzzleCanvasProps) {
   }, [puzzle, pieceSize, gridWidth, gridHeight, theme.border]);
 
   const isFetching = status === 'loading' || !imageUrl;
+  const isComplete = status === 'won';
 
   return (
     <View style={styles.container}>
@@ -118,14 +115,17 @@ export function PuzzleCanvas({ compact = false }: PuzzleCanvasProps) {
               {
                 width: gridWidth,
                 height: gridHeight,
-                borderColor: theme.border,
-                backgroundColor: theme.tileEmpty,
+                borderColor: isComplete ? 'transparent' : theme.border,
+                borderWidth: isComplete ? 0 : 1,
+                backgroundColor: isComplete ? 'transparent' : theme.tileEmpty,
               },
             ]}
           >
-            <View style={styles.gridLines} pointerEvents="none">
-              {gridLines}
-            </View>
+            {!isComplete ? (
+              <View style={styles.gridLines} pointerEvents="none">
+                {gridLines}
+              </View>
+            ) : null}
 
             {puzzle.pieces.map((piece) => (
               <DraggablePiece
@@ -139,19 +139,20 @@ export function PuzzleCanvas({ compact = false }: PuzzleCanvasProps) {
                 dragX={dragX}
                 dragY={dragY}
                 onDragEnd={commitDrag}
+                disabled={isComplete}
               />
             ))}
           </View>
         )}
       </View>
 
-      {!compact ? (
-        <View style={styles.hintBar}>
-          <Text style={[styles.hint, { color: theme.textSecondary }]}>
-            Drag a tile to another cell to swap. Matching neighbors snap together.
-          </Text>
-        </View>
-      ) : null}
+      <View style={styles.hintBar}>
+        <Text style={[styles.hint, { color: theme.textSecondary }]}>
+          {isComplete
+            ? ''
+            : 'Drag a tile to another cell to swap. Matching neighbors snap together.'}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -167,7 +168,6 @@ const styles = StyleSheet.create({
   },
   gridBoard: {
     position: 'relative',
-    borderWidth: 1,
     overflow: 'hidden',
   },
   gridLines: {

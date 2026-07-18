@@ -16,6 +16,10 @@ function resolveMode(modeParam?: string): SnapMode {
   return modeParam === 'daily' ? 'daily' : 'practice';
 }
 
+function shouldContinue(continueParam?: string): boolean {
+  return continueParam === '1';
+}
+
 function toEndMode(mode: SnapMode): GameEndMode {
   return mode;
 }
@@ -23,9 +27,13 @@ function toEndMode(mode: SnapMode): GameEndMode {
 export default function GridSnapPlayScreen() {
   const router = useRouter();
   const theme = useTheme();
-  const { mode: modeParam } = useLocalSearchParams<{ mode?: string }>();
+  const { mode: modeParam, continue: continueParam } = useLocalSearchParams<{
+    mode?: string;
+    continue?: string;
+  }>();
   const mode = resolveMode(modeParam);
-  const { status, mode: activeMode, resumeOrStartGame, startGame } = useGridSnapStore();
+  const continueGame = shouldContinue(continueParam);
+  const { status, mode: activeMode, gameSessionId, resumeOrStartGame, startGame } = useGridSnapStore();
 
   useEffect(() => {
     const init = async () => {
@@ -37,11 +45,16 @@ export default function GridSnapPlayScreen() {
         return;
       }
 
-      await resumeOrStartGame(mode);
+      if (continueGame) {
+        await resumeOrStartGame(mode);
+        return;
+      }
+
+      await startGame(mode);
     };
 
     void init();
-  }, [mode, resumeOrStartGame, router]);
+  }, [mode, continueGame, resumeOrStartGame, startGame, router]);
 
   const goHome = useCallback(() => {
     router.replace('/games/grid-snap');
@@ -56,7 +69,6 @@ export default function GridSnapPlayScreen() {
   }, [startGame, activeMode]);
 
   const outcome: GameEndOutcome = status === 'won' ? 'won' : 'playing';
-  const isFinished = outcome !== 'playing';
   const headerLabel = mode === 'daily' ? 'Daily' : 'Practice';
 
   return (
@@ -67,8 +79,8 @@ export default function GridSnapPlayScreen() {
         <View style={styles.headerSpacer} />
       </View>
 
-      <View style={[styles.boardArea, isFinished && styles.boardAreaFinished]}>
-        <PuzzleCanvas compact={isFinished} />
+      <View style={styles.boardArea}>
+        <PuzzleCanvas key={gameSessionId} />
       </View>
 
       <GameEndExperience
@@ -77,6 +89,7 @@ export default function GridSnapPlayScreen() {
         message="Puzzle complete!"
         onPlayAgain={handlePlayAgain}
         onPractice={handlePractice}
+        endAreaStyle={styles.endArea}
       />
     </SafeAreaView>
   );
@@ -100,9 +113,11 @@ const styles = StyleSheet.create({
   },
   boardArea: {
     flex: 1,
+    minHeight: 0,
   },
-  boardAreaFinished: {
+  endArea: {
     flex: 0,
+    justifyContent: 'flex-start',
     paddingTop: 8,
     paddingBottom: 16,
   },

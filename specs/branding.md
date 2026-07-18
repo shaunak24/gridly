@@ -47,3 +47,14 @@ Gridly uses a palette distinct from Wordle (no green/yellow/gray board scheme).
 | `adaptive-icon.png` | 1024×1024 | Android adaptive icon foreground |
 
 Splash screen displays the grid icon centered on the deep indigo background with the Gridly wordmark below.
+
+### Game icons
+
+Each game has a programmatic icon (React Native views, theme-aware) used on its hub screen and on the platform home game card.
+
+| Game | Icon | Description |
+|------|------|-------------|
+| Word Hunt | `WordHuntIcon` | Two rows of five letter tiles with guess feedback (teal/amber/slate) — a mixed guess above a solved row |
+| Grid Snap | `GridSnapIcon` | Photo-fragment tiles: a flush 2×2 snapped landscape group plus loose offset pieces still out of place |
+
+Icons scale via a `size` prop (hub ~96px, game card ~52px).

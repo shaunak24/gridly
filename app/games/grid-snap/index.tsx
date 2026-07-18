@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { formatDailyCountdownTimer } from '../../../src/games/word-hunt/hooks/dailyCountdownUtil';
 import { useDailyCountdown } from '../../../src/games/word-hunt/hooks/useDailyCountdown';
+import { GridSnapIcon } from '../../../src/games/grid-snap/components/GridSnapIcon';
 import { useGridSnapStatsStore } from '../../../src/games/grid-snap/stores/gridSnapStatsStore';
 import { useGridSnapStore } from '../../../src/games/grid-snap/stores/gridSnapStore';
 import { HeaderBackButton } from '../../../src/shared/components/HeaderBackButton';
@@ -42,6 +43,7 @@ export default function GridSnapHubScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.content}>
+          <GridSnapIcon size={96} />
           <Text style={[styles.tagline, { color: theme.textSecondary }]}>Connect the pieces.</Text>
           {gamesPlayed > 0 ? (
             <Text style={[styles.streak, { color: theme.coral }]}>
@@ -59,7 +61,15 @@ export default function GridSnapHubScreen() {
               dailyDone && styles.disabledButton,
               pressed && !dailyDone && styles.pressed,
             ]}
-            onPress={() => router.push({ pathname: '/games/grid-snap/play', params: { mode: 'daily' } })}
+            onPress={() =>
+              router.push({
+                pathname: '/games/grid-snap/play',
+                params: {
+                  mode: 'daily',
+                  continue: dailyInProgress && !dailyDone ? '1' : '0',
+                },
+              })
+            }
             disabled={dailyDone}
           >
             <Text style={[styles.primaryText, { color: theme.textPrimary }]}>{dailyLabel}</Text>
@@ -76,7 +86,12 @@ export default function GridSnapHubScreen() {
               { backgroundColor: theme.card, borderColor: theme.border },
               pressed && styles.pressed,
             ]}
-            onPress={() => router.push({ pathname: '/games/grid-snap/play', params: { mode: 'practice' } })}
+            onPress={() =>
+              router.push({
+                pathname: '/games/grid-snap/play',
+                params: { mode: 'practice', continue: practiceInProgress ? '1' : '0' },
+              })
+            }
           >
             <Text style={[styles.secondaryText, { color: theme.textPrimary }]}>{practiceLabel}</Text>
           </Pressable>

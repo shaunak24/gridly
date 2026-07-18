@@ -23,15 +23,20 @@ export function GameCard({ game, onPress, badge }: GameCardProps) {
       accessibilityRole="button"
       accessibilityLabel={`${game.title}. ${game.tagline}`}
     >
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.textPrimary }]}>{game.title}</Text>
-        {badge ? (
-          <View style={[styles.badge, { backgroundColor: theme.coral }]}>
-            <Text style={[styles.badgeText, { color: theme.textPrimary }]}>{badge}</Text>
+      <View style={styles.cardRow}>
+        <game.Icon size={52} />
+        <View style={styles.cardBody}>
+          <View style={styles.header}>
+            <Text style={[styles.title, { color: theme.textPrimary }]}>{game.title}</Text>
+            {badge ? (
+              <View style={[styles.badge, { backgroundColor: theme.coral }]}>
+                <Text style={[styles.badgeText, { color: theme.textPrimary }]}>{badge}</Text>
+              </View>
+            ) : null}
           </View>
-        ) : null}
+          <Text style={[styles.tagline, { color: theme.textSecondary }]}>{game.tagline}</Text>
+        </View>
       </View>
-      <Text style={[styles.tagline, { color: theme.textSecondary }]}>{game.tagline}</Text>
     </Pressable>
   );
 }
@@ -40,10 +45,18 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 14,
     borderWidth: 1,
-    padding: 18,
-    gap: 6,
+    padding: 16,
     minHeight: 88,
     justifyContent: 'center',
+  },
+  cardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  cardBody: {
+    flex: 1,
+    gap: 6,
   },
   pressed: { opacity: 0.88 },
   header: {

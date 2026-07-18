@@ -116,10 +116,10 @@ src/
 | Hook | Location | Next use |
 |------|----------|----------|
 | `GAMES` registry | `src/platform/gameRegistry.ts` | Add third game |
-| `formatShareGrid()` | `src/games/word-hunt/core/share.ts` | Native share (v2.1) |
-| `expo-haptics` | `onGameEndPresented` in `src/shared/gameEnd/gameEndConfig.ts` | Win/loss haptics (v2.1) |
+| `formatShareGrid()` | `src/games/word-hunt/core/share.ts` | Native share (v2.2) |
+| `expo-haptics` | `onGameEndPresented` in `src/shared/gameEnd/gameEndConfig.ts` | Win/loss haptics (v2.2) |
 
-See [v2.1.md](./v2.1.md) for the full roadmap.
+See [v2.2.md](./v2.2.md) for the full roadmap.
 
 ## Dependencies between specs
 

@@ -6,9 +6,27 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
-### v2.0 — Current
+### v2.1
 
-**Status:** In progress — see [v2.0.md](./v2.0.md).
+**Status:** Complete — see [v2.1.md](./v2.1.md).
+
+#### Player-facing
+
+- **Grid Snap post-game** — solved puzzle stays in viewport at the same position as during play; tile dragging disabled; grid lines and tile borders removed so the image appears seamless
+- **Grid Snap Play again fix** — remounts puzzle canvas on new session to avoid Reanimated/gesture crash
+- **Grid Snap difficulty** — dropdown picker with persistent selection; new puzzles use selected grid size (Easy 4×4, Medium 6×6, Hard 8×8); stale in-progress saves no longer force a 4×4 resume
+- **Game icons** — Word Hunt (letter-tile board with feedback colors) and Grid Snap (snapped photo-fragment puzzle) on platform game cards and each game hub
+
+#### Engineering
+
+- `sessionPolicy.ts` — resume guard when saved puzzle difficulty/grid size differs from settings
+- Unit tests for Grid Snap difficulty resume policy and settings persistence (`sessionPolicy.test.ts`, `gridSnapSettingsStore.test.ts`)
+
+---
+
+### v2.0
+
+**Status:** Complete — see [v2.0.md](./v2.0.md).
 
 #### Player-facing
 
@@ -23,6 +41,8 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 - Shared game-end layer: `GameEndExperience`, `useGameEndFlow`, `onGameEndPresented` in `src/shared/` (single place for modal timing, copy, and future haptics)
 - Win/loss sounds on game end via `expo-audio` and bundled `assets/sounds/` tones
 
+
+
 #### Engineering
 
 - Multi-game code layout: `src/platform/`, `src/games/<id>/`, `src/shared/`
@@ -33,6 +53,8 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 - Legacy `gridly://game` deep links redirect to Word Hunt play
 
 ---
+
+
 
 ### v1.2
 
@@ -47,6 +69,8 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 - **Create puzzle** — users set a 5-letter word and share via the system share sheet
 - **Create puzzle** — users set a 5-letter word and copy a share link; opening the link starts a custom game
 
+
+
 #### Engineering
 
 - `customPuzzle` module for share-link encode/decode
@@ -56,6 +80,8 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 - Daily word selection uses mixed hashing (`gridly-daily-v2`) so consecutive days do not pick consecutive alphabetically sorted words
 
 ---
+
+
 
 ### v1.1
 
@@ -77,6 +103,8 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 - Optional daily reminder at user-selected time (default 8:00 AM local)
 - Post-game UX: keyboard hides on win/loss; delayed dismissible modal
 
+
+
 #### Engineering
 
 - Pure TS `gameEngine`, `dailyWord`, `hardMode`, `share`, `persistedGame`
@@ -87,11 +115,15 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ---
 
+
+
 ## Backlog
 
-See [v2.1.md](./v2.1.md) for planned future work.
+See [v2.2.md](./v2.2.md) for planned future work.
 
 ---
+
+
 
 ## Promotion process
 
@@ -101,3 +133,4 @@ A backlog item moves into active scope when:
 2. Acceptance criteria are added to a version spec (e.g. [v2.0.md](./v2.0.md)).
 3. [architecture.md](./architecture.md) and [test-plan.md](./test-plan.md) are updated to match.
 4. Shipped items are recorded under **Shipped** in this changelog.
+

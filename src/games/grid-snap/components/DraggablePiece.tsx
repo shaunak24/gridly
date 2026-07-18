@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -23,6 +24,7 @@ interface DraggablePieceProps {
   dragX: SharedValue<number>;
   dragY: SharedValue<number>;
   onDragEnd: (pieceId: string, dx: number, dy: number) => void;
+  disabled?: boolean;
 }
 
 export function DraggablePiece({
@@ -35,32 +37,38 @@ export function DraggablePiece({
   dragX,
   dragY,
   onDragEnd,
+  disabled = false,
 }: DraggablePieceProps) {
   const theme = useTheme();
   const { x, y } = getPieceXY(piece, pieceSize);
 
-  const pan = Gesture.Pan()
-    .activeOffsetX([-6, 6])
-    .activeOffsetY([-6, 6])
-    .onStart(() => {
-      activeGroupId.value = piece.groupId;
-      dragX.value = 0;
-      dragY.value = 0;
-    })
-    .onUpdate((event) => {
-      if (activeGroupId.value === piece.groupId) {
-        dragX.value = event.translationX;
-        dragY.value = event.translationY;
-      }
-    })
-    .onEnd(() => {
-      if (activeGroupId.value === piece.groupId) {
-        runOnJS(onDragEnd)(piece.id, dragX.value, dragY.value);
-      }
-      dragX.value = 0;
-      dragY.value = 0;
-      activeGroupId.value = '';
-    });
+  const pan = useMemo(
+    () =>
+      Gesture.Pan()
+        .enabled(!disabled)
+        .activeOffsetX([-6, 6])
+        .activeOffsetY([-6, 6])
+        .onStart(() => {
+          activeGroupId.value = piece.groupId;
+          dragX.value = 0;
+          dragY.value = 0;
+        })
+        .onUpdate((event) => {
+          if (activeGroupId.value === piece.groupId) {
+            dragX.value = event.translationX;
+            dragY.value = event.translationY;
+          }
+        })
+        .onEnd(() => {
+          if (activeGroupId.value === piece.groupId) {
+            runOnJS(onDragEnd)(piece.id, dragX.value, dragY.value);
+          }
+          dragX.value = 0;
+          dragY.value = 0;
+          activeGroupId.value = '';
+        }),
+    [activeGroupId, disabled, dragX, dragY, onDragEnd, piece.groupId, piece.id],
+  );
 
   const animatedStyle = useAnimatedStyle(() => {
     const isActiveGroup = activeGroupId.value === piece.groupId;
@@ -85,8 +93,10 @@ export function DraggablePiece({
             top: y,
             width: pieceSize,
             height: pieceSize,
-            borderColor: theme.border,
-            backgroundColor: theme.card,
+            borderColor: disabled ? 'transparent' : theme.border,
+            borderWidth: disabled ? 0 : StyleSheet.hairlineWidth,
+            backgroundColor: disabled ? 'transparent' : theme.card,
+            elevation: disabled ? 0 : 2,
           },
           animatedStyle,
         ]}
@@ -124,9 +134,7 @@ export function DraggablePiece({
 const styles = StyleSheet.create({
   piece: {
     position: 'absolute',
-    borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
-    elevation: 2,
   },
   clip: {
     flex: 1,

@@ -9,6 +9,7 @@ import {
   recomputeGroups,
   targetSlotFromDrag,
 } from '../core/puzzleEngine';
+import { shouldResumeSavedGridSnapGame } from '../core/sessionPolicy';
 import { IS_TEST_MODE, TEST_IMAGE_SENTINEL } from '../core/testMode';
 import type { GridLayout, PersistedSnapGame, PuzzleState, SnapDifficulty, SnapMode, SnapStatus } from '../core/types';
 import { fetchPuzzleImage } from '../services/imageService';
@@ -28,6 +29,7 @@ interface GridSnapGameState {
   gridHeight: number;
   gridOriginX: number;
   gridOriginY: number;
+  gameSessionId: number;
   dailyInProgress: boolean;
   practiceInProgress: boolean;
   hydrateProgress: () => Promise<void>;
@@ -96,6 +98,7 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
   gridHeight: 0,
   gridOriginX: 0,
   gridOriginY: 0,
+  gameSessionId: 0,
   dailyInProgress: false,
   practiceInProgress: false,
 
@@ -104,6 +107,10 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
   },
 
   resumeOrStartGame: async (mode) => {
+    await useGridSnapSettingsStore.getState().ensureHydrated();
+    const selectedDifficulty = useGridSnapSettingsStore.getState().difficulty;
+    const todayDateKey = getLocalDateKey();
+
     if (mode === 'daily' && useGridSnapStatsStore.getState().isDailyCompleteToday()) {
       const saved = await loadJson<PersistedSnapGame>(storageKeys.gridSnapSavedDaily);
       if (!isValidSavedGame(saved) || saved.status !== 'playing') {
@@ -113,15 +120,21 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
 
     const saved = await loadJson<PersistedSnapGame>(storageKeyForMode(mode));
     if (isValidSavedGame(saved) && saved.status === 'playing') {
-      if (mode === 'daily' && saved.dateKey !== getLocalDateKey()) {
-        await removeKey(storageKeyForMode(mode));
-      } else {
+      if (
+        shouldResumeSavedGridSnapGame({
+          saved,
+          mode,
+          selectedDifficulty,
+          todayDateKey,
+        })
+      ) {
         const imageUrl = await resolveImageUrl(saved.imageSeed);
         set({
           status: 'playing',
           mode,
           difficulty: saved.difficulty,
           dateKey: saved.dateKey,
+          gameSessionId: get().gameSessionId + 1,
           puzzle: {
             rows: saved.rows,
             cols: saved.cols,
@@ -133,6 +146,8 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
         await refreshProgressFlags(set);
         return true;
       }
+
+      await removeKey(storageKeyForMode(mode));
     } else if (saved) {
       await removeKey(storageKeyForMode(mode));
     }
@@ -146,7 +161,10 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
   },
 
   startGame: async (mode) => {
+    await useGridSnapSettingsStore.getState().ensureHydrated();
     const difficulty = useGridSnapSettingsStore.getState().difficulty;
+
+    await removeKey(storageKeyForMode(mode));
     const dateKey = mode === 'daily' ? getLocalDateKey() : '';
     const imageSeed = mode === 'daily' ? getDailyImageSeed() : getPracticeImageSeed();
 
@@ -157,6 +175,10 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
       dateKey,
       puzzle: null,
       imageUrl: null,
+      gameSessionId: get().gameSessionId + 1,
+      pieceSize: 0,
+      gridWidth: 0,
+      gridHeight: 0,
     });
 
     const imageUrl = await resolveImageUrl(imageSeed);
@@ -168,7 +190,6 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
       imageUrl,
     });
 
-    await removeKey(storageKeyForMode(mode));
     await persistIfPlaying(get());
     await refreshProgressFlags(set);
   },

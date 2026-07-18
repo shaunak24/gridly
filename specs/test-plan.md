@@ -13,7 +13,7 @@ Testing focuses on **game engine correctness** (pure logic) and **manual device 
 | E2E | Detox or Maestro | Deferred |
 | Manual | Expo Go on device | Full acceptance |
 
-**Current:** 45+ unit tests in 10 suites (`npm test`).
+**Current:** 55+ unit tests in 12 suites (`npm test`).
 
 ## Unit tests — game engine
 
@@ -75,11 +75,40 @@ File: `src/games/word-hunt/core/__tests__/persistedGame.test.ts`
 | Playing game serializes | Non-null snapshot |
 | Won/idle | Returns null |
 
+## Unit tests — Grid Snap puzzle engine
+
+File: `src/games/grid-snap/core/__tests__/puzzleEngine.test.ts`
+
+| Case | Expected |
+|------|----------|
+| `createPuzzle` by difficulty | Easy 16 tiles, Medium 36, Hard 64 |
+| Swap / snap / solve | Per game rules |
+
+## Unit tests — Grid Snap session policy
+
+File: `src/games/grid-snap/core/__tests__/sessionPolicy.test.ts`
+
+| Case | Expected |
+|------|----------|
+| Saved difficulty matches settings | Resume allowed |
+| Saved easy 4×4, settings medium | Do not resume (start fresh at 6×6) |
+| Saved cols mismatch selected difficulty | Do not resume |
+| Prior-day daily save | Do not resume |
+
+## Unit tests — Grid Snap settings store
+
+File: `src/games/grid-snap/stores/__tests__/gridSnapSettingsStore.test.ts`
+
+| Case | Expected |
+|------|----------|
+| `ensureHydrated` | Loads persisted difficulty before new game |
+| `setDifficulty` | Saves choice and clears in-progress daily/practice snapshots |
+
 ## Manual test checklist — v2.0
 
 ### Platform
 
-- [ ] Platform home shows Word Hunt and Grid Snap cards
+- [ ] Platform home shows Word Hunt and Grid Snap cards with game icons
 - [ ] Theme toggle and app settings work from platform home
 - [ ] Each game hub back button returns to platform home
 
@@ -91,9 +120,9 @@ File: `src/games/word-hunt/core/__tests__/persistedGame.test.ts`
 
 ### Grid Snap
 
-- [ ] Daily and practice load an image puzzle
+- [ ] Daily and practice load an image puzzle at the selected difficulty (16 / 36 / 64 tiles in test mode)
 - [ ] Dragging tiles works; matching neighbors group correctly; win modal appears on solve
-- [ ] Completing puzzle shows win state
+- [ ] Completing puzzle shows win state; grid stays in viewport, tiles are not draggable, and image appears without grid lines
 - [ ] Stats and settings persist
 
 ## Manual test checklist — v1.1

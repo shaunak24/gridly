@@ -31,7 +31,7 @@ The platform home is the app entry point.
 - **App icon** — 5×6 grid logo (see [branding.md](./branding.md)).
 - **Wordmark** — “Gridly” with stylized coral “i”.
 - **Tagline** — “Grid-based games.”
-- **Game cards** — Word Hunt, Grid Snap (title + tagline each).
+- **Game cards** — Word Hunt, Grid Snap (game icon, title, and tagline each).
 - **Top bar** — light-bulb theme toggle; gear opens **app settings** (theme only).
 
 ### Behavior
@@ -52,6 +52,7 @@ Former v1.x home screen. Carries Word Hunt branding context.
 ### Layout
 
 - **Back to Gridly** — returns to platform home.
+- **Game icon** — two rows of five letter tiles showing guess feedback (mixed guess above a solved row).
 - **Tagline** — “Guess the word in six tries.”
 - **Streak summary** — current streak and games played (when stats exist).
 - **Play daily** / **Continue daily** — disabled when complete, with live countdown.
@@ -73,12 +74,13 @@ Mirrors Word Hunt hub structure for the image jigsaw game.
 ### Layout
 
 - **Back to Gridly**
+- **Game icon** — photo-fragment tiles with a snapped 2×2 group and loose pieces still out of place.
 - **Tagline** — “Connect the pieces.”
 - **Streak summary** when stats exist.
 - **Play daily** / **Continue daily** — countdown when complete.
 - **Practice** / **Continue practice**
 - **Stats** · **How to play**
-- **Settings** (gear) — default difficulty (Easy 4×4, Medium 6×6, Hard 8×8).
+- **Settings** (gear) — default difficulty picker (Easy 4×4, Medium 6×6, Hard 8×8); selection persists across sessions and applies to new daily and practice puzzles.
 
 ## Grid Snap play
 
@@ -88,7 +90,7 @@ Mirrors Word Hunt hub structure for the image jigsaw game.
 - Dragging a tile to another cell **swaps** the two tiles (e.g. cell 1 ↔ cell 4).
 - Two tiles snap into a group only when they are **image neighbors placed in the correct relative position** (the piece to the right of another is the piece that truly sits to its right). Groups are recomputed after every move: they grow when correct neighbors line up and split again when a tile is dragged away.
 - Dragging a tile in a snapped group moves the whole group when there is room; otherwise the dragged tile swaps with the target cell.
-- Win when every tile is in its correct cell. A **GameModal** celebration (matching Word Hunt) appears after a short delay, with a **GameEndBar** below the board for Play again / Practice.
+- Win when every tile is in its correct cell. The grid **remains in the same on-screen position** as during play (it does not jump to the top or leave the viewport). Tile dragging is disabled. Grid lines and tile borders disappear so the completed image appears seamless. A **GameModal** celebration (matching Word Hunt) appears after a short delay, with a **GameEndBar** below the board for Play again / Practice.
 
 ### Test mode
 
