@@ -16,7 +16,7 @@ Gridly is a cross-platform **grid-based games** app. These documents are the aut
 | [v1.2](./v1.2.md) | Post-game polish, share content, daily countdown, custom puzzles |
 | [v2.0](./v2.0.md) | Multi-game platform, Word Hunt migration, Grid Snap |
 | [v2.1](./v2.1.md) | Grid Snap polish, game icons, difficulty settings |
-| [v2.2](./v2.2.md) | Planned backlog |
+| [Backlog](./backlog.md) | Planned future work (not yet assigned to a version) |
 | [Architecture](./architecture.md) | System design, layers, modules, data flow |
 | [Tech Stack](./tech-stack.md) | Frameworks, dependencies, dev workflow, deployment |
 | [Changelog](./changelog.md) | Version history and planned features |
@@ -26,7 +26,7 @@ Gridly is a cross-platform **grid-based games** app. These documents are the aut
 
 - Specs describe **current intended behavior**, not implementation history (except [changelog.md](./changelog.md)).
 - When behavior changes, update the relevant spec in the same change set.
-- MVP scope is frozen in [mvp.md](./mvp.md). v2.1 is complete — see [v2.1.md](./v2.1.md). Active backlog is in [v2.2.md](./v2.2.md).
+- MVP scope is frozen in [mvp.md](./mvp.md). Shipped releases are versioned in `v*.md` files. Planned work lives in [backlog.md](./backlog.md) until promoted to a version spec.
 - At the start of a new work session, read this index, [changelog.md](./changelog.md), and the specs relevant to the task before coding.
 - npm dependencies are limited to trusted, maintained packages listed in [tech-stack.md](./tech-stack.md).
 
@@ -35,7 +35,7 @@ Gridly is a cross-platform **grid-based games** app. These documents are the aut
 | Area | Start here |
 |------|------------|
 | What the app does today | [experience.md](./experience.md), [v2.1.md](./v2.1.md) |
-| What to build next | [v2.2.md](./v2.2.md) |
+| What to build next | [backlog.md](./backlog.md) |
 | Word Hunt logic | [game-rules.md](./game-rules.md), `src/games/word-hunt/core/gameEngine.ts` |
 | Grid Snap logic | `src/games/grid-snap/core/puzzleEngine.ts` |
 | Code layout | [architecture.md](./architecture.md) |

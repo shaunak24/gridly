@@ -1,6 +1,8 @@
-# v2.2 — Planned
+# Backlog
 
-Future work promoted from the v2.1 backlog. Not in active development.
+Ideas and future work not yet assigned to a release. Items here are **not in active development** and may ship in any future version (v2.2, v2.3, etc.) depending on priority.
+
+When an item is promoted, move it out of this list into a version spec and record it in [changelog.md](./changelog.md) when shipped.
 
 | Feature | Notes |
 |---------|-------|

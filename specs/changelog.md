@@ -119,18 +119,19 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Backlog
 
-See [v2.2.md](./v2.2.md) for planned future work.
+See [backlog.md](./backlog.md) for planned future work.
 
 ---
 
-
-
 ## Promotion process
 
-A backlog item moves into active scope when:
+Backlog items are not tied to a version number until they are actively scoped. To promote an item from [backlog.md](./backlog.md) into development:
 
-1. Behavior is specified in [experience.md](./experience.md) and/or game rules specs.
-2. Acceptance criteria are added to a version spec (e.g. [v2.0.md](./v2.0.md)).
-3. [architecture.md](./architecture.md) and [test-plan.md](./test-plan.md) are updated to match.
-4. Shipped items are recorded under **Shipped** in this changelog.
+1. **Pick a target version** — create or open a version spec (e.g. [v2.2.md](./v2.2.md)) and move the item there with acceptance criteria.
+2. **Specify behavior** — update [experience.md](./experience.md) and/or game rules specs.
+3. **Update engineering docs** — [architecture.md](./architecture.md) and [test-plan.md](./test-plan.md) as needed.
+4. **Remove from backlog** — delete or strike the item in [backlog.md](./backlog.md) once it is fully captured in the version spec.
+5. **Ship** — when complete, record under **Shipped** in this changelog and mark the version spec complete.
+
+Version specs are created only when work is scheduled; the backlog does not imply the next release number.
 
