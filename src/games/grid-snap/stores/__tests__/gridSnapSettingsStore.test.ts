@@ -10,10 +10,21 @@ jest.mock('../../../../shared/services/storage', () => ({
   migrateStorageKeys: jest.fn(),
   storageKeys: {
     gridSnapDifficulty: '@gridly/grid-snap/difficulty',
+    gridSnapNotifications: '@gridly/grid-snap/notifications',
+    gridSnapReminderHour: '@gridly/grid-snap/reminderHour',
+    gridSnapReminderMinute: '@gridly/grid-snap/reminderMinute',
     gridSnapSavedDaily: '@gridly/grid-snap/savedDaily',
     gridSnapSavedPractice: '@gridly/grid-snap/savedPractice',
     storageMigrated: '@gridly/app/storageMigrated',
   },
+}));
+
+jest.mock('../../../../services/notifications', () => ({
+  scheduleGameReminder: jest.fn().mockResolvedValue({ ok: true }),
+}));
+
+jest.mock('../../../../platform/sync/syncService', () => ({
+  pushIfSignedIn: jest.fn(),
 }));
 
 const loadStringMock = loadString as jest.MockedFunction<typeof loadString>;
@@ -25,12 +36,20 @@ describe('gridSnapSettingsStore', () => {
     jest.clearAllMocks();
     useGridSnapSettingsStore.setState({
       difficulty: 'easy',
+      notificationsEnabled: true,
+      reminderHour: 8,
+      reminderMinute: 0,
       hydrated: false,
     });
   });
 
   it('hydrates difficulty from storage before starting a new game', async () => {
-    loadStringMock.mockResolvedValue('hard');
+    loadStringMock.mockImplementation(async (key: string) => {
+      if (key.includes('difficulty')) {
+        return 'hard';
+      }
+      return null;
+    });
 
     await useGridSnapSettingsStore.getState().ensureHydrated();
 

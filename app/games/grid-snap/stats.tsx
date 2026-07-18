@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGridSnapStatsStore } from '../../../src/games/grid-snap/stores/gridSnapStatsStore';
 import { HeaderHomeButton } from '../../../src/shared/components/HeaderHomeButton';
+import { SyncHint } from '../../../src/shared/components/SyncHint';
 import { useTheme } from '../../../src/shared/theme/useTheme';
 
 export default function GridSnapStatsScreen() {
@@ -21,6 +22,7 @@ export default function GridSnapStatsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
+        <SyncHint />
         <View style={styles.row}>
           <StatCard label="Played" value={String(gamesPlayed)} theme={theme} />
           <StatCard label="Win %" value={`${winRate}`} theme={theme} />

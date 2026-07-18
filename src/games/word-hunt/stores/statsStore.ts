@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+import { pushIfSignedIn } from '../../../platform/sync/syncService';
 import { getLocalDateKey } from '../core/dailyWord';
 import { loadJson, loadString, saveJson, saveString, storageKeys } from '../../../shared/services/storage';
 
@@ -23,6 +24,7 @@ interface StatsState extends StatsData {
   dailyCompletedDate: string | null;
   hydrated: boolean;
   hydrate: () => Promise<void>;
+  persist: () => Promise<void>;
   recordResult: (won: boolean, guessCount: number) => Promise<void>;
   markDailyComplete: () => Promise<void>;
   isDailyCompleteToday: () => boolean;
@@ -44,6 +46,22 @@ export const useStatsStore = create<StatsState>((set, get) => ({
       dailyCompletedDate: dailyCompleted,
       hydrated: true,
     });
+  },
+
+  persist: async () => {
+    const state = get();
+    await Promise.all([
+      saveJson(storageKeys.stats, {
+        gamesPlayed: state.gamesPlayed,
+        gamesWon: state.gamesWon,
+        currentStreak: state.currentStreak,
+        maxStreak: state.maxStreak,
+        distribution: state.distribution,
+      }),
+      state.dailyCompletedDate
+        ? saveString(storageKeys.dailyCompleted, state.dailyCompletedDate)
+        : Promise.resolve(),
+    ]);
   },
 
   recordResult: async (won, guessCount) => {
@@ -70,12 +88,14 @@ export const useStatsStore = create<StatsState>((set, get) => ({
 
     set(next);
     await saveJson(storageKeys.stats, next);
+    void pushIfSignedIn();
   },
 
   markDailyComplete: async () => {
     const today = getLocalDateKey();
     set({ dailyCompletedDate: today });
     await saveString(storageKeys.dailyCompleted, today);
+    void pushIfSignedIn();
   },
 
   isDailyCompleteToday: () => {

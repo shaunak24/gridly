@@ -16,28 +16,29 @@
                           │
 ┌─────────────────────────▼────────────────────────────────┐
 │  Platform Layer                                          │
-│  gameRegistry · GameCard                                 │
+│  gameRegistry · auth · sync · GameCard                   │
 └─────────────────────────┬────────────────────────────────┘
                           │
 ┌─────────────────────────▼────────────────────────────────┐
-│  State Layer (Zustand, per game + app)                   │
-│  appSettingsStore · word-hunt stores · grid-snap stores  │
+│  State Layer (Zustand, per game + app + auth)            │
+│  authStore · appSettingsStore · game stores              │
 └─────────────────────────┬────────────────────────────────┘
                           │
 ┌─────────────────────────▼────────────────────────────────┐
 │  Services (shared + per game)                            │
-│  storage · notifications · imageService · shareSheet     │
+│  storage · notifications · feedback · imageService       │
 └─────────────────────────┬────────────────────────────────┘
                           │
 ┌─────────────────────────▼────────────────────────────────┐
 │  Core Layer (pure TypeScript, per game)                  │
 │  word-hunt: gameEngine, dailyWord, share, …              │
 │  grid-snap: puzzleEngine, dailyPuzzle, …                 │
+│  platform/sync: mergePolicy, cloudRepository             │
 └─────────────────────────┬────────────────────────────────┘
                           │
 ┌─────────────────────────▼────────────────────────────────┐
 │  Data Layer                                              │
-│  word lists JSON · AsyncStorage (namespaced keys)        │
+│  word lists JSON · AsyncStorage · Supabase Postgres      │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -46,19 +47,31 @@
 ```
 app/
   index.tsx                 # Platform home
-  settings.tsx              # App theme
+  settings.tsx              # App settings (account, theme, feedback)
+  feedback.tsx              # Feedback / bug report form
+  auth/
+    sign-in.tsx
+    sign-up.tsx
   game.tsx                  # Legacy deep-link redirect
   games/
     word-hunt/              # Hub, play, stats, settings, …
     grid-snap/
 
 src/
-  platform/                 # gameRegistry, GameCard
+  platform/
+    auth/                   # supabaseClient, authService, authStore
+    sync/                   # mergePolicy, cloudRepository, syncService
+    gameRegistry.ts
+    components/GameCard.tsx
   shared/                   # theme, app settings, storage, header components
   games/
     word-hunt/              # core, components, stores, data, hooks
     grid-snap/              # core, components, stores, services
-  services/                 # notifications, shareSheet (shared infra)
+  services/                 # notifications, feedbackService, shareSheet
+
+supabase/
+  migrations/               # Postgres schema + RLS
+  functions/                # Edge Functions (feedback email)
 ```
 
 ## Modules
@@ -68,7 +81,12 @@ src/
 | Module | Responsibility |
 |--------|----------------|
 | `app/index.tsx` | Platform home — game cards, theme toggle, app settings link |
-| `app/settings.tsx` | App-level theme (Dark / Light / System) |
+| `app/settings.tsx` | App-level account, theme, feedback link |
+| `app/feedback.tsx` | Feedback and bug report form |
+| `app/auth/sign-in.tsx` | Email/password and OAuth sign-in |
+| `app/auth/sign-up.tsx` | Account creation |
+| `src/platform/auth/` | Supabase client, auth service, auth store |
+| `src/platform/sync/` | Cloud repository, merge policy, sync service |
 | `src/platform/gameRegistry.ts` | Registered games for hub cards |
 | `src/platform/components/GameCard.tsx` | Game card UI |
 
@@ -91,6 +109,7 @@ src/
 | `app/games/grid-snap/play.tsx` | Puzzle canvas, drag/snap |
 | `src/games/grid-snap/core/puzzleEngine.ts` | Grid split, adjacency, groups, win |
 | `src/games/grid-snap/stores/gridSnapStore.ts` | Puzzle session state |
+| `src/games/grid-snap/stores/gridSnapSettingsStore.ts` | Difficulty, reminders |
 | `src/games/grid-snap/services/imageService.ts` | Picsum / optional Pexels images |
 
 ### Shared

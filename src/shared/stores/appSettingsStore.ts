@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+import { pushIfSignedIn } from '../../platform/sync/syncService';
 import { loadString, saveString, storageKeys } from '../services/storage';
 import type { ThemePreference } from '../theme/colors';
 
@@ -7,10 +8,11 @@ interface AppSettingsState {
   theme: ThemePreference;
   hydrated: boolean;
   hydrate: () => Promise<void>;
+  persist: () => Promise<void>;
   setTheme: (theme: ThemePreference) => Promise<void>;
 }
 
-export const useAppSettingsStore = create<AppSettingsState>((set) => ({
+export const useAppSettingsStore = create<AppSettingsState>((set, get) => ({
   theme: 'system',
   hydrated: false,
 
@@ -22,8 +24,13 @@ export const useAppSettingsStore = create<AppSettingsState>((set) => ({
     });
   },
 
+  persist: async () => {
+    await saveString(storageKeys.theme, get().theme);
+  },
+
   setTheme: async (theme) => {
     set({ theme });
     await saveString(storageKeys.theme, theme);
+    void pushIfSignedIn();
   },
 }));

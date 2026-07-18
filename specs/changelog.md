@@ -6,6 +6,29 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v3.0
+
+**Status:** Complete — see [v3.0.md](./v3.0.md). Device validation and polish items may follow in a future version.
+
+#### Player-facing
+
+- **Welcome screen** — first launch offers Google sign-in, email sign-in, create account, or continue as guest
+- **Profile menu** — platform home top bar shows guest or signed-in user; modal for sign in / sign out
+- **Accounts** — optional Supabase auth (email/password, Google); guest play unchanged
+- **Cross-device sync** — stats, game settings, and app theme sync when signed in
+- **Per-game reminders** — Word Hunt and Grid Snap each have daily reminder toggle and time (default 8:00 AM)
+- **Feedback** — in-app feedback and bug report form from app settings
+
+#### Engineering
+
+- Supabase client with secure session storage; `authStore`, `welcomeStore`, `syncService`, `mergePolicy`
+- Postgres schema + RLS in `supabase/migrations/001_v3_initial.sql`
+- Cloud push on settings/stats change; merge on sign-in
+- `GoogleSignInButton`, `ProfileMenu`; routes `/home`, `/`, `/auth/*`, `/feedback`
+- Unit tests for merge policy and reminder identifiers (`mergePolicy.test.ts`); 62 tests total
+
+---
+
 ### v2.1
 
 **Status:** Complete — see [v2.1.md](./v2.1.md).
@@ -114,8 +137,6 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 - Word lists via `npm run build:words`
 
 ---
-
-
 
 ## Backlog
 

@@ -25,7 +25,7 @@ export default function AppSettingsScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
-        <HeaderBackButton onPress={() => router.replace('/')} />
+        <HeaderBackButton onPress={() => router.replace('/home')} />
         <Text style={[styles.title, { color: theme.textPrimary }]}>Settings</Text>
         <View style={styles.spacer} />
       </View>
@@ -37,6 +37,13 @@ export default function AppSettingsScreen() {
             <Text style={[styles.settingValue, { color: theme.textSecondary }]}>
               {themePref.charAt(0).toUpperCase() + themePref.slice(1)}
             </Text>
+          </Pressable>
+
+          <View style={styles.divider} />
+
+          <Pressable style={styles.settingRow} onPress={() => router.push('/feedback')}>
+            <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>Send feedback</Text>
+            <Text style={[styles.settingValue, { color: theme.coral }]}>Open</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -63,11 +70,13 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 24,
     paddingBottom: 32,
+    gap: 8,
   },
   card: {
     borderRadius: 12,
     borderWidth: 1,
     padding: 16,
+    gap: 12,
   },
   settingRow: {
     flexDirection: 'row',
@@ -77,4 +86,8 @@ const styles = StyleSheet.create({
   },
   settingLabel: { fontSize: 15, fontWeight: '600' },
   settingValue: { fontSize: 15, fontWeight: '600' },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(128,128,128,0.25)',
+  },
 });

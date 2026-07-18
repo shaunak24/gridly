@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const KEYS = {
   theme: '@gridly/app/theme',
+  guestContinued: '@gridly/app/guestContinued',
   hardMode: '@gridly/word-hunt/hardMode',
   notifications: '@gridly/word-hunt/notifications',
   reminderHour: '@gridly/word-hunt/reminderHour',
@@ -15,6 +16,9 @@ const KEYS = {
   gridSnapSavedDaily: '@gridly/grid-snap/savedDaily',
   gridSnapSavedPractice: '@gridly/grid-snap/savedPractice',
   gridSnapDifficulty: '@gridly/grid-snap/difficulty',
+  gridSnapNotifications: '@gridly/grid-snap/notifications',
+  gridSnapReminderHour: '@gridly/grid-snap/reminderHour',
+  gridSnapReminderMinute: '@gridly/grid-snap/reminderMinute',
   storageMigrated: '@gridly/app/storageMigrated',
 } as const;
 

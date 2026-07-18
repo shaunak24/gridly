@@ -9,6 +9,8 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 web-build/
+.env
+.env.local
 .npm-cache/
 .DS_Store
 src/data/sources/words_alpha.txt

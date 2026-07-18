@@ -61,6 +61,16 @@ Corporate npm mirrors may block some packages; installs use `npm install --legac
 | `react-native-worklets` | Software Mansion | Reanimated 4 peer (SDK 54) |
 | `react-native-gesture-handler` | Software Mansion | Gesture support |
 
+### v3.0 cloud and auth
+
+| Package | Publisher | Purpose |
+|---------|-----------|---------|
+| `@supabase/supabase-js` | Supabase | Auth and Postgres client |
+| `react-native-url-polyfill` | Community | URL parsing for Supabase in RN |
+| `expo-secure-store` | Expo | Encrypted auth session storage |
+| `expo-web-browser` | Expo | OAuth browser session |
+| `expo-auth-session` | Expo | OAuth redirect handling |
+
 ### Feedback
 
 | Package | Publisher | Purpose |

@@ -1,10 +1,13 @@
 import 'react-native-gesture-handler';
+import * as Linking from 'expo-linking';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { useAuthStore } from '../src/platform/auth/authStore';
+import { useWelcomeStore } from '../src/platform/auth/welcomeStore';
 import { useGridSnapStatsStore } from '../src/games/grid-snap/stores/gridSnapStatsStore';
 import { useGridSnapSettingsStore } from '../src/games/grid-snap/stores/gridSnapSettingsStore';
 import { useGridSnapStore } from '../src/games/grid-snap/stores/gridSnapStore';
@@ -15,6 +18,9 @@ import { useAppSettingsStore } from '../src/shared/stores/appSettingsStore';
 import { useIsDarkTheme } from '../src/shared/theme/useTheme';
 
 export default function RootLayout() {
+  const initAuth = useAuthStore((s) => s.init);
+  const hydrateWelcome = useWelcomeStore((s) => s.hydrate);
+  const handleAuthCallback = useAuthStore((s) => s.handleAuthCallback);
   const hydrateAppSettings = useAppSettingsStore((s) => s.hydrate);
   const hydrateWordHuntSettings = useWordHuntSettingsStore((s) => s.hydrate);
   const hydrateStats = useStatsStore((s) => s.hydrate);
@@ -25,6 +31,8 @@ export default function RootLayout() {
   const isDark = useIsDarkTheme();
 
   useEffect(() => {
+    void initAuth();
+    void hydrateWelcome();
     void hydrateAppSettings();
     void hydrateWordHuntSettings();
     void hydrateStats();
@@ -33,6 +41,8 @@ export default function RootLayout() {
     void hydrateGridSnapStats();
     void hydrateGridSnapProgress();
   }, [
+    initAuth,
+    hydrateWelcome,
     hydrateAppSettings,
     hydrateWordHuntSettings,
     hydrateStats,
@@ -41,6 +51,25 @@ export default function RootLayout() {
     hydrateGridSnapStats,
     hydrateGridSnapProgress,
   ]);
+
+  useEffect(() => {
+    const onUrl = ({ url }: { url: string }) => {
+      if (url.includes('auth/callback')) {
+        void handleAuthCallback(url);
+      }
+    };
+
+    const subscription = Linking.addEventListener('url', onUrl);
+    void Linking.getInitialURL().then((url) => {
+      if (url && url.includes('auth/callback')) {
+        void handleAuthCallback(url);
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [handleAuthCallback]);
 
   return (
     <GestureHandlerRootView style={styles.root}>

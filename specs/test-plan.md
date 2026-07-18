@@ -125,6 +125,18 @@ File: `src/games/grid-snap/stores/__tests__/gridSnapSettingsStore.test.ts`
 - [ ] Completing puzzle shows win state; grid stays in viewport, tiles are not draggable, and image appears without grid lines
 - [ ] Stats and settings persist
 
+### v3.0 — cloud and accounts
+
+Requires Supabase env vars and `npm run build:apk` for OAuth and reminders.
+
+- [ ] Guest can play without signing in
+- [ ] App settings: account section, theme, send feedback
+- [ ] Sign in / sign up with email; Google OAuth in dev build
+- [ ] Sign out restores local data
+- [ ] Stats sync across devices when signed in
+- [ ] Word Hunt and Grid Snap each have daily reminder toggle and time
+- [ ] Feedback form submits to Supabase
+
 ## Manual test checklist — v1.1
 
 Run on at least one physical device via Expo Go.

@@ -32,7 +32,7 @@ export default function WordHuntHubScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.topBar}>
-        <HeaderBackButton onPress={() => router.replace('/')} />
+        <HeaderBackButton onPress={() => router.replace('/home')} />
         <Text style={[styles.gameTitle, { color: theme.textPrimary }]}>Word Hunt</Text>
         <HeaderIconButton
           name="settings-outline"

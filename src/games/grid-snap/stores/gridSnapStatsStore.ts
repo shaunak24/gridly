@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+import { pushIfSignedIn } from '../../../platform/sync/syncService';
 import { getLocalDateKey } from '../core/dailyPuzzle';
 import { loadJson, loadString, saveJson, saveString, storageKeys } from '../../../shared/services/storage';
 
@@ -21,6 +22,7 @@ interface GridSnapStatsState extends GridSnapStatsData {
   dailyCompletedDate: string | null;
   hydrated: boolean;
   hydrate: () => Promise<void>;
+  persist: () => Promise<void>;
   recordResult: (won: boolean) => Promise<void>;
   markDailyComplete: () => Promise<void>;
   isDailyCompleteToday: () => boolean;
@@ -44,6 +46,21 @@ export const useGridSnapStatsStore = create<GridSnapStatsState>((set, get) => ({
     });
   },
 
+  persist: async () => {
+    const state = get();
+    await Promise.all([
+      saveJson(storageKeys.gridSnapStats, {
+        gamesPlayed: state.gamesPlayed,
+        gamesWon: state.gamesWon,
+        currentStreak: state.currentStreak,
+        maxStreak: state.maxStreak,
+      }),
+      state.dailyCompletedDate
+        ? saveString(storageKeys.gridSnapDailyCompleted, state.dailyCompletedDate)
+        : Promise.resolve(),
+    ]);
+  },
+
   recordResult: async (won) => {
     const state = get();
     const gamesPlayed = state.gamesPlayed + 1;
@@ -54,12 +71,14 @@ export const useGridSnapStatsStore = create<GridSnapStatsState>((set, get) => ({
     const next = { gamesPlayed, gamesWon, currentStreak, maxStreak };
     set(next);
     await saveJson(storageKeys.gridSnapStats, next);
+    void pushIfSignedIn();
   },
 
   markDailyComplete: async () => {
     const today = getLocalDateKey();
     set({ dailyCompletedDate: today });
     await saveString(storageKeys.gridSnapDailyCompleted, today);
+    void pushIfSignedIn();
   },
 
   isDailyCompleteToday: () => get().dailyCompletedDate === getLocalDateKey(),

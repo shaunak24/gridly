@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 
 import {
-  scheduleDailyReminder,
+  scheduleGameReminder,
   type NotificationScheduleResult,
 } from '../../../services/notifications';
+import { pushIfSignedIn } from '../../../platform/sync/syncService';
 import { loadString, saveString, storageKeys } from '../../../shared/services/storage';
 
 const DEFAULT_REMINDER_HOUR = 8;
@@ -25,6 +26,13 @@ function parseMinute(value: string | null): number {
   return minute;
 }
 
+function parseNotificationsEnabled(value: string | null): boolean {
+  if (value === 'false') {
+    return false;
+  }
+  return true;
+}
+
 interface WordHuntSettingsState {
   hardMode: boolean;
   notificationsEnabled: boolean;
@@ -32,6 +40,7 @@ interface WordHuntSettingsState {
   reminderMinute: number;
   hydrated: boolean;
   hydrate: () => Promise<void>;
+  persist: () => Promise<void>;
   setHardMode: (enabled: boolean) => Promise<void>;
   setNotificationsEnabled: (enabled: boolean) => Promise<NotificationScheduleResult>;
   setReminderTime: (hour: number, minute: number) => Promise<NotificationScheduleResult>;
@@ -39,7 +48,7 @@ interface WordHuntSettingsState {
 
 export const useWordHuntSettingsStore = create<WordHuntSettingsState>((set, get) => ({
   hardMode: false,
-  notificationsEnabled: false,
+  notificationsEnabled: true,
   reminderHour: DEFAULT_REMINDER_HOUR,
   reminderMinute: DEFAULT_REMINDER_MINUTE,
   hydrated: false,
@@ -52,7 +61,7 @@ export const useWordHuntSettingsStore = create<WordHuntSettingsState>((set, get)
       loadString(storageKeys.reminderMinute),
     ]);
 
-    const notificationsEnabled = notifications === 'true';
+    const notificationsEnabled = parseNotificationsEnabled(notifications);
     const hour = parseHour(reminderHour);
     const minute = parseMinute(reminderMinute);
 
@@ -65,25 +74,38 @@ export const useWordHuntSettingsStore = create<WordHuntSettingsState>((set, get)
     });
 
     if (notificationsEnabled) {
-      await scheduleDailyReminder(true, hour, minute);
+      await scheduleGameReminder('word-hunt', true, hour, minute);
     }
+  },
+
+  persist: async () => {
+    const state = get();
+    await Promise.all([
+      saveString(storageKeys.hardMode, String(state.hardMode)),
+      saveString(storageKeys.notifications, String(state.notificationsEnabled)),
+      saveString(storageKeys.reminderHour, String(state.reminderHour)),
+      saveString(storageKeys.reminderMinute, String(state.reminderMinute)),
+    ]);
   },
 
   setHardMode: async (enabled) => {
     set({ hardMode: enabled });
     await saveString(storageKeys.hardMode, String(enabled));
+    void pushIfSignedIn();
   },
 
   setNotificationsEnabled: async (enabled) => {
     const { reminderHour, reminderMinute } = get();
-    const result = await scheduleDailyReminder(enabled, reminderHour, reminderMinute);
+    const result = await scheduleGameReminder('word-hunt', enabled, reminderHour, reminderMinute);
 
     if (result.ok) {
       set({ notificationsEnabled: enabled });
       await saveString(storageKeys.notifications, String(enabled));
+      void pushIfSignedIn();
     } else if (!enabled) {
       set({ notificationsEnabled: false });
       await saveString(storageKeys.notifications, 'false');
+      void pushIfSignedIn();
     }
 
     return result;
@@ -93,12 +115,13 @@ export const useWordHuntSettingsStore = create<WordHuntSettingsState>((set, get)
     set({ reminderHour: hour, reminderMinute: minute });
     await saveString(storageKeys.reminderHour, String(hour));
     await saveString(storageKeys.reminderMinute, String(minute));
+    void pushIfSignedIn();
 
     const { notificationsEnabled } = get();
     if (!notificationsEnabled) {
       return { ok: true };
     }
 
-    return scheduleDailyReminder(true, hour, minute);
+    return scheduleGameReminder('word-hunt', true, hour, minute);
   },
 }));

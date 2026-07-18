@@ -4,6 +4,17 @@ Gridly is a cross-platform **grid-based games** app. The platform home lists gam
 
 Built with **Expo SDK 54**, **React Native**, and **TypeScript**. Runs on iOS and Android from one codebase.
 
+## Quick links
+
+Maintainer shortcuts (dashboards only — no secrets):
+
+| Service | Link |
+|---------|------|
+| **Supabase** | [Project dashboard](https://supabase.com/dashboard/project/dtdctaztwlfvbjnl) |
+| **Google Cloud** | [OAuth clients](https://console.cloud.google.com/auth/clients?project=gridly-502816) (project `gridly-502816`) |
+| **Expo** | [expo.dev](https://expo.dev) → project builds |
+| **Cloud setup** | [supabase/README.md](supabase/README.md) — migration, auth, feedback |
+
 ## Features
 
 ### Platform

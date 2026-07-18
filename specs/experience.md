@@ -7,24 +7,28 @@ Gridly is a **multi-game platform**. The platform home shows game cards. Each ga
 ## Screen map
 
 ```
-Platform Home (/)
-  ├── App Settings (theme)
+Welcome (/) — sign in, Google, or continue as guest
+Platform Home (/home)
+  ├── Profile menu (guest or signed-in)
+  ├── App Settings (theme, feedback)
   ├── Word Hunt hub (/games/word-hunt)
   │     ├── Play daily / practice / custom
   │     ├── Stats · How to play · Settings (hard mode, reminder)
   │     └── Back → Platform Home
   └── Grid Snap hub (/games/grid-snap)
         ├── Play daily / practice
-        ├── Stats · How to play · Settings (difficulty)
+        ├── Stats · How to play · Settings (difficulty, reminder)
         └── Back → Platform Home
 
+Auth: /auth/sign-in · /auth/sign-up
+Feedback: /feedback
 Word Hunt custom puzzle ──► gridly://games/word-hunt/play?mode=custom&code=…
 Legacy link gridly://game?… ──► redirects to Word Hunt play
 ```
 
 ## Platform home
 
-The platform home is the app entry point.
+The platform home lists game cards after welcome or sign-in.
 
 ### Layout
 
@@ -32,18 +36,32 @@ The platform home is the app entry point.
 - **Wordmark** — “Gridly” with stylized coral “i”.
 - **Tagline** — “Grid-based games.”
 - **Game cards** — Word Hunt, Grid Snap (game icon, title, and tagline each).
-- **Top bar** — light-bulb theme toggle; gear opens **app settings** (theme only).
+- **Top bar** — profile menu (guest or signed-in); light-bulb theme toggle; gear opens **app settings**.
 
 ### Behavior
 
 - Tapping a game card opens that game’s hub.
 - Safe area insets respected on notched devices.
 
+## Welcome
+
+The app entry screen when the user is not signed in and has not chosen guest mode.
+
+- **Continue with Google** — OAuth sign-in (with Google icon)
+- **Sign in with email** — opens email/password sign-in
+- **Create account** — opens sign-up
+- **Continue as guest** — skips account and opens the platform home
+
+Signed-in users and returning guests go directly to the platform home.
+
 ## App settings
 
 Opened from the gear icon on the platform home.
 
 - **Theme** — cycles Dark, Light, and System.
+- **Send feedback** — opens the feedback form (general feedback or bug report).
+
+Account actions (sign in, sign out) live in the **profile menu** on the platform home top bar.
 
 ## Word Hunt hub
 
@@ -80,7 +98,7 @@ Mirrors Word Hunt hub structure for the image jigsaw game.
 - **Play daily** / **Continue daily** — countdown when complete.
 - **Practice** / **Continue practice**
 - **Stats** · **How to play**
-- **Settings** (gear) — default difficulty picker (Easy 4×4, Medium 6×6, Hard 8×8); selection persists across sessions and applies to new daily and practice puzzles.
+- **Settings** (gear) — default difficulty picker (Easy 4×4, Medium 6×6, Hard 8×8); daily reminder toggle and time picker; selection persists across sessions.
 
 ## Grid Snap play
 

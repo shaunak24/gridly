@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useStatsStore } from '../../../src/games/word-hunt/stores/statsStore';
 import { HeaderHomeButton } from '../../../src/shared/components/HeaderHomeButton';
+import { SyncHint } from '../../../src/shared/components/SyncHint';
 import { useTheme } from '../../../src/shared/theme/useTheme';
 
 export default function WordHuntStatsScreen() {
@@ -23,6 +24,7 @@ export default function WordHuntStatsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
+        <SyncHint />
         <View style={styles.row}>
           <StatCard label="Played" value={String(gamesPlayed)} theme={theme} />
           <StatCard label="Win %" value={`${winRate}`} theme={theme} />
