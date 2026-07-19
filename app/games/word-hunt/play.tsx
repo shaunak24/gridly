@@ -1,7 +1,7 @@
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Board } from '../../../src/games/word-hunt/components/Board';
@@ -11,12 +11,17 @@ import { formatShareGrid } from '../../../src/games/word-hunt/core/share';
 import type { GameMode } from '../../../src/games/word-hunt/core/types';
 import { useGameStore } from '../../../src/games/word-hunt/stores/gameStore';
 import { useStatsStore } from '../../../src/games/word-hunt/stores/statsStore';
+import { fetchInvite } from '../../../src/platform/invites/inviteService';
+import { getWordHuntCustomWord } from '../../../src/platform/invites/wordHuntInvite';
 import { GameEndExperience } from '../../../src/shared/components/GameEndExperience';
 import { HeaderHomeButton } from '../../../src/shared/components/HeaderHomeButton';
 import type { GameEndMode, GameEndOutcome } from '../../../src/shared/gameEnd/gameEndConfig';
 import { useTheme } from '../../../src/shared/theme/useTheme';
 
-function resolveMode(modeParam?: string): GameMode {
+function resolveMode(modeParam?: string, inviteParam?: string): GameMode {
+  if (inviteParam) {
+    return 'custom';
+  }
   if (modeParam === 'daily') {
     return 'daily';
   }
@@ -33,12 +38,16 @@ function toEndMode(mode: GameMode): GameEndMode {
 export default function WordHuntPlayScreen() {
   const router = useRouter();
   const theme = useTheme();
-  const { mode: modeParam, code: codeParam } = useLocalSearchParams<{
+  const { mode: modeParam, code: codeParam, invite: inviteParam } = useLocalSearchParams<{
     mode?: string;
     code?: string;
+    invite?: string;
   }>();
-  const mode = resolveMode(modeParam);
+  const inviteId = typeof inviteParam === 'string' ? inviteParam : undefined;
   const customCode = typeof codeParam === 'string' ? codeParam : undefined;
+  const mode = resolveMode(modeParam, inviteId);
+  const [isInitializing, setIsInitializing] = useState(mode === 'custom');
+  const customWordRef = useRef<string | null>(null);
 
   const {
     status,
@@ -60,18 +69,44 @@ export default function WordHuntPlayScreen() {
   useEffect(() => {
     const init = async () => {
       if (mode === 'custom') {
-        const word = customCode ? decodeCustomWord(customCode) : null;
+        setIsInitializing(true);
+
+        let word: string | null = null;
+        if (inviteId) {
+          const result = await fetchInvite(inviteId);
+          if (!result.ok) {
+            Alert.alert('Invalid puzzle', result.message);
+            router.replace('/games/word-hunt');
+            return;
+          }
+
+          if (result.invite.game_id !== 'word-hunt') {
+            Alert.alert('Invalid puzzle', 'This invite is not a Word Hunt puzzle.');
+            router.replace('/games/word-hunt');
+            return;
+          }
+
+          word = getWordHuntCustomWord(result.invite.payload);
+        } else {
+          word = customCode ? decodeCustomWord(customCode) : null;
+        }
+
         if (!word) {
           Alert.alert('Invalid puzzle', 'This custom puzzle link is not valid.');
           router.replace('/games/word-hunt');
           return;
         }
+
+        customWordRef.current = word;
         const started = await resumeOrStartGame('custom', { secretWord: word });
+        setIsInitializing(false);
         if (!started) {
           router.replace('/games/word-hunt');
         }
         return;
       }
+
+      setIsInitializing(false);
 
       if (mode === 'daily' && useStatsStore.getState().isDailyCompleteToday()) {
         const started = await resumeOrStartGame('daily');
@@ -85,7 +120,7 @@ export default function WordHuntPlayScreen() {
     };
 
     void init();
-  }, [resumeOrStartGame, mode, customCode, router]);
+  }, [resumeOrStartGame, mode, customCode, inviteId, router]);
 
   const handlePractice = useCallback(() => {
     startGame('practice');
@@ -93,7 +128,7 @@ export default function WordHuntPlayScreen() {
 
   const handlePlayAgain = useCallback(() => {
     if (mode === 'custom') {
-      const word = customCode ? decodeCustomWord(customCode) : null;
+      const word = customWordRef.current ?? (customCode ? decodeCustomWord(customCode) : null);
       if (word) {
         startGame('custom', { secretWord: word });
       }
@@ -134,6 +169,14 @@ export default function WordHuntPlayScreen() {
 
   const headerLabel =
     mode === 'daily' ? 'Daily' : mode === 'custom' ? 'Custom' : 'Practice';
+
+  if (isInitializing) {
+    return (
+      <SafeAreaView style={[styles.container, styles.loadingContainer, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.coral} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -179,6 +222,7 @@ export default function WordHuntPlayScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 12, paddingBottom: 8 },
+  loadingContainer: { alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

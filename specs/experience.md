@@ -171,9 +171,11 @@ Interactive tutorial from home.
 Screen from home for sharing a custom word challenge.
 
 - User enters a 5-letter word (must be in the allowed guess list).
-- **Share puzzle** opens the system share sheet (WhatsApp, Messages, Mail, etc.) with a message and deep link.
-- Recipient opens the link; the app starts a custom game with that word.
+- **Share puzzle** creates a server invite and opens the system share sheet (WhatsApp, Messages, Mail, etc.) with an HTTPS link.
+- **Copy link** copies the same HTTPS invite URL to the clipboard.
+- Recipient taps the link; a landing page redirects into Gridly and starts a custom game with that word.
 - Custom games do not count toward stats or daily completion.
+- Legacy `gridly://…?code=g1:…` links still open custom puzzles for recipients who saved older shares.
 
 ## Stats screen
 
@@ -198,7 +200,9 @@ Screen from home for sharing a custom word challenge.
 | Platform home | Grid Snap | Game card |
 | Word Hunt hub | Play | Daily / Practice / Custom |
 | Grid Snap hub | Play | Daily / Practice |
-| Deep link | Custom puzzle | `gridly://games/word-hunt/play?mode=custom&code=…` |
+| Deep link | Custom puzzle (invite) | `gridly://games/word-hunt/play?mode=custom&invite=…` |
+| Deep link | Custom puzzle (legacy) | `gridly://games/word-hunt/play?mode=custom&code=g1:…` |
+| HTTPS invite | Custom puzzle | `{SUPABASE_URL}/functions/v1/resolve-invite/{id}` → landing page → app |
 | Legacy deep link | Custom puzzle | `gridly://game?…` redirects |
 | Word Hunt hub | Stats | **Stats** |
 | Word Hunt hub | How to play | **How to play** |

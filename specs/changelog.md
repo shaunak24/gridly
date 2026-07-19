@@ -6,6 +6,23 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v3.1
+
+**Status:** Complete — see [v3.1.md](./v3.1.md).
+
+#### Player-facing
+
+- **Create puzzle** — HTTPS invite links are clickable in chat apps (WhatsApp, Messages, etc.)
+- **Copy link** — secondary action on create puzzle screen
+- **Open invite** — shared link landing page redirects into the app
+
+#### Engineering
+
+- `game_invites` table; `create-invite` and `resolve-invite` Edge Functions
+- `src/platform/invites/` platform module; legacy `g1:` deep links preserved
+
+---
+
 ### v3.0.4
 
 **Status:** Complete — see [v3.0.4.md](./v3.0.4.md).

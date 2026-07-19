@@ -40,6 +40,7 @@ export function decodeCustomWord(code: string): string | null {
   return fromHex(code.slice(CUSTOM_CODE_PREFIX.length));
 }
 
+/** @deprecated Legacy client-encoded links; new shares use server invites. */
 export function buildCustomPuzzleLink(word: string): string {
   const code = encodeCustomWord(word);
   return Linking.createURL('games/word-hunt/play', {
@@ -47,6 +48,7 @@ export function buildCustomPuzzleLink(word: string): string {
   });
 }
 
+/** @deprecated Use formatInviteShareMessage from platform/invites. */
 export function formatCustomPuzzleShareMessage(link: string): string {
   return [
     'Can you guess my Gridly word? 🧩',

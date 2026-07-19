@@ -6,6 +6,7 @@ When an item is promoted, move it out of this list into a version spec and recor
 
 | Feature | Notes |
 |---------|-------|
+| Custom invite domain | Branded share links (e.g. `https://play.gridly.app/i/{id}`) instead of Supabase project-ref URL. Requires domain purchase plus Supabase custom domain add-on or static host. Includes Universal Links (iOS) and App Links (Android) so taps open the app directly; `EXPO_PUBLIC_INVITE_LINK_BASE` env swap; EAS rebuild; 301 redirects from old Supabase invite URLs. Promote to a version spec when ready to buy a domain. |
 | Sign in with Apple | OAuth via Apple Developer Services ID; deferred from v3.0 |
 | Native share sheet | Share wins via system share (WhatsApp, Messages, Mail, etc.) in addition to clipboard |
 | Haptics | Light feedback on key press; success pattern on win and Grid Snap snap |

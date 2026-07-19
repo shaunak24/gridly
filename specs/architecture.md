@@ -71,7 +71,7 @@ src/
 
 supabase/
   migrations/               # Postgres schema + RLS
-  functions/                # Edge Functions (feedback email)
+  functions/                # Edge Functions (feedback email, game invites)
 ```
 
 ## Modules
@@ -88,6 +88,7 @@ supabase/
 | `app/auth/callback.tsx` | Google OAuth deep link (`gridly://auth/callback`) |
 | `src/platform/auth/` | Supabase client, auth service, auth store |
 | `src/platform/sync/` | Cloud repository, merge policy, sync service |
+| `src/platform/invites/` | Game invite types, URL builder, create/fetch service |
 | `src/platform/gameRegistry.ts` | Registered games for hub cards |
 | `src/platform/components/GameCard.tsx` | Game card UI |
 

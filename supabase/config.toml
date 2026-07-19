@@ -1,0 +1,13 @@
+# Per-function Edge Function settings (see https://supabase.com/docs/guides/functions/function-configuration)
+
+# Public landing page — opened from WhatsApp/browser without an auth header
+[functions.resolve-invite]
+verify_jwt = false
+
+# App calls with anon key (guests) or user JWT — anon key is not a JWT
+[functions.create-invite]
+verify_jwt = false
+
+# Invoked by database webhook, not user JWT
+[functions.send-feedback-notification]
+verify_jwt = false

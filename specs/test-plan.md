@@ -150,6 +150,18 @@ Requires `npm run build:apk` and Supabase Google OAuth configured.
 - [ ] Sign-out from profile menu shows themed modal with Sign out and Cancel
 - [ ] Cancel keeps the user signed in; Sign out returns to welcome screen
 
+## Manual test checklist — v3.1
+
+Requires migration `003`, deployed `create-invite` and `resolve-invite` functions, and Supabase env vars.
+
+- [ ] Create puzzle → **Share puzzle** → HTTPS link appears in share sheet and is clickable in WhatsApp
+- [ ] Create puzzle → **Copy link** → URL copied; confirmation modal shown
+- [ ] Tap shared HTTPS link on device with Gridly → custom puzzle starts with correct word
+- [ ] Tap shared link in browser → landing page with **Open in Gridly**; redirects to app
+- [ ] Invalid or expired invite shows error and returns to Word Hunt hub
+- [ ] Guest can create and share invite; signed-in user can create invite
+- [ ] Legacy `gridly://games/word-hunt/play?mode=custom&code=g1:…` still opens custom puzzle
+
 ## Manual test checklist — v2.0
 
 ### Platform

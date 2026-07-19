@@ -11,6 +11,7 @@ In the Supabase SQL editor, run **in order**:
 
 1. `migrations/001_v3_initial.sql`
 2. `migrations/002_user_profile_trigger.sql`
+3. `migrations/003_game_invites.sql`
 
 ## 3. Configure auth
 
@@ -57,11 +58,40 @@ Copy `.env.example` to `.env` in the project root:
 ```
 EXPO_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+# Optional — defaults to {SUPABASE_URL}/functions/v1/resolve-invite
+EXPO_PUBLIC_INVITE_LINK_BASE=https://xxxx.supabase.co/functions/v1/resolve-invite
 ```
 
 Restart Expo after changing env vars.
 
-## 5. Feedback email (optional)
+## 5. Game invite Edge Functions (v3.1)
+
+Deploy after running migration `003` (use local CLI — do not install `supabase` globally on a work laptop):
+
+```bash
+npm install --legacy-peer-deps   # if node_modules missing
+npm run supabase login           # one-time browser login
+npm run supabase link -- --project-ref YOUR_PROJECT_REF
+npm run supabase:deploy-invites
+```
+
+Or deploy individually:
+
+```bash
+npm run supabase functions deploy create-invite
+npm run supabase functions deploy resolve-invite
+```
+
+`create-invite` uses the service role key (provided automatically in the Edge Function runtime). Invites expire after 90 days.
+
+`supabase/config.toml` sets `verify_jwt = false` for invite functions so guests and WhatsApp/browser taps work without a user session.
+
+Share links use:
+`https://{project-ref}.supabase.co/functions/v1/resolve-invite/{invite-id}`
+
+Optional: set `INVITE_LINK_BASE` as a function secret if you later use a custom domain for invite URLs.
+
+## 6. Feedback email (optional)
 
 1. Create a [Resend](https://resend.com) account
 2. Deploy the Edge Function:
@@ -73,7 +103,7 @@ supabase secrets set RESEND_API_KEY=re_xxx FEEDBACK_TO_EMAIL=you@example.com
 
 3. In Supabase dashboard, add a **Database Webhook** on `feedback` table INSERT → invoke `send-feedback-notification`
 
-## 6. Test on device
+## 7. Test on device
 
 Rebuild the APK after auth changes:
 
