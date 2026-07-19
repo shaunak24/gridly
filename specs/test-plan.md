@@ -13,7 +13,7 @@ Testing focuses on **game engine correctness** (pure logic) and **manual device 
 | E2E | Detox or Maestro | Deferred |
 | Manual | Expo Go on device | Full acceptance |
 
-**Current:** 55+ unit tests in 12 suites (`npm test`).
+**Current:** 69 unit tests in 15 suites (`npm test`).
 
 ## Unit tests — game engine
 
@@ -104,6 +104,28 @@ File: `src/games/grid-snap/stores/__tests__/gridSnapSettingsStore.test.ts`
 | `ensureHydrated` | Loads persisted difficulty before new game |
 | `setDifficulty` | Saves choice and clears in-progress daily/practice snapshots |
 
+## Unit tests — auth errors and validation
+
+Files: `src/platform/auth/__tests__/authErrors.test.ts`, `src/platform/auth/__tests__/authValidation.test.ts`
+
+| Case | Expected |
+|------|----------|
+| Supabase invalid email message | “Enter a valid email address.” |
+| Invalid credentials code | “Incorrect email or password.” |
+| Empty or malformed email (client) | Friendly validation message |
+| Password under 6 characters | “Password must be at least 6 characters.” |
+| Mismatched sign-up passwords | “Passwords do not match.” |
+
+## Manual test checklist — v3.0.1
+
+Requires `npm run build:apk` for APK launch verification.
+
+- [ ] Preview APK installs and opens to welcome screen (no crash on launch)
+- [ ] Invalid email on sign-in/sign-up shows “Enter a valid email address.”
+- [ ] Wrong password shows “Incorrect email or password.”
+- [ ] Sign-up with email confirmation shows “Check your email” and routes to sign-in
+- [ ] Feedback form rejects invalid optional contact email
+
 ## Manual test checklist — v2.0
 
 ### Platform
@@ -130,7 +152,7 @@ File: `src/games/grid-snap/stores/__tests__/gridSnapSettingsStore.test.ts`
 Requires Supabase env vars and `npm run build:apk` for OAuth and reminders.
 
 - [ ] Guest can play without signing in
-- [ ] App settings: account section, theme, send feedback
+- [ ] Profile menu (guest / signed-in, sign out); app settings: theme, send feedback
 - [ ] Sign in / sign up with email; Google OAuth in dev build
 - [ ] Sign out restores local data
 - [ ] Stats sync across devices when signed in

@@ -107,6 +107,10 @@ export async function upsertCloudSnapshot(userId: string, snapshot: UserCloudSna
   const { wordHuntStats, gridSnapStats, wordHuntSettings, gridSnapSettings, appSettings } = snapshot;
 
   await Promise.all([
+    supabase.from('user_profiles').upsert({
+      id: userId,
+      updated_at: new Date().toISOString(),
+    }),
     supabase.from('word_hunt_stats').upsert({
       user_id: userId,
       games_played: wordHuntStats.gamesPlayed,
@@ -173,7 +177,14 @@ export async function submitFeedback(input: {
   });
 
   if (error) {
-    return { ok: false, message: error.message };
+    const message = error.message.toLowerCase();
+    if (message.includes('invalid') && message.includes('email')) {
+      return { ok: false, message: 'Enter a valid email address.' };
+    }
+    if (message.includes('network') || message.includes('fetch failed')) {
+      return { ok: false, message: 'Network error. Check your connection and try again.' };
+    }
+    return { ok: false, message: 'Could not send feedback. Please try again.' };
   }
 
   return { ok: true };

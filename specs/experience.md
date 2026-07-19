@@ -48,11 +48,13 @@ The platform home lists game cards after welcome or sign-in.
 The app entry screen when the user is not signed in and has not chosen guest mode.
 
 - **Continue with Google** — OAuth sign-in (with Google icon)
-- **Sign in with email** — opens email/password sign-in
-- **Create account** — opens sign-up
-- **Continue as guest** — skips account and opens the platform home
+- **Sign in with email** — primary button; opens email/password sign-in
+- **Create account** — secondary button (same size as sign-in); opens sign-up
+- **Continue as guest** — same text size as the buttons above, grey label; skips account and opens the platform home
 
 Signed-in users and returning guests go directly to the platform home.
+
+Email/password sign-in and sign-up validate input before calling the server. Auth failures show short, user-friendly messages (for example, invalid email or wrong password). Sign-up that requires email confirmation shows an informational “Check your email” message and returns the user to sign-in.
 
 ## App settings
 
@@ -62,6 +64,8 @@ Opened from the gear icon on the platform home.
 - **Send feedback** — opens the feedback form (general feedback or bug report).
 
 Account actions (sign in, sign out) live in the **profile menu** on the platform home top bar.
+
+**Guest profile menu** uses the same auth action layout as the welcome screen: Google (when configured), **Sign in with email** and **Create an account** as full-width buttons, and **Close** as a grey label at the same text size.
 
 ## Word Hunt hub
 

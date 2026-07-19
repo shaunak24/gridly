@@ -148,7 +148,7 @@ export async function mergeLocalToCloud(userId: string): Promise<void> {
   await applySnapshot(merged);
 }
 
-export async function pushIfSignedIn(): Promise<void> {
+export async function pushSnapshotIfSignedIn(): Promise<void> {
   const { useAuthStore } = await import('../auth/authStore');
   const userId = useAuthStore.getState().user?.id;
   if (!userId) {

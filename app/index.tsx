@@ -2,7 +2,6 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { isAuthAvailable } from '../src/platform/auth/authService';
 import { useAuthStore } from '../src/platform/auth/authStore';
+import { presentAuthMessage } from '../src/platform/auth/presentAuthMessage';
 import { useWelcomeStore } from '../src/platform/auth/welcomeStore';
 import { GoogleSignInButton } from '../src/platform/components/GoogleSignInButton';
 import { GridLogo } from '../src/shared/components/GridLogo';
@@ -41,9 +41,9 @@ export default function WelcomeScreen() {
   }, [authInitialized, guestContinued, router, user, welcomeHydrated]);
 
   const onGoogle = useCallback(async () => {
-    const error = await signInGoogle();
-    if (error) {
-      Alert.alert('Sign in failed', error);
+    const message = await signInGoogle();
+    if (message) {
+      presentAuthMessage(message);
       return;
     }
     router.replace('/home');
@@ -85,15 +85,22 @@ export default function WelcomeScreen() {
           )}
 
           <Pressable
-            style={[styles.primaryButton, { backgroundColor: theme.coral }]}
+            style={[styles.actionButton, { backgroundColor: theme.coral }]}
             onPress={() => router.push('/auth/sign-in')}
             disabled={!isAuthAvailable()}
           >
-            <Text style={[styles.primaryText, { color: theme.textPrimary }]}>Sign in with email</Text>
+            <Text style={[styles.actionButtonText, { color: theme.textPrimary }]}>Sign in with email</Text>
           </Pressable>
 
-          <Pressable onPress={() => router.push('/auth/sign-up')} disabled={!isAuthAvailable()}>
-            <Text style={[styles.link, { color: theme.coral }]}>Create an account</Text>
+          <Pressable
+            style={[
+              styles.actionButton,
+              { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 },
+            ]}
+            onPress={() => router.push('/auth/sign-up')}
+            disabled={!isAuthAvailable()}
+          >
+            <Text style={[styles.actionButtonText, { color: theme.textPrimary }]}>Create an account</Text>
           </Pressable>
 
           <Pressable onPress={() => void onContinueAsGuest()} style={styles.guestButton}>
@@ -119,14 +126,18 @@ const styles = StyleSheet.create({
   tagline: { fontSize: 15, lineHeight: 22, textAlign: 'center', marginTop: 4 },
   actions: { gap: 12 },
   hint: { fontSize: 14, lineHeight: 20, textAlign: 'center' },
-  primaryButton: {
+  actionButton: {
     minHeight: 48,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 16,
   },
-  primaryText: { fontSize: 16, fontWeight: '700' },
-  link: { fontSize: 14, fontWeight: '600', textAlign: 'center' },
-  guestButton: { paddingVertical: 8, alignItems: 'center' },
-  guestText: { fontSize: 14, fontWeight: '600' },
+  actionButtonText: { fontSize: 16, fontWeight: '700' },
+  guestButton: {
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  guestText: { fontSize: 16, fontWeight: '600' },
 });

@@ -15,7 +15,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { isAuthAvailable } from '../../src/platform/auth/authService';
+import { validateAuthPasswordConfirmation } from '../../src/platform/auth/authValidation';
 import { useAuthStore } from '../../src/platform/auth/authStore';
+import { presentAuthMessage } from '../../src/platform/auth/presentAuthMessage';
 import { HeaderBackButton } from '../../src/shared/components/HeaderBackButton';
 import { useTheme } from '../../src/shared/theme/useTheme';
 
@@ -29,14 +31,18 @@ export default function SignUpScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const onSignUp = useCallback(async () => {
-    if (password !== confirmPassword) {
-      Alert.alert('Passwords do not match', 'Please re-enter your password.');
+    const passwordError = validateAuthPasswordConfirmation(password, confirmPassword);
+    if (passwordError) {
+      Alert.alert('Check your password', passwordError);
       return;
     }
 
-    const error = await signUp(email.trim(), password);
-    if (error) {
-      Alert.alert('Sign up failed', error);
+    const message = await signUp(email.trim(), password);
+    if (message) {
+      presentAuthMessage(
+        message,
+        message.tone === 'info' ? () => router.replace('/auth/sign-in') : undefined,
+      );
       return;
     }
 

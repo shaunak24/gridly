@@ -23,7 +23,7 @@ jest.mock('../../../../services/notifications', () => ({
   scheduleGameReminder: jest.fn().mockResolvedValue({ ok: true }),
 }));
 
-jest.mock('../../../../platform/sync/syncService', () => ({
+jest.mock('../../../../platform/sync/pushIfSignedIn', () => ({
   pushIfSignedIn: jest.fn(),
 }));
 

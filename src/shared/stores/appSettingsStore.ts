@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { pushIfSignedIn } from '../../platform/sync/syncService';
+import { pushIfSignedIn } from '../../platform/sync/pushIfSignedIn';
 import { loadString, saveString, storageKeys } from '../services/storage';
 import type { ThemePreference } from '../theme/colors';
 

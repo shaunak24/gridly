@@ -6,9 +6,29 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v3.0.1
+
+**Status:** Complete — see [v3.0.1.md](./v3.0.1.md).
+
+#### Player-facing
+
+- **APK launch fix** — standalone Android build opens reliably (SDK 54 native modules aligned)
+- **Auth errors** — friendly messages for invalid email, wrong password, duplicate account, and other sign-in/sign-up failures
+- **Sign-up confirmation** — email-confirm flow shows “Check your email” instead of “Sign up failed”
+- **Feedback** — validates optional contact email; hides raw server errors
+
+#### Engineering
+
+- SDK 54–compatible `expo-secure-store`, `expo-auth-session`, `expo-web-browser`; config plugins added
+- `index.js` entry loads gesture handler before router; `pushIfSignedIn.ts` breaks sync circular import
+- `authErrors.ts`, `authValidation.ts`, `presentAuthMessage`; defensive auth init
+- Unit tests for auth errors and validation; 69 tests total
+
+---
+
 ### v3.0
 
-**Status:** Complete — see [v3.0.md](./v3.0.md). Device validation and polish items may follow in a future version.
+**Status:** Complete — see [v3.0.md](./v3.0.md). Follow-up device fixes shipped in [v3.0.1](./v3.0.1.md).
 
 #### Player-facing
 

@@ -10,8 +10,11 @@ import {
   signUpWithEmail,
   subscribeToAuthChanges,
 } from './authService';
+import { authError, authInfo, type AuthUserMessage } from './authMessages';
 import { isSupabaseConfigured } from './supabaseClient';
 import { mergeLocalToCloud, rehydrateLocalStores } from '../sync/syncService';
+
+export type { AuthUserMessage } from './authMessages';
 
 interface AuthState {
   session: Session | null;
@@ -19,10 +22,10 @@ interface AuthState {
   initialized: boolean;
   busy: boolean;
   init: () => Promise<void>;
-  signIn: (email: string, password: string) => Promise<string | null>;
-  signUp: (email: string, password: string) => Promise<string | null>;
-  signInGoogle: () => Promise<string | null>;
-  handleAuthCallback: (url: string) => Promise<string | null>;
+  signIn: (email: string, password: string) => Promise<AuthUserMessage | null>;
+  signUp: (email: string, password: string) => Promise<AuthUserMessage | null>;
+  signInGoogle: () => Promise<AuthUserMessage | null>;
+  handleAuthCallback: (url: string) => Promise<AuthUserMessage | null>;
   signOut: () => Promise<void>;
 }
 
@@ -38,21 +41,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return;
     }
 
-    const session = await getCurrentSession();
-    set({
-      session,
-      user: session?.user ?? null,
-      initialized: true,
-    });
+    try {
+      const session = await getCurrentSession();
+      set({
+        session,
+        user: session?.user ?? null,
+        initialized: true,
+      });
 
-    subscribeToAuthChanges(async (nextSession, nextUser) => {
-      const wasSignedIn = Boolean(get().user);
-      set({ session: nextSession, user: nextUser });
+      subscribeToAuthChanges(async (nextSession, nextUser) => {
+        const wasSignedIn = Boolean(get().user);
+        set({ session: nextSession, user: nextUser });
 
-      if (!wasSignedIn && nextUser) {
-        await mergeLocalToCloud(nextUser.id);
-      }
-    });
+        if (!wasSignedIn && nextUser) {
+          try {
+            await mergeLocalToCloud(nextUser.id);
+          } catch {
+            // Keep the signed-in session even if sync fails offline.
+          }
+        }
+      });
+    } catch {
+      set({ session: null, user: null, initialized: true });
+    }
   },
 
   signIn: async (email, password) => {
@@ -60,7 +71,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const result = await signInWithEmail(email, password);
       if (!result.ok) {
-        return result.message;
+        return authError('Sign in failed', result.message);
       }
       set({ session: result.session, user: result.session.user });
       await mergeLocalToCloud(result.session.user.id);
@@ -75,7 +86,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const result = await signUpWithEmail(email, password);
       if (!result.ok) {
-        return result.message;
+        if (result.pendingConfirmation) {
+          return authInfo('Check your email', result.message);
+        }
+        return authError('Sign up failed', result.message);
       }
       set({ session: result.session, user: result.session.user });
       await mergeLocalToCloud(result.session.user.id);
@@ -90,7 +104,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const result = await signInWithGoogle();
       if (!result.ok) {
-        return result.message;
+        return authError('Sign in failed', result.message);
       }
       set({ session: result.session, user: result.session.user });
       await mergeLocalToCloud(result.session.user.id);
@@ -103,7 +117,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   handleAuthCallback: async (url) => {
     const result = await createSessionFromUrl(url);
     if (!result.ok) {
-      return result.message;
+      return authError('Sign in failed', result.message);
     }
     set({ session: result.session, user: result.session.user });
     await mergeLocalToCloud(result.session.user.id);

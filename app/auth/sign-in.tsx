@@ -2,7 +2,6 @@ import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -16,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { isAuthAvailable } from '../../src/platform/auth/authService';
 import { useAuthStore } from '../../src/platform/auth/authStore';
+import { presentAuthMessage } from '../../src/platform/auth/presentAuthMessage';
 import { GoogleSignInButton } from '../../src/platform/components/GoogleSignInButton';
 import { HeaderBackButton } from '../../src/shared/components/HeaderBackButton';
 import { useTheme } from '../../src/shared/theme/useTheme';
@@ -30,18 +30,18 @@ export default function SignInScreen() {
   const [password, setPassword] = useState('');
 
   const onSignIn = useCallback(async () => {
-    const error = await signIn(email.trim(), password);
-    if (error) {
-      Alert.alert('Sign in failed', error);
+    const message = await signIn(email.trim(), password);
+    if (message) {
+      presentAuthMessage(message);
       return;
     }
     router.replace('/home');
   }, [email, password, router, signIn]);
 
   const onGoogle = useCallback(async () => {
-    const error = await signInGoogle();
-    if (error) {
-      Alert.alert('Sign in failed', error);
+    const message = await signInGoogle();
+    if (message) {
+      presentAuthMessage(message);
       return;
     }
     router.replace('/home');

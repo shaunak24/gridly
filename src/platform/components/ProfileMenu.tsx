@@ -11,8 +11,10 @@ import {
 
 import { isAuthAvailable } from '../auth/authService';
 import { useAuthStore } from '../auth/authStore';
+import { presentAuthMessage } from '../auth/presentAuthMessage';
 import { useWelcomeStore } from '../auth/welcomeStore';
 import { useTheme } from '../../shared/theme/useTheme';
+import { GoogleSignInButton } from './GoogleSignInButton';
 
 export function ProfileMenu() {
   const router = useRouter();
@@ -20,6 +22,7 @@ export function ProfileMenu() {
   const user = useAuthStore((state) => state.user);
   const busy = useAuthStore((state) => state.busy);
   const signOut = useAuthStore((state) => state.signOut);
+  const signInGoogle = useAuthStore((state) => state.signInGoogle);
   const clearGuest = useWelcomeStore((state) => state.clearGuest);
   const [visible, setVisible] = useState(false);
 
@@ -55,6 +58,15 @@ export function ProfileMenu() {
       },
     ]);
   }, [clearGuest, router, signOut]);
+
+  const onGoogle = useCallback(async () => {
+    const message = await signInGoogle();
+    if (message) {
+      presentAuthMessage(message);
+      return;
+    }
+    setVisible(false);
+  }, [signInGoogle]);
 
   const openSignIn = useCallback(() => {
     setVisible(false);
@@ -100,11 +112,11 @@ export function ProfileMenu() {
                   Stats and settings sync across your devices.
                 </Text>
                 <Pressable
-                  style={[styles.actionButton, { borderColor: theme.border }]}
+                  style={[styles.actionButton, { borderColor: theme.border, borderWidth: 1 }]}
                   onPress={onSignOut}
                   disabled={busy}
                 >
-                  <Text style={[styles.actionText, { color: theme.textPrimary }]}>Sign out</Text>
+                  <Text style={[styles.actionButtonText, { color: theme.textPrimary }]}>Sign out</Text>
                 </Pressable>
               </>
             ) : (
@@ -113,15 +125,32 @@ export function ProfileMenu() {
                 <Text style={[styles.hint, { color: theme.textSecondary }]}>
                   Sign in to sync stats and settings across devices.
                 </Text>
+
+                {isAuthAvailable() ? (
+                  <GoogleSignInButton onPress={() => void onGoogle()} busy={busy} />
+                ) : null}
+
                 <Pressable
                   style={[styles.actionButton, { backgroundColor: theme.coral }]}
                   onPress={openSignIn}
                   disabled={!isAuthAvailable()}
                 >
-                  <Text style={[styles.actionText, { color: theme.textPrimary }]}>Sign in</Text>
+                  <Text style={[styles.actionButtonText, { color: theme.textPrimary }]}>
+                    Sign in with email
+                  </Text>
                 </Pressable>
-                <Pressable onPress={openSignUp} disabled={!isAuthAvailable()}>
-                  <Text style={[styles.link, { color: theme.coral }]}>Create account</Text>
+
+                <Pressable
+                  style={[
+                    styles.actionButton,
+                    { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 },
+                  ]}
+                  onPress={openSignUp}
+                  disabled={!isAuthAvailable()}
+                >
+                  <Text style={[styles.actionButtonText, { color: theme.textPrimary }]}>
+                    Create an account
+                  </Text>
                 </Pressable>
               </>
             )}
@@ -174,15 +203,17 @@ const styles = StyleSheet.create({
   email: { fontSize: 15, fontWeight: '600', textAlign: 'center' },
   hint: { fontSize: 13, lineHeight: 18, textAlign: 'center' },
   actionButton: {
-    minHeight: 44,
+    minHeight: 48,
     borderRadius: 10,
-    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 4,
+    paddingHorizontal: 16,
   },
-  actionText: { fontSize: 15, fontWeight: '600' },
-  link: { fontSize: 14, fontWeight: '600', textAlign: 'center' },
-  dismissButton: { alignItems: 'center', paddingTop: 4 },
-  dismissText: { fontSize: 14, fontWeight: '600' },
+  actionButtonText: { fontSize: 16, fontWeight: '700' },
+  dismissButton: {
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dismissText: { fontSize: 16, fontWeight: '600' },
 });

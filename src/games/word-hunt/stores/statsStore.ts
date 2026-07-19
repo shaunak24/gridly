@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { pushIfSignedIn } from '../../../platform/sync/syncService';
+import { pushIfSignedIn } from '../../../platform/sync/pushIfSignedIn';
 import { getLocalDateKey } from '../core/dailyWord';
 import { loadJson, loadString, saveJson, saveString, storageKeys } from '../../../shared/services/storage';
 

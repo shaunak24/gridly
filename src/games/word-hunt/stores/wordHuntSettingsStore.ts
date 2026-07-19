@@ -4,7 +4,7 @@ import {
   scheduleGameReminder,
   type NotificationScheduleResult,
 } from '../../../services/notifications';
-import { pushIfSignedIn } from '../../../platform/sync/syncService';
+import { pushIfSignedIn } from '../../../platform/sync/pushIfSignedIn';
 import { loadString, saveString, storageKeys } from '../../../shared/services/storage';
 
 const DEFAULT_REMINDER_HOUR = 8;
