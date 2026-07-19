@@ -121,6 +121,7 @@ supabase/
 | `src/shared/services/storage.ts` | AsyncStorage + v1.x key migration |
 | `src/shared/theme/` | Colors, `useTheme` |
 | `src/shared/components/GameModal.tsx` | Win/loss celebration modal (all games) |
+| `src/shared/components/AppMessageHost.tsx` | Root-level themed info/error modals (auth, feedback) |
 | `src/shared/components/GameEndBar.tsx` | Post-game action bar (all games) |
 | `src/shared/components/GameEndExperience.tsx` | Composes end bar + modals for play screens |
 | `src/shared/hooks/useGameEndFlow.ts` | Delayed modal timing, daily vs practice actions |

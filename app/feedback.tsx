@@ -2,7 +2,6 @@ import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -19,6 +18,7 @@ import { isAuthAvailable } from '../src/platform/auth/authService';
 import { submitFeedback } from '../src/services/feedbackService';
 import type { FeedbackType } from '../src/platform/sync/types';
 import { HeaderBackButton } from '../src/shared/components/HeaderBackButton';
+import { presentAppMessage } from '../src/shared/components/presentAppMessage';
 import { useTheme } from '../src/shared/theme/useTheme';
 
 export default function FeedbackScreen() {
@@ -32,15 +32,20 @@ export default function FeedbackScreen() {
 
   const onSubmit = useCallback(async () => {
     if (!message.trim()) {
-      Alert.alert('Message required', 'Please enter your feedback before submitting.');
+      presentAppMessage({
+        title: 'Message required',
+        body: 'Please enter your feedback before submitting.',
+        emoji: '⚠️',
+      });
       return;
     }
 
     if (!isAuthAvailable()) {
-      Alert.alert(
-        'Cloud not configured',
-        'Feedback requires Supabase to be set up. Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to your environment.',
-      );
+      presentAppMessage({
+        title: 'Cloud not configured',
+        body: 'Feedback requires Supabase to be set up. Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to your environment.',
+        emoji: '⚠️',
+      });
       return;
     }
 
@@ -54,13 +59,20 @@ export default function FeedbackScreen() {
       });
 
       if (!result.ok) {
-        Alert.alert('Could not send feedback', result.message);
+        presentAppMessage({
+          title: 'Could not send feedback',
+          body: result.message,
+          emoji: '⚠️',
+        });
         return;
       }
 
-      Alert.alert('Thank you', 'Your feedback has been sent.', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      presentAppMessage({
+        title: 'Thank you',
+        body: 'Your feedback has been sent.',
+        emoji: '✅',
+        onDismiss: () => router.back(),
+      });
     } finally {
       setSubmitting(false);
     }

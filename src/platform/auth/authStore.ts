@@ -119,10 +119,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return null;
     }
 
+    const existingSession = await getCurrentSession();
+    if (existingSession) {
+      set({ session: existingSession, user: existingSession.user });
+      await mergeLocalToCloud(existingSession.user.id);
+      return null;
+    }
+
     const result = await createSessionFromUrl(url);
     if (!result.ok) {
+      const retrySession = await getCurrentSession();
+      if (retrySession) {
+        set({ session: retrySession, user: retrySession.user });
+        await mergeLocalToCloud(retrySession.user.id);
+        return null;
+      }
+
       return authError('Sign in failed', result.message);
     }
+
     set({ session: result.session, user: result.session.user });
     await mergeLocalToCloud(result.session.user.id);
     return null;

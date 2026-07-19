@@ -4,9 +4,22 @@ import { useEffect, useRef } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { getCurrentSession } from '../../src/platform/auth/authService';
 import { useAuthStore } from '../../src/platform/auth/authStore';
 import { presentAuthMessage } from '../../src/platform/auth/presentAuthMessage';
 import { useTheme } from '../../src/shared/theme/useTheme';
+
+async function waitForAuthIdle(timeoutMs: number): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    if (!useAuthStore.getState().busy) {
+      return;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+}
 
 export default function AuthCallbackScreen() {
   const router = useRouter();
@@ -22,7 +35,9 @@ export default function AuthCallbackScreen() {
     }
 
     void (async () => {
-      if (user) {
+      await waitForAuthIdle(5000);
+
+      if (useAuthStore.getState().user) {
         handled.current = true;
         router.replace('/home');
         return;
@@ -30,6 +45,13 @@ export default function AuthCallbackScreen() {
 
       const callbackUrl = url ?? (await Linking.getInitialURL());
       if (!callbackUrl?.includes('auth/callback')) {
+        const session = await getCurrentSession();
+        if (session) {
+          handled.current = true;
+          router.replace('/home');
+          return;
+        }
+
         router.replace('/');
         return;
       }
@@ -37,6 +59,12 @@ export default function AuthCallbackScreen() {
       handled.current = true;
       const message = await handleAuthCallback(callbackUrl);
       if (message) {
+        const session = await getCurrentSession();
+        if (session) {
+          router.replace('/home');
+          return;
+        }
+
         presentAuthMessage(message);
         router.replace('/auth/sign-in');
         return;

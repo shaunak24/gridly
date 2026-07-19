@@ -1,7 +1,11 @@
-import { Alert } from 'react-native';
-
 import type { AuthUserMessage } from './authMessages';
+import { presentAppMessage } from '../../shared/components/presentAppMessage';
 
 export function presentAuthMessage(message: AuthUserMessage, onDismiss?: () => void): void {
-  Alert.alert(message.title, message.body, [{ text: 'OK', onPress: onDismiss }]);
+  presentAppMessage({
+    title: message.title,
+    body: message.body,
+    emoji: message.tone === 'error' ? '⚠️' : 'ℹ️',
+    onDismiss,
+  });
 }

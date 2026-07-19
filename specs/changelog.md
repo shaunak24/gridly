@@ -6,9 +6,25 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v3.0.3
+
+**Status:** Complete — see [v3.0.3.md](./v3.0.3.md).
+
+#### Player-facing
+
+- **Google sign-in** — PKCE OAuth flow exchanges authorization code for a local session on standalone APK
+- **In-app messages** — auth errors, sign-up validation, and feedback use themed modals instead of native Android alerts
+
+#### Engineering
+
+- `flowType: 'pkce'`; `parseAuthRedirectUrl`; idempotent session exchange and callback race handling
+- `AppMessageHost`, `presentAppMessage`; auth/feedback alerts migrated off `Alert.alert`
+
+---
+
 ### v3.0.2
 
-**Status:** In progress — see [v3.0.2.md](./v3.0.2.md).
+**Status:** Complete — see [v3.0.2.md](./v3.0.2.md).
 
 #### Player-facing
 

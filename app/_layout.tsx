@@ -14,6 +14,7 @@ import { useGameStore } from '../src/games/word-hunt/stores/gameStore';
 import { useWordHuntSettingsStore } from '../src/games/word-hunt/stores/wordHuntSettingsStore';
 import { useStatsStore } from '../src/games/word-hunt/stores/statsStore';
 import { useAppSettingsStore } from '../src/shared/stores/appSettingsStore';
+import { AppMessageHost } from '../src/shared/components/AppMessageHost';
 import { useIsDarkTheme } from '../src/shared/theme/useTheme';
 
 export default function RootLayout() {
@@ -53,6 +54,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
+      <AppMessageHost />
       <Stack
         screenOptions={{
           headerShown: false,

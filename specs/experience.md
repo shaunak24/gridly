@@ -54,7 +54,7 @@ The app entry screen when the user is not signed in and has not chosen guest mod
 
 Signed-in users and returning guests go directly to the platform home.
 
-Email/password sign-in and sign-up validate input before calling the server. Auth failures show short, user-friendly messages (for example, invalid email or wrong password). Sign-up that requires email confirmation shows an informational “Check your email” message and returns the user to sign-in.
+Email/password sign-in and sign-up validate input before calling the server. Auth failures and confirmations use themed in-app modals (same style as game win/loss modals), not native system alerts. Sign-up that requires email confirmation shows an informational “Check your email” message and returns the user to sign-in.
 
 ## App settings
 

@@ -3,6 +3,7 @@ import * as WebBrowser from 'expo-web-browser';
 import type { Session, User } from '@supabase/supabase-js';
 
 import { mapAuthError } from './authErrors';
+import { parseAuthRedirectParams } from './parseAuthRedirectUrl';
 import { validateAuthEmail, validateAuthPassword } from './authValidation';
 import { getSupabaseClient, isSupabaseConfigured } from './supabaseClient';
 
@@ -148,20 +149,29 @@ export async function createSessionFromUrl(url: string): Promise<AuthResult> {
     return { ok: false, message: 'Cloud services are not configured yet.' };
   }
 
-  const params = Linking.parse(url);
-  const queryParams = params.queryParams ?? {};
-  const code = typeof queryParams.code === 'string' ? queryParams.code : null;
+  const queryParams = parseAuthRedirectParams(url);
+  const oauthError = queryParams.error_description ?? queryParams.error;
+  if (oauthError) {
+    return { ok: false, message: mapAuthError(oauthError) };
+  }
+
+  const code = queryParams.code ?? null;
 
   if (code) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (error || !data.session) {
+      const existingSession = await getCurrentSession();
+      if (existingSession) {
+        return { ok: true, session: existingSession };
+      }
+
       return { ok: false, message: mapAuthError(error) };
     }
     return { ok: true, session: data.session };
   }
 
-  const accessToken = typeof queryParams.access_token === 'string' ? queryParams.access_token : null;
-  const refreshToken = typeof queryParams.refresh_token === 'string' ? queryParams.refresh_token : null;
+  const accessToken = queryParams.access_token ?? null;
+  const refreshToken = queryParams.refresh_token ?? null;
 
   if (accessToken && refreshToken) {
     const { data, error } = await supabase.auth.setSession({
@@ -172,6 +182,11 @@ export async function createSessionFromUrl(url: string): Promise<AuthResult> {
       return { ok: false, message: mapAuthError(error) };
     }
     return { ok: true, session: data.session };
+  }
+
+  const existingSession = await getCurrentSession();
+  if (existingSession) {
+    return { ok: true, session: existingSession };
   }
 
   return { ok: false, message: 'Could not complete sign in. Try again.' };

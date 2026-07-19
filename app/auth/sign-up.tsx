@@ -2,7 +2,6 @@ import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -18,6 +17,7 @@ import { isAuthAvailable } from '../../src/platform/auth/authService';
 import { validateAuthPasswordConfirmation } from '../../src/platform/auth/authValidation';
 import { useAuthStore } from '../../src/platform/auth/authStore';
 import { presentAuthMessage } from '../../src/platform/auth/presentAuthMessage';
+import { presentAppMessage } from '../../src/shared/components/presentAppMessage';
 import { HeaderBackButton } from '../../src/shared/components/HeaderBackButton';
 import { useTheme } from '../../src/shared/theme/useTheme';
 
@@ -33,7 +33,11 @@ export default function SignUpScreen() {
   const onSignUp = useCallback(async () => {
     const passwordError = validateAuthPasswordConfirmation(password, confirmPassword);
     if (passwordError) {
-      Alert.alert('Check your password', passwordError);
+      presentAppMessage({
+        title: 'Check your password',
+        body: passwordError,
+        emoji: '⚠️',
+      });
       return;
     }
 
