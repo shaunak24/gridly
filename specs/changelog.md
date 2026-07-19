@@ -6,6 +6,20 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v3.0.4
+
+**Status:** Complete — see [v3.0.4.md](./v3.0.4.md).
+
+#### Player-facing
+
+- **Sign-out confirmation** — profile menu uses themed in-app modal with Sign out / Cancel (not native Android alert)
+
+#### Engineering
+
+- `GameModal` primary/secondary actions; `appMessageStore.confirm`; `ProfileMenu` migrated off `Alert.alert`
+
+---
+
 ### v3.0.3
 
 **Status:** Complete — see [v3.0.3.md](./v3.0.3.md).

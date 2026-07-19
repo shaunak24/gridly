@@ -9,6 +9,8 @@ export interface GameModalProps {
   message: string;
   primaryLabel?: string;
   onPrimary?: () => void;
+  secondaryLabel?: string;
+  onSecondary?: () => void;
   onDismiss: () => void;
 }
 
@@ -19,10 +21,13 @@ export function GameModal({
   message,
   primaryLabel,
   onPrimary,
+  secondaryLabel,
+  onSecondary,
   onDismiss,
 }: GameModalProps) {
   const theme = useTheme();
   const showPrimary = Boolean(primaryLabel && onPrimary);
+  const showSecondary = Boolean(secondaryLabel && onSecondary);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onDismiss}>
@@ -46,6 +51,14 @@ export function GameModal({
               onPress={onPrimary}
             >
               <Text style={[styles.primaryText, { color: theme.textPrimary }]}>{primaryLabel}</Text>
+            </Pressable>
+          ) : null}
+          {showSecondary ? (
+            <Pressable
+              style={[styles.secondaryButton, { borderColor: theme.border }]}
+              onPress={onSecondary}
+            >
+              <Text style={[styles.secondaryText, { color: theme.textPrimary }]}>{secondaryLabel}</Text>
             </Pressable>
           ) : null}
         </Pressable>
@@ -92,4 +105,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   primaryText: { fontSize: 16, fontWeight: '700' },
+  secondaryButton: {
+    borderRadius: 8,
+    borderWidth: 1,
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryText: { fontSize: 16, fontWeight: '700' },
 });

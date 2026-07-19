@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import {
-  Alert,
   Modal,
   Pressable,
   StyleSheet,
@@ -13,6 +12,7 @@ import { isAuthAvailable } from '../auth/authService';
 import { useAuthStore } from '../auth/authStore';
 import { presentAuthMessage } from '../auth/presentAuthMessage';
 import { useWelcomeStore } from '../auth/welcomeStore';
+import { presentAppMessage } from '../../shared/components/presentAppMessage';
 import { useTheme } from '../../shared/theme/useTheme';
 import { GoogleSignInButton } from './GoogleSignInButton';
 
@@ -42,21 +42,19 @@ export function ProfileMenu() {
   }, [user]);
 
   const onSignOut = useCallback(() => {
-    Alert.alert('Sign out', 'Your local data stays on this device.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign out',
-        style: 'destructive',
-        onPress: () => {
-          void (async () => {
-            setVisible(false);
-            await signOut();
-            await clearGuest();
-            router.replace('/');
-          })();
-        },
+    presentAppMessage({
+      title: 'Sign out',
+      body: 'Your local data stays on this device.',
+      primaryLabel: 'Sign out',
+      onPrimary: () => {
+        void (async () => {
+          setVisible(false);
+          await signOut();
+          await clearGuest();
+          router.replace('/');
+        })();
       },
-    ]);
+    });
   }, [clearGuest, router, signOut]);
 
   const onGoogle = useCallback(async () => {

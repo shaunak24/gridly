@@ -145,6 +145,11 @@ Requires `npm run build:apk` and Supabase Google OAuth configured.
 - [ ] Sign-up password validation uses themed in-app modals
 - [ ] Feedback success and error messages use themed in-app modals
 
+## Manual test checklist — v3.0.4
+
+- [ ] Sign-out from profile menu shows themed modal with Sign out and Cancel
+- [ ] Cancel keeps the user signed in; Sign out returns to welcome screen
+
 ## Manual test checklist — v2.0
 
 ### Platform
