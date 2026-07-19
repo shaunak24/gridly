@@ -1,5 +1,4 @@
 import 'react-native-gesture-handler';
-import * as Linking from 'expo-linking';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -20,7 +19,6 @@ import { useIsDarkTheme } from '../src/shared/theme/useTheme';
 export default function RootLayout() {
   const initAuth = useAuthStore((s) => s.init);
   const hydrateWelcome = useWelcomeStore((s) => s.hydrate);
-  const handleAuthCallback = useAuthStore((s) => s.handleAuthCallback);
   const hydrateAppSettings = useAppSettingsStore((s) => s.hydrate);
   const hydrateWordHuntSettings = useWordHuntSettingsStore((s) => s.hydrate);
   const hydrateStats = useStatsStore((s) => s.hydrate);
@@ -51,25 +49,6 @@ export default function RootLayout() {
     hydrateGridSnapStats,
     hydrateGridSnapProgress,
   ]);
-
-  useEffect(() => {
-    const onUrl = ({ url }: { url: string }) => {
-      if (url.includes('auth/callback')) {
-        void handleAuthCallback(url);
-      }
-    };
-
-    const subscription = Linking.addEventListener('url', onUrl);
-    void Linking.getInitialURL().then((url) => {
-      if (url && url.includes('auth/callback')) {
-        void handleAuthCallback(url);
-      }
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, [handleAuthCallback]);
 
   return (
     <GestureHandlerRootView style={styles.root}>

@@ -126,6 +126,16 @@ Requires `npm run build:apk` for APK launch verification.
 - [ ] Sign-up with email confirmation shows “Check your email” and routes to sign-in
 - [ ] Feedback form rejects invalid optional contact email
 
+## Manual test checklist — v3.0.2
+
+Requires `npm run build:apk` and Supabase Google OAuth configured.
+
+- [ ] Google sign-in from welcome screen lands on home (no “unmatched route” / “page could not be found”)
+- [ ] Google sign-in from sign-in screen lands on home
+- [ ] Google sign-in from guest profile menu lands on home
+- [ ] Profile menu shows signed-in state after Google OAuth
+- [ ] Email sign-in and sign-up still work
+
 ## Manual test checklist — v2.0
 
 ### Platform

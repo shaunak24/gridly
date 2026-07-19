@@ -6,6 +6,20 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v3.0.2
+
+**Status:** In progress — see [v3.0.2.md](./v3.0.2.md).
+
+#### Player-facing
+
+- **Google sign-in** — OAuth callback deep link (`gridly://auth/callback`) routes correctly on standalone APK; no “unmatched route” error after Google sign-in
+
+#### Engineering
+
+- `app/auth/callback.tsx` OAuth callback screen; idempotent `handleAuthCallback`; session check when browser dismisses on Android
+
+---
+
 ### v3.0.1
 
 **Status:** Complete — see [v3.0.1.md](./v3.0.1.md).

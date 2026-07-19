@@ -126,6 +126,11 @@ export async function signInWithGoogle(): Promise<AuthResult> {
 
   const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
   if (result.type !== 'success') {
+    const session = await getCurrentSession();
+    if (session) {
+      return { ok: true, session };
+    }
+
     return { ok: false, message: 'Sign in was cancelled.' };
   }
 

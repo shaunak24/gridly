@@ -115,6 +115,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   handleAuthCallback: async (url) => {
+    if (get().user) {
+      return null;
+    }
+
     const result = await createSessionFromUrl(url);
     if (!result.ok) {
       return authError('Sign in failed', result.message);

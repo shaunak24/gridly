@@ -85,6 +85,7 @@ supabase/
 | `app/feedback.tsx` | Feedback and bug report form |
 | `app/auth/sign-in.tsx` | Email/password and OAuth sign-in |
 | `app/auth/sign-up.tsx` | Account creation |
+| `app/auth/callback.tsx` | Google OAuth deep link (`gridly://auth/callback`) |
 | `src/platform/auth/` | Supabase client, auth service, auth store |
 | `src/platform/sync/` | Cloud repository, merge policy, sync service |
 | `src/platform/gameRegistry.ts` | Registered games for hub cards |
