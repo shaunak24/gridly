@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 import { getCurrentSession } from '../../src/platform/auth/authService';
 import { useAuthStore } from '../../src/platform/auth/authStore';
 import { presentAuthMessage } from '../../src/platform/auth/presentAuthMessage';
+import { navigateToHome } from '../../src/platform/navigation/navigateToHome';
 import { LaunchLoading } from '../../src/shared/components/LaunchLoading';
 
 async function waitForAuthIdle(timeoutMs: number): Promise<void> {
@@ -35,7 +36,7 @@ export default function AuthCallbackScreen() {
 
       if (useAuthStore.getState().user) {
         handled.current = true;
-        router.replace('/home');
+        navigateToHome(router);
         return;
       }
 
@@ -43,7 +44,11 @@ export default function AuthCallbackScreen() {
       if (!callbackUrl?.includes('auth/callback')) {
         const session = await getCurrentSession();
         handled.current = true;
-        router.replace(session ? '/home' : '/');
+        if (session) {
+          navigateToHome(router);
+        } else {
+          router.replace('/');
+        }
         return;
       }
 
@@ -52,7 +57,7 @@ export default function AuthCallbackScreen() {
       if (message) {
         const session = await getCurrentSession();
         if (session) {
-          router.replace('/home');
+          navigateToHome(router);
           return;
         }
 
@@ -61,7 +66,7 @@ export default function AuthCallbackScreen() {
         return;
       }
 
-      router.replace('/home');
+      navigateToHome(router);
     })();
   }, [handleAuthCallback, router, url]);
 

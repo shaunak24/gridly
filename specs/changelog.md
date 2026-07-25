@@ -6,6 +6,22 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v3.2.2
+
+**Status:** Complete — see [v3.2.2.md](./v3.2.2.md).
+
+#### Player-facing
+
+- **Sign-out** — welcome screen appears immediately; stats sync to cloud in the background
+- **Auth back navigation** — Android back from home no longer traps users on a loading screen after sign-in
+
+#### Engineering
+
+- `pushSnapshotWithTimeout` (2s) on sign-out; welcome navigation before async cleanup completes
+- `navigateToHome` helper; welcome `Redirect` for active session; home consumes hardware back
+
+---
+
 ### v3.2.1
 
 **Status:** Complete — see [v3.2.1.md](./v3.2.1.md).

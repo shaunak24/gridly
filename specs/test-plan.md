@@ -174,6 +174,12 @@ Requires `npm run build:apk`.
 - [ ] Browser landing **Open in Gridly** opens app and starts puzzle
 - [ ] Legacy `g1:` deep links still work
 
+## Manual test checklist — v3.2.2
+
+- [ ] Sign out from profile menu → welcome appears immediately (no 4–5s wait)
+- [ ] Sign in → home → Android back stays on home (no welcome loading trap)
+- [ ] Welcome → Sign in with email → sign in → back from home does not show loading-only welcome
+
 ## Manual test checklist — v3.3
 
 - [ ] Word Hunt play shows mm:ss timer; stops on win/loss

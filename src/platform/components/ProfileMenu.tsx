@@ -47,12 +47,10 @@ export function ProfileMenu() {
       body: 'Your local data stays on this device.',
       primaryLabel: 'Sign out',
       onPrimary: () => {
-        void (async () => {
-          setVisible(false);
-          await signOut();
-          await clearGuest();
-          router.replace('/');
-        })();
+        setVisible(false);
+        router.replace('/');
+        void clearGuest();
+        void signOut();
       },
     });
   }, [clearGuest, router, signOut]);

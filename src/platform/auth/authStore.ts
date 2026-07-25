@@ -12,7 +12,7 @@ import {
 } from './authService';
 import { authError, authInfo, type AuthUserMessage } from './authMessages';
 import { isSupabaseConfigured } from './supabaseClient';
-import { mergeLocalToCloud, pushSnapshotIfSignedIn, rehydrateLocalStores, loadSignedInUserStores } from '../sync/syncService';
+import { mergeLocalToCloud, pushSnapshotWithTimeout, rehydrateLocalStores, loadSignedInUserStores } from '../sync/syncService';
 
 export type { AuthUserMessage } from './authMessages';
 
@@ -146,9 +146,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signOut: async () => {
+    const userId = get().user?.id;
     set({ busy: true });
     try {
-      await pushSnapshotIfSignedIn();
+      if (userId) {
+        void pushSnapshotWithTimeout(userId).catch(() => {
+          // Sign-out proceeds even if the cloud push fails or times out.
+        });
+      }
       await authSignOut();
       set({ session: null, user: null });
       await rehydrateLocalStores();

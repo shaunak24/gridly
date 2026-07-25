@@ -2,7 +2,7 @@
 
 Gridly is a cross-platform **grid-based games** app. These documents are the authoritative reference for product behavior, architecture, and quality standards.
 
-**Current release:** v3.2.1 (stats sync fix). **In development:** [v3.3](./v3.3.md). See [changelog.md](./changelog.md) for version history and planned work.
+**Current release:** v3.2.2 (sign-out and auth navigation). **In development:** [v3.3](./v3.3.md). See [changelog.md](./changelog.md) for version history and planned work.
 
 ## Documents
 
@@ -24,6 +24,7 @@ Gridly is a cross-platform **grid-based games** app. These documents are the aut
 | [v3.1](./v3.1.md) | Clickable Word Hunt share invites (HTTPS + Supabase) |
 | [v3.2](./v3.2.md) | Polish, account fixes, Android invite deep links |
 | [v3.2.1](./v3.2.1.md) | Stats sync fix (per-account storage, no sign-in inflation) |
+| [v3.2.2](./v3.2.2.md) | Sign-out speed and auth navigation fixes |
 | [v3.3](./v3.3.md) | Game timers and mode-segregated stats |
 | [Backlog](./backlog.md) | Planned future work (not yet assigned to a version) |
 | [Architecture](./architecture.md) | System design, layers, modules, data flow |

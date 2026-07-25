@@ -17,6 +17,7 @@ import { isAuthAvailable } from '../../src/platform/auth/authService';
 import { useAuthStore } from '../../src/platform/auth/authStore';
 import { presentAuthMessage } from '../../src/platform/auth/presentAuthMessage';
 import { GoogleSignInButton } from '../../src/platform/components/GoogleSignInButton';
+import { navigateToHome } from '../../src/platform/navigation/navigateToHome';
 import { HeaderBackButton } from '../../src/shared/components/HeaderBackButton';
 import { useTheme } from '../../src/shared/theme/useTheme';
 
@@ -35,7 +36,7 @@ export default function SignInScreen() {
       presentAuthMessage(message);
       return;
     }
-    router.replace('/home');
+    navigateToHome(router);
   }, [email, password, router, signIn]);
 
   const onGoogle = useCallback(async () => {
@@ -44,13 +45,13 @@ export default function SignInScreen() {
       presentAuthMessage(message);
       return;
     }
-    router.replace('/home');
+    navigateToHome(router);
   }, [router, signInGoogle]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
-        <HeaderBackButton onPress={() => router.back()} label="Back" />
+        <HeaderBackButton onPress={() => router.replace('/')} label="Back" />
         <Text style={[styles.title, { color: theme.textPrimary }]}>Sign in</Text>
         <View style={styles.spacer} />
       </View>

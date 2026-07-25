@@ -65,7 +65,9 @@ Opened from the gear icon on the platform home.
 - **Theme** — cycles Dark, Light, and System.
 - **Send feedback** — opens the feedback form (general feedback or bug report).
 
-Account actions (sign in, sign out) live in the **profile menu** on the platform home top bar. Sign-out confirmation uses the same themed in-app modal as auth messages (not a native system alert).
+Account actions (sign in, sign out) live in the **profile menu** on the platform home top bar. Sign-out confirmation uses the same themed in-app modal as auth messages (not a native system alert). Sign-out returns to the welcome screen immediately; cloud sync continues in the background.
+
+Successful sign-in navigates to the platform home as the root screen. Android back from home does not return to the welcome loading state.
 
 **Guest profile menu** uses the same auth action layout as the welcome screen: Google (when configured), **Sign in with email** and **Create an account** as full-width buttons, and **Close** as a grey label at the same text size.
 

@@ -1,5 +1,5 @@
-import { useRouter } from 'expo-router';
-import { useCallback, useEffect } from 'react';
+import { Redirect, useRouter } from 'expo-router';
+import { useCallback } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -14,6 +14,7 @@ import { useAuthStore } from '../src/platform/auth/authStore';
 import { presentAuthMessage } from '../src/platform/auth/presentAuthMessage';
 import { useWelcomeStore } from '../src/platform/auth/welcomeStore';
 import { GoogleSignInButton } from '../src/platform/components/GoogleSignInButton';
+import { navigateToHome } from '../src/platform/navigation/navigateToHome';
 import { LaunchLoading } from '../src/shared/components/LaunchLoading';
 import { GridLogo } from '../src/shared/components/GridLogo';
 import { Wordmark } from '../src/shared/components/Wordmark';
@@ -30,30 +31,26 @@ export default function WelcomeScreen() {
   const welcomeHydrated = useWelcomeStore((state) => state.hydrated);
   const continueAsGuest = useWelcomeStore((state) => state.continueAsGuest);
 
-  useEffect(() => {
-    if (!authInitialized || !welcomeHydrated) {
-      return;
-    }
-
-    if (user || guestContinued) {
-      router.replace('/home');
-    }
-  }, [authInitialized, guestContinued, router, user, welcomeHydrated]);
-
   const onGoogle = useCallback(async () => {
     const message = await signInGoogle();
     if (message) {
       presentAuthMessage(message);
+      return;
     }
-  }, [signInGoogle]);
+    navigateToHome(router);
+  }, [router, signInGoogle]);
 
   const onContinueAsGuest = useCallback(async () => {
     await continueAsGuest();
-    router.replace('/home');
+    navigateToHome(router);
   }, [continueAsGuest, router]);
 
-  if (!authInitialized || !welcomeHydrated || user || guestContinued) {
+  if (!authInitialized || !welcomeHydrated) {
     return <LaunchLoading />;
+  }
+
+  if (user || guestContinued) {
+    return <Redirect href="/home" />;
   }
 
   return (
@@ -78,7 +75,7 @@ export default function WelcomeScreen() {
 
           <Pressable
             style={[styles.actionButton, { backgroundColor: theme.coral }]}
-            onPress={() => router.push('/auth/sign-in')}
+            onPress={() => router.replace('/auth/sign-in')}
             disabled={!isAuthAvailable()}
           >
             <Text style={[styles.actionButtonText, { color: theme.textPrimary }]}>Sign in with email</Text>
@@ -89,7 +86,7 @@ export default function WelcomeScreen() {
               styles.actionButton,
               { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 },
             ]}
-            onPress={() => router.push('/auth/sign-up')}
+            onPress={() => router.replace('/auth/sign-up')}
             disabled={!isAuthAvailable()}
           >
             <Text style={[styles.actionButtonText, { color: theme.textPrimary }]}>Create an account</Text>

@@ -303,6 +303,10 @@ export async function pushSnapshotIfSignedIn(): Promise<void> {
     return;
   }
 
+  await pushSnapshotForUser(userId);
+}
+
+export async function pushSnapshotForUser(userId: string): Promise<void> {
   const snapshot: UserCloudSnapshot = {
     ...collectSignedInStatsSnapshot(),
     ...collectSettingsSnapshot(),
@@ -310,6 +314,21 @@ export async function pushSnapshotIfSignedIn(): Promise<void> {
 
   await upsertCloudSnapshot(userId, snapshot);
   await persistUserStatsCache(userId, snapshot);
+}
+
+const SIGN_OUT_PUSH_TIMEOUT_MS = 2000;
+
+/** Best-effort cloud push; resolves when done or after timeout (sign-out must not block on network). */
+export async function pushSnapshotWithTimeout(
+  userId: string,
+  timeoutMs = SIGN_OUT_PUSH_TIMEOUT_MS,
+): Promise<void> {
+  await Promise.race([
+    pushSnapshotForUser(userId),
+    new Promise<void>((resolve) => {
+      setTimeout(resolve, timeoutMs);
+    }),
+  ]);
 }
 
 export async function rehydrateLocalStores(): Promise<void> {

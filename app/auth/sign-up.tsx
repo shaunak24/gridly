@@ -17,6 +17,7 @@ import { isAuthAvailable } from '../../src/platform/auth/authService';
 import { validateAuthPasswordConfirmation } from '../../src/platform/auth/authValidation';
 import { useAuthStore } from '../../src/platform/auth/authStore';
 import { presentAuthMessage } from '../../src/platform/auth/presentAuthMessage';
+import { navigateToHome } from '../../src/platform/navigation/navigateToHome';
 import { presentAppMessage } from '../../src/shared/components/presentAppMessage';
 import { HeaderBackButton } from '../../src/shared/components/HeaderBackButton';
 import { useTheme } from '../../src/shared/theme/useTheme';
@@ -50,13 +51,13 @@ export default function SignUpScreen() {
       return;
     }
 
-    router.replace('/home');
+    navigateToHome(router);
   }, [confirmPassword, email, password, router, signUp]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
-        <HeaderBackButton onPress={() => router.back()} />
+        <HeaderBackButton onPress={() => router.replace('/')} />
         <Text style={[styles.title, { color: theme.textPrimary }]}>Create account</Text>
         <View style={styles.spacer} />
       </View>
