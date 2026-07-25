@@ -6,6 +6,21 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v3.2.3
+
+**Status:** Complete — see [v3.2.3.md](./v3.2.3.md).
+
+#### Player-facing
+
+- **Android back** — works again on game screens; blocked only on platform home (prevents returning to the loader)
+- **Sign-out** — no brief flash of platform home before welcome
+
+#### Engineering
+
+- `useFocusEffect` for platform home `BackHandler`; sign-out awaits session clear before navigation
+
+---
+
 ### v3.2.2
 
 **Status:** Complete — see [v3.2.2.md](./v3.2.2.md).
