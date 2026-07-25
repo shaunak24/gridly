@@ -89,6 +89,8 @@ supabase/
 | `src/platform/auth/` | Supabase client, auth service, auth store |
 | `src/platform/sync/` | Cloud repository, merge policy, sync service |
 | `src/platform/invites/` | Game invite types, URL builder, create/fetch service |
+| `src/shared/components/LaunchLoading.tsx` | Branded boot loading (v3.2) |
+| Per-mode stats stores + `004_mode_stats.sql` | Mode buckets and time aggregates (v3.3) |
 | `src/platform/gameRegistry.ts` | Registered games for hub cards |
 | `src/platform/components/GameCard.tsx` | Game card UI |
 

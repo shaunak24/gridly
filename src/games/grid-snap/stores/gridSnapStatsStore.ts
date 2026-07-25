@@ -1,8 +1,12 @@
 import { create } from 'zustand';
 
+import {
+  loadDailyCompletedDate,
+  saveDailyCompletedDate,
+} from '../../../platform/sync/dailyCompletion';
 import { pushIfSignedIn } from '../../../platform/sync/pushIfSignedIn';
 import { getLocalDateKey } from '../core/dailyPuzzle';
-import { loadJson, loadString, saveJson, saveString, storageKeys } from '../../../shared/services/storage';
+import { loadJson, saveJson, storageKeys } from '../../../shared/services/storage';
 
 export interface GridSnapStatsData {
   gamesPlayed: number;
@@ -36,7 +40,7 @@ export const useGridSnapStatsStore = create<GridSnapStatsState>((set, get) => ({
   hydrate: async () => {
     const [stats, dailyCompleted] = await Promise.all([
       loadJson<GridSnapStatsData>(storageKeys.gridSnapStats),
-      loadString(storageKeys.gridSnapDailyCompleted),
+      loadDailyCompletedDate('grid-snap'),
     ]);
 
     set({
@@ -48,17 +52,16 @@ export const useGridSnapStatsStore = create<GridSnapStatsState>((set, get) => ({
 
   persist: async () => {
     const state = get();
-    await Promise.all([
-      saveJson(storageKeys.gridSnapStats, {
-        gamesPlayed: state.gamesPlayed,
-        gamesWon: state.gamesWon,
-        currentStreak: state.currentStreak,
-        maxStreak: state.maxStreak,
-      }),
-      state.dailyCompletedDate
-        ? saveString(storageKeys.gridSnapDailyCompleted, state.dailyCompletedDate)
-        : Promise.resolve(),
-    ]);
+    await saveJson(storageKeys.gridSnapStats, {
+      gamesPlayed: state.gamesPlayed,
+      gamesWon: state.gamesWon,
+      currentStreak: state.currentStreak,
+      maxStreak: state.maxStreak,
+    });
+
+    if (state.dailyCompletedDate) {
+      await saveDailyCompletedDate('grid-snap', state.dailyCompletedDate);
+    }
   },
 
   recordResult: async (won) => {
@@ -77,7 +80,7 @@ export const useGridSnapStatsStore = create<GridSnapStatsState>((set, get) => ({
   markDailyComplete: async () => {
     const today = getLocalDateKey();
     set({ dailyCompletedDate: today });
-    await saveString(storageKeys.gridSnapDailyCompleted, today);
+    await saveDailyCompletedDate('grid-snap', today);
     void pushIfSignedIn();
   },
 

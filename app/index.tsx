@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect } from 'react';
 import {
-  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -15,6 +14,7 @@ import { useAuthStore } from '../src/platform/auth/authStore';
 import { presentAuthMessage } from '../src/platform/auth/presentAuthMessage';
 import { useWelcomeStore } from '../src/platform/auth/welcomeStore';
 import { GoogleSignInButton } from '../src/platform/components/GoogleSignInButton';
+import { LaunchLoading } from '../src/shared/components/LaunchLoading';
 import { GridLogo } from '../src/shared/components/GridLogo';
 import { Wordmark } from '../src/shared/components/Wordmark';
 import { useTheme } from '../src/shared/theme/useTheme';
@@ -44,10 +44,8 @@ export default function WelcomeScreen() {
     const message = await signInGoogle();
     if (message) {
       presentAuthMessage(message);
-      return;
     }
-    router.replace('/home');
-  }, [router, signInGoogle]);
+  }, [signInGoogle]);
 
   const onContinueAsGuest = useCallback(async () => {
     await continueAsGuest();
@@ -55,13 +53,7 @@ export default function WelcomeScreen() {
   }, [continueAsGuest, router]);
 
   if (!authInitialized || !welcomeHydrated || user || guestContinued) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-        <View style={styles.loading}>
-          <ActivityIndicator color={theme.coral} />
-        </View>
-      </SafeAreaView>
-    );
+    return <LaunchLoading />;
   }
 
   return (
@@ -114,7 +106,6 @@ export default function WelcomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scroll: {
     flexGrow: 1,
     paddingHorizontal: 24,

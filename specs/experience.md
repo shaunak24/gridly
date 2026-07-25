@@ -54,6 +54,8 @@ The app entry screen when the user is not signed in and has not chosen guest mod
 
 Signed-in users and returning guests go directly to the platform home.
 
+While auth and welcome state load, the screen shows the GridLogo, wordmark, and a loading indicator on the themed background (not a bare spinner).
+
 Email/password sign-in and sign-up validate input before calling the server. Auth failures and confirmations use themed in-app modals (same style as game win/loss modals), not native system alerts. Sign-up that requires email confirmation shows an informational “Check your email” message and returns the user to sign-in.
 
 ## App settings
@@ -173,15 +175,28 @@ Screen from home for sharing a custom word challenge.
 - User enters a 5-letter word (must be in the allowed guess list).
 - **Share puzzle** creates a server invite and opens the system share sheet (WhatsApp, Messages, Mail, etc.) with an HTTPS link.
 - **Copy link** copies the same HTTPS invite URL to the clipboard.
-- Recipient taps the link; a landing page redirects into Gridly and starts a custom game with that word.
-- Custom games do not count toward stats or daily completion.
+- Recipient taps the link; on Android the installed app opens and starts a custom game with that word. If a browser landing page appears, **Open in Gridly** must open the app.
+- Custom games do not count toward stats or daily completion (Custom mode stats in v3.3 are separate).
 - Legacy `gridly://…?code=g1:…` links still open custom puzzles for recipients who saved older shares.
 
 ## Stats screen
 
 - Games played, win rate, current streak, max streak.
-- Guess distribution chart (1–6 and losses).
-- Data persists locally across app restarts.
+- Guess distribution chart (1–6 and losses) on Word Hunt.
+- **Mode picker** — Word Hunt: Daily, Practice, Custom; Grid Snap: Easy, Medium, Hard. Summary cards and charts reflect the selected mode.
+- **Time stats** — fastest, average, and slowest solve time for the selected mode (when the player has completed at least one game in that mode).
+- Data persists locally across app restarts; per-mode stats sync when signed in.
+
+## In-game timer
+
+- Word Hunt and Grid Snap play screens show elapsed time (mm:ss) at the top while a puzzle is in progress.
+- The timer stops on win or loss.
+
+## Daily completion (accounts)
+
+- **Guest** — daily played/locked state is stored on the device for guest play.
+- **Signed in** — daily played/locked state follows the account and syncs across devices.
+- Switching accounts shows each account's own daily state; guest progress does not lock another user's daily.
 
 ## Notifications
 
@@ -202,7 +217,7 @@ Screen from home for sharing a custom word challenge.
 | Grid Snap hub | Play | Daily / Practice |
 | Deep link | Custom puzzle (invite) | `gridly://games/word-hunt/play?mode=custom&invite=…` |
 | Deep link | Custom puzzle (legacy) | `gridly://games/word-hunt/play?mode=custom&code=g1:…` |
-| HTTPS invite | Custom puzzle | `{SUPABASE_URL}/functions/v1/resolve-invite/{id}` → landing page → app |
+| HTTPS invite | Custom puzzle | `{SUPABASE_URL}/functions/v1/resolve-invite/{id}` → app (Android intent URL when needed) |
 | Legacy deep link | Custom puzzle | `gridly://game?…` redirects |
 | Word Hunt hub | Stats | **Stats** |
 | Word Hunt hub | How to play | **How to play** |

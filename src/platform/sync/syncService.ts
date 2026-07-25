@@ -4,6 +4,7 @@ import { useWordHuntSettingsStore } from '../../games/word-hunt/stores/wordHuntS
 import { useStatsStore } from '../../games/word-hunt/stores/statsStore';
 import { scheduleGameReminder } from '../../services/notifications';
 import { useAppSettingsStore } from '../../shared/stores/appSettingsStore';
+import { saveDailyCompletedDate } from './dailyCompletion';
 import { fetchCloudSnapshot, upsertCloudSnapshot } from './cloudRepository';
 import {
   mergeAppSettings,
@@ -117,6 +118,12 @@ async function applySnapshot(snapshot: UserCloudSnapshot): Promise<void> {
     useWordHuntSettingsStore.getState().persist?.(),
     useGridSnapSettingsStore.getState().persist?.(),
     useAppSettingsStore.getState().persist?.(),
+    wordHuntStats.dailyCompletedDate
+      ? saveDailyCompletedDate('word-hunt', wordHuntStats.dailyCompletedDate)
+      : Promise.resolve(),
+    gridSnapStats.dailyCompletedDate
+      ? saveDailyCompletedDate('grid-snap', gridSnapStats.dailyCompletedDate)
+      : Promise.resolve(),
     scheduleGameReminder(
       'word-hunt',
       wordHuntSettings.notificationsEnabled,

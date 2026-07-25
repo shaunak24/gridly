@@ -47,6 +47,24 @@ describe('mergePolicy', () => {
     expect(merged.dailyCompletedDate).toBe('2026-07-18');
   });
 
+  it('does not inherit guest daily completion when cloud has no daily record', () => {
+    const local = toWordHuntStatsCloud(
+      {
+        gamesPlayed: 1,
+        gamesWon: 1,
+        currentStreak: 1,
+        maxStreak: 1,
+        distribution: [1, 0, 0, 0, 0, 0, 0],
+      },
+      '2026-07-25',
+      timestamp,
+    );
+
+    const merged = mergeWordHuntStats(local, null);
+
+    expect(merged.dailyCompletedDate).toBeNull();
+  });
+
   it('merges grid snap stats', () => {
     const local = toGridSnapStatsCloud(
       { gamesPlayed: 1, gamesWon: 1, currentStreak: 1, maxStreak: 1 },

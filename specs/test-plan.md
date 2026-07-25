@@ -162,6 +162,29 @@ Requires migration `003`, deployed `create-invite` and `resolve-invite` function
 - [ ] Guest can create and share invite; signed-in user can create invite
 - [ ] Legacy `gridly://games/word-hunt/play?mode=custom&code=g1:…` still opens custom puzzle
 
+## Manual test checklist — v3.2
+
+Requires `npm run build:apk`.
+
+- [ ] App launch / welcome hydration shows logo + wordmark loading (not bare spinner)
+- [ ] Email and Google sign-in land on home once (no double-load flicker)
+- [ ] Guest completes daily → signs into account that has not played → daily available
+- [ ] Account A completes daily → sign out → account B → B sees own daily state
+- [ ] Tap HTTPS invite in WhatsApp on Android → Gridly opens with correct custom word
+- [ ] Browser landing **Open in Gridly** opens app and starts puzzle
+- [ ] Legacy `g1:` deep links still work
+
+## Manual test checklist — v3.3
+
+- [ ] Word Hunt play shows mm:ss timer; stops on win/loss
+- [ ] Grid Snap play shows mm:ss timer; stops on win/loss
+- [ ] Word Hunt stats mode picker: Daily / Practice / Custom updates all summary cards
+- [ ] Grid Snap stats mode picker: Easy / Medium / Hard updates summary cards
+- [ ] Time stats (fastest, average, slowest) update per selected mode
+- [ ] Daily win counts toward Daily stats only; practice toward Practice; custom puzzle toward Custom
+- [ ] Grid Snap win at Medium difficulty counts toward Medium stats only
+- [ ] Signed-in per-mode stats merge on second device
+
 ## Manual test checklist — v2.0
 
 ### Platform

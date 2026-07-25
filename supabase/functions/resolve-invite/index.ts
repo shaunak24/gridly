@@ -1,6 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 
-import { buildAppDeepLink } from '../_shared/deepLink.ts';
+import { buildAndroidIntentUrl, buildAppDeepLink } from '../_shared/deepLink.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 
 function escapeHtml(value: string): string {
@@ -28,8 +28,9 @@ function parseInviteId(request: Request): string | null {
   return lastSegment;
 }
 
-function renderLandingPage(inviteId: string, gameId: string): string {
+function renderLandingPage(inviteId: string, gameId: string, requestUrl: string): string {
   const deepLink = escapeHtml(buildAppDeepLink(gameId, inviteId));
+  const androidIntentUrl = escapeHtml(buildAndroidIntentUrl(gameId, inviteId, requestUrl));
   const title = gameId === 'word-hunt' ? 'Can you guess my Gridly word?' : 'Open this puzzle in Gridly';
 
   return `<!DOCTYPE html>
@@ -74,7 +75,8 @@ function renderLandingPage(inviteId: string, gameId: string): string {
     </style>
     <script>
       window.addEventListener('DOMContentLoaded', function () {
-        window.location.href = '${deepLink}';
+        var isAndroid = /Android/i.test(navigator.userAgent);
+        window.location.href = isAndroid ? '${androidIntentUrl}' : '${deepLink}';
       });
     </script>
   </head>
@@ -82,9 +84,21 @@ function renderLandingPage(inviteId: string, gameId: string): string {
     <main>
       <h1>${escapeHtml(title)}</h1>
       <p>Opening Gridly…</p>
-      <a class="button" href="${deepLink}">Open in Gridly</a>
+      <a class="button" id="open-gridly" href="${deepLink}">Open in Gridly</a>
       <p>If nothing happens, install Gridly on your phone and try again.</p>
     </main>
+    <script>
+      (function () {
+        var isAndroid = /Android/i.test(navigator.userAgent);
+        if (!isAndroid) {
+          return;
+        }
+        var button = document.getElementById('open-gridly');
+        if (button) {
+          button.href = '${androidIntentUrl}';
+        }
+      })();
+    </script>
   </body>
 </html>`;
 }
@@ -167,7 +181,7 @@ Deno.serve(async (request) => {
     });
   }
 
-  return new Response(renderLandingPage(data.id, data.game_id), {
+  return new Response(renderLandingPage(data.id, data.game_id, request.url), {
     status: 200,
     headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' },
   });

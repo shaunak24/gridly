@@ -6,6 +6,26 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v3.2
+
+**Status:** Complete — see [v3.2.md](./v3.2.md).
+
+#### Player-facing
+
+- **Launch loading** — branded logo and wordmark while auth hydrates (not a bare spinner)
+- **Sign-in navigation** — home appears once after sign-in with no double-load flicker
+- **Per-user daily completion** — daily lock follows the signed-in account; guest state stays device-local
+- **Invite links** — shared Word Hunt HTTPS links open Gridly on Android and start the custom puzzle
+
+#### Engineering
+
+- `LaunchLoading` component; Android `intent://` fallback on invite landing page; `android.intentFilters` for `gridly://`
+- Account-scoped daily completion storage; merge policy no longer inherits guest daily lock on sign-in
+- Single `mergeLocalToCloud` on auth state change; push snapshot before sign-out
+- Unit tests for daily completion scope, Android intent URLs, and merge policy; 80 tests total
+
+---
+
 ### v3.1
 
 **Status:** Complete — see [v3.1.md](./v3.1.md).
@@ -216,6 +236,20 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 - AsyncStorage persistence for stats, settings, in-progress games
 - 30+ unit tests (`npm test`)
 - Word lists via `npm run build:words`
+
+---
+
+## Planned
+
+### v3.3
+
+**Status:** Planned — see [v3.3.md](./v3.3.md).
+
+- In-game elapsed timer (Word Hunt + Grid Snap)
+- Time stats: fastest, average, slowest per mode
+- Word Hunt stats by Daily / Practice / Custom
+- Grid Snap stats by Easy / Medium / Hard
+- Stats screen mode picker; cloud sync for per-mode buckets
 
 ---
 

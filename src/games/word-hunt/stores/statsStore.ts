@@ -1,8 +1,12 @@
 import { create } from 'zustand';
 
+import {
+  loadDailyCompletedDate,
+  saveDailyCompletedDate,
+} from '../../../platform/sync/dailyCompletion';
 import { pushIfSignedIn } from '../../../platform/sync/pushIfSignedIn';
 import { getLocalDateKey } from '../core/dailyWord';
-import { loadJson, loadString, saveJson, saveString, storageKeys } from '../../../shared/services/storage';
+import { loadJson, saveJson, storageKeys } from '../../../shared/services/storage';
 
 export interface StatsData {
   gamesPlayed: number;
@@ -38,7 +42,7 @@ export const useStatsStore = create<StatsState>((set, get) => ({
   hydrate: async () => {
     const [stats, dailyCompleted] = await Promise.all([
       loadJson<StatsData>(storageKeys.stats),
-      loadString(storageKeys.dailyCompleted),
+      loadDailyCompletedDate('word-hunt'),
     ]);
 
     set({
@@ -50,18 +54,17 @@ export const useStatsStore = create<StatsState>((set, get) => ({
 
   persist: async () => {
     const state = get();
-    await Promise.all([
-      saveJson(storageKeys.stats, {
-        gamesPlayed: state.gamesPlayed,
-        gamesWon: state.gamesWon,
-        currentStreak: state.currentStreak,
-        maxStreak: state.maxStreak,
-        distribution: state.distribution,
-      }),
-      state.dailyCompletedDate
-        ? saveString(storageKeys.dailyCompleted, state.dailyCompletedDate)
-        : Promise.resolve(),
-    ]);
+    await saveJson(storageKeys.stats, {
+      gamesPlayed: state.gamesPlayed,
+      gamesWon: state.gamesWon,
+      currentStreak: state.currentStreak,
+      maxStreak: state.maxStreak,
+      distribution: state.distribution,
+    });
+
+    if (state.dailyCompletedDate) {
+      await saveDailyCompletedDate('word-hunt', state.dailyCompletedDate);
+    }
   },
 
   recordResult: async (won, guessCount) => {
@@ -94,7 +97,7 @@ export const useStatsStore = create<StatsState>((set, get) => ({
   markDailyComplete: async () => {
     const today = getLocalDateKey();
     set({ dailyCompletedDate: today });
-    await saveString(storageKeys.dailyCompleted, today);
+    await saveDailyCompletedDate('word-hunt', today);
     void pushIfSignedIn();
   },
 

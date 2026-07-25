@@ -13,14 +13,16 @@ export function nowIso(): string {
   return new Date().toISOString();
 }
 
-function maxDate(a: string | null, b: string | null): string | null {
-  if (!a) {
-    return b;
+/** Guest device daily completion must not bleed into a signed-in account on merge. */
+function mergeDailyCompletedDate(
+  _local: string | null,
+  cloud: string | null,
+): string | null {
+  if (cloud) {
+    return cloud;
   }
-  if (!b) {
-    return a;
-  }
-  return a > b ? a : b;
+
+  return null;
 }
 
 function pickLatest<T extends Timestamped>(local: T, cloud: T | null): T {
@@ -35,7 +37,11 @@ export function mergeWordHuntStats(
   cloud: WordHuntStatsCloud | null,
 ): WordHuntStatsCloud {
   if (!cloud) {
-    return { ...local, updatedAt: nowIso() };
+    return {
+      ...local,
+      dailyCompletedDate: null,
+      updatedAt: nowIso(),
+    };
   }
 
   const distribution = local.distribution.map((value, index) => value + (cloud.distribution[index] ?? 0));
@@ -46,7 +52,7 @@ export function mergeWordHuntStats(
     currentStreak: Math.max(local.currentStreak, cloud.currentStreak),
     maxStreak: Math.max(local.maxStreak, cloud.maxStreak),
     distribution,
-    dailyCompletedDate: maxDate(local.dailyCompletedDate, cloud.dailyCompletedDate),
+    dailyCompletedDate: mergeDailyCompletedDate(local.dailyCompletedDate, cloud.dailyCompletedDate),
     updatedAt: nowIso(),
   };
 }
@@ -56,7 +62,11 @@ export function mergeGridSnapStats(
   cloud: GridSnapStatsCloud | null,
 ): GridSnapStatsCloud {
   if (!cloud) {
-    return { ...local, updatedAt: nowIso() };
+    return {
+      ...local,
+      dailyCompletedDate: null,
+      updatedAt: nowIso(),
+    };
   }
 
   return {
@@ -64,7 +74,7 @@ export function mergeGridSnapStats(
     gamesWon: local.gamesWon + cloud.gamesWon,
     currentStreak: Math.max(local.currentStreak, cloud.currentStreak),
     maxStreak: Math.max(local.maxStreak, cloud.maxStreak),
-    dailyCompletedDate: maxDate(local.dailyCompletedDate, cloud.dailyCompletedDate),
+    dailyCompletedDate: mergeDailyCompletedDate(local.dailyCompletedDate, cloud.dailyCompletedDate),
     updatedAt: nowIso(),
   };
 }

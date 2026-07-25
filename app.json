@@ -22,7 +22,19 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1E1B2E"
       },
-      "package": "com.gridly.app"
+      "package": "com.gridly.app",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": false,
+          "data": [
+            {
+              "scheme": "gridly"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "plugins": [
       "expo-router",

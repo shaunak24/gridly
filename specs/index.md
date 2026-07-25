@@ -2,7 +2,7 @@
 
 Gridly is a cross-platform **grid-based games** app. These documents are the authoritative reference for product behavior, architecture, and quality standards.
 
-**Current release:** v3.1 (clickable Word Hunt share invites). See [changelog.md](./changelog.md) for version history and planned work.
+**Current release:** v3.2 (polish, account fixes, invite deep links). **In development:** [v3.3](./v3.3.md). See [changelog.md](./changelog.md) for version history and planned work.
 
 ## Documents
 
@@ -22,6 +22,8 @@ Gridly is a cross-platform **grid-based games** app. These documents are the aut
 | [v3.0.3](./v3.0.3.md) | Google OAuth PKCE session exchange and themed in-app messages |
 | [v3.0.4](./v3.0.4.md) | Sign-out themed confirmation modal |
 | [v3.1](./v3.1.md) | Clickable Word Hunt share invites (HTTPS + Supabase) |
+| [v3.2](./v3.2.md) | Polish, account fixes, Android invite deep links |
+| [v3.3](./v3.3.md) | Game timers and mode-segregated stats |
 | [Backlog](./backlog.md) | Planned future work (not yet assigned to a version) |
 | [Architecture](./architecture.md) | System design, layers, modules, data flow |
 | [Tech Stack](./tech-stack.md) | Frameworks, dependencies, dev workflow, deployment |
@@ -41,7 +43,7 @@ Gridly is a cross-platform **grid-based games** app. These documents are the aut
 | Area | Start here |
 |------|------------|
 | What the app does today | [experience.md](./experience.md), [v3.0.md](./v3.0.md), [v3.1.md](./v3.1.md) |
-| What to build next | [backlog.md](./backlog.md) |
+| What to build next | [v3.2.md](./v3.2.md), [v3.3.md](./v3.3.md), [backlog.md](./backlog.md) |
 | Word Hunt logic | [game-rules.md](./game-rules.md), `src/games/word-hunt/core/gameEngine.ts` |
 | Grid Snap logic | `src/games/grid-snap/core/puzzleEngine.ts` |
 | Code layout | [architecture.md](./architecture.md) |

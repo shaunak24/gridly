@@ -12,7 +12,7 @@ import {
 } from './authService';
 import { authError, authInfo, type AuthUserMessage } from './authMessages';
 import { isSupabaseConfigured } from './supabaseClient';
-import { mergeLocalToCloud, rehydrateLocalStores } from '../sync/syncService';
+import { mergeLocalToCloud, pushSnapshotIfSignedIn, rehydrateLocalStores } from '../sync/syncService';
 
 export type { AuthUserMessage } from './authMessages';
 
@@ -74,7 +74,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return authError('Sign in failed', result.message);
       }
       set({ session: result.session, user: result.session.user });
-      await mergeLocalToCloud(result.session.user.id);
       return null;
     } finally {
       set({ busy: false });
@@ -92,7 +91,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return authError('Sign up failed', result.message);
       }
       set({ session: result.session, user: result.session.user });
-      await mergeLocalToCloud(result.session.user.id);
       return null;
     } finally {
       set({ busy: false });
@@ -107,7 +105,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return authError('Sign in failed', result.message);
       }
       set({ session: result.session, user: result.session.user });
-      await mergeLocalToCloud(result.session.user.id);
       return null;
     } finally {
       set({ busy: false });
@@ -122,7 +119,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const existingSession = await getCurrentSession();
     if (existingSession) {
       set({ session: existingSession, user: existingSession.user });
-      await mergeLocalToCloud(existingSession.user.id);
       return null;
     }
 
@@ -131,7 +127,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const retrySession = await getCurrentSession();
       if (retrySession) {
         set({ session: retrySession, user: retrySession.user });
-        await mergeLocalToCloud(retrySession.user.id);
         return null;
       }
 
@@ -139,13 +134,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     set({ session: result.session, user: result.session.user });
-    await mergeLocalToCloud(result.session.user.id);
     return null;
   },
 
   signOut: async () => {
     set({ busy: true });
     try {
+      await pushSnapshotIfSignedIn();
       await authSignOut();
       set({ session: null, user: null });
       await rehydrateLocalStores();
