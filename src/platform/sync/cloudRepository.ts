@@ -8,25 +8,32 @@ import type {
   WordHuntSettingsCloud,
   WordHuntStatsCloud,
 } from './types';
+import { emptyGridSnapStatsByMode } from '../../shared/stats/gridSnapModeStats';
+import { emptyWordHuntStatsByMode } from '../../shared/stats/wordHuntModeStats';
 
 function mapWordHuntStats(row: Record<string, unknown>): WordHuntStatsCloud {
+  const statsByModeRaw = row.stats_by_mode;
+  const statsByMode =
+    statsByModeRaw && typeof statsByModeRaw === 'object'
+      ? (statsByModeRaw as WordHuntStatsCloud['statsByMode'])
+      : emptyWordHuntStatsByMode();
+
   return {
-    gamesPlayed: Number(row.games_played ?? 0),
-    gamesWon: Number(row.games_won ?? 0),
-    currentStreak: Number(row.current_streak ?? 0),
-    maxStreak: Number(row.max_streak ?? 0),
-    distribution: Array.isArray(row.distribution) ? row.distribution.map(Number) : [0, 0, 0, 0, 0, 0, 0],
+    statsByMode,
     dailyCompletedDate: (row.daily_completed_date as string | null) ?? null,
     updatedAt: String(row.updated_at ?? new Date().toISOString()),
   };
 }
 
 function mapGridSnapStats(row: Record<string, unknown>): GridSnapStatsCloud {
+  const statsByModeRaw = row.stats_by_mode;
+  const statsByMode =
+    statsByModeRaw && typeof statsByModeRaw === 'object'
+      ? (statsByModeRaw as GridSnapStatsCloud['statsByMode'])
+      : emptyGridSnapStatsByMode();
+
   return {
-    gamesPlayed: Number(row.games_played ?? 0),
-    gamesWon: Number(row.games_won ?? 0),
-    currentStreak: Number(row.current_streak ?? 0),
-    maxStreak: Number(row.max_streak ?? 0),
+    statsByMode,
     dailyCompletedDate: (row.daily_completed_date as string | null) ?? null,
     updatedAt: String(row.updated_at ?? new Date().toISOString()),
   };
@@ -113,20 +120,13 @@ export async function upsertCloudSnapshot(userId: string, snapshot: UserCloudSna
     }),
     supabase.from('word_hunt_stats').upsert({
       user_id: userId,
-      games_played: wordHuntStats.gamesPlayed,
-      games_won: wordHuntStats.gamesWon,
-      current_streak: wordHuntStats.currentStreak,
-      max_streak: wordHuntStats.maxStreak,
-      distribution: wordHuntStats.distribution,
+      stats_by_mode: wordHuntStats.statsByMode,
       daily_completed_date: wordHuntStats.dailyCompletedDate,
       updated_at: wordHuntStats.updatedAt,
     }),
     supabase.from('grid_snap_stats').upsert({
       user_id: userId,
-      games_played: gridSnapStats.gamesPlayed,
-      games_won: gridSnapStats.gamesWon,
-      current_streak: gridSnapStats.currentStreak,
-      max_streak: gridSnapStats.maxStreak,
+      stats_by_mode: gridSnapStats.statsByMode,
       daily_completed_date: gridSnapStats.dailyCompletedDate,
       updated_at: gridSnapStats.updatedAt,
     }),

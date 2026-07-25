@@ -1,5 +1,13 @@
-import type { GridSnapStatsData } from '../../games/grid-snap/stores/gridSnapStatsStore';
-import type { StatsData } from '../../games/word-hunt/stores/statsStore';
+import type { GridSnapStoredStats } from '../../shared/stats/gridSnapModeStats';
+import {
+  emptyGridSnapStatsByMode,
+  normalizeGridSnapStoredStats,
+} from '../../shared/stats/gridSnapModeStats';
+import type { WordHuntStoredStats } from '../../shared/stats/wordHuntModeStats';
+import {
+  emptyWordHuntStatsByMode,
+  normalizeWordHuntStoredStats,
+} from '../../shared/stats/wordHuntModeStats';
 import { loadJson, removeKey, saveJson, storageKeys } from '../../shared/services/storage';
 import { useAuthStore } from '../auth/authStore';
 import { nowIso } from './mergePolicy';
@@ -12,21 +20,6 @@ const LEGACY_KEYS: Record<StatsGameId, string> = {
   'word-hunt': storageKeys.stats,
   'grid-snap': storageKeys.gridSnapStats,
 };
-
-const emptyWordHuntStats = (): StatsData => ({
-  gamesPlayed: 0,
-  gamesWon: 0,
-  currentStreak: 0,
-  maxStreak: 0,
-  distribution: [0, 0, 0, 0, 0, 0, 0],
-});
-
-const emptyGridSnapStats = (): GridSnapStatsData => ({
-  gamesPlayed: 0,
-  gamesWon: 0,
-  currentStreak: 0,
-  maxStreak: 0,
-});
 
 function guestKey(game: StatsGameId): string {
   return game === 'word-hunt' ? storageKeys.statsGuest : storageKeys.gridSnapStatsGuest;
@@ -42,7 +35,7 @@ async function migrateLegacyStatsKeys(): Promise<void> {
   await Promise.all(
     (Object.keys(LEGACY_KEYS) as StatsGameId[]).map(async (game) => {
       const legacyKey = LEGACY_KEYS[game];
-      const legacyValue = await loadJson<StatsData | GridSnapStatsData>(legacyKey);
+      const legacyValue = await loadJson<unknown>(legacyKey);
       if (legacyValue === null) {
         return;
       }
@@ -50,7 +43,11 @@ async function migrateLegacyStatsKeys(): Promise<void> {
       const guestStorageKey = guestKey(game);
       const existingGuest = await loadJson(guestStorageKey);
       if (existingGuest === null) {
-        await saveJson(guestStorageKey, legacyValue);
+        const normalized =
+          game === 'word-hunt'
+            ? normalizeWordHuntStoredStats(legacyValue)
+            : normalizeGridSnapStoredStats(legacyValue);
+        await saveJson(guestStorageKey, normalized);
       }
 
       await removeKey(legacyKey);
@@ -62,7 +59,7 @@ export function getActiveStatsUserId(): string | null {
   return useAuthStore.getState().user?.id ?? null;
 }
 
-function stripCachedStats<T extends StatsData | GridSnapStatsData>(
+function stripCachedStats<T extends WordHuntStoredStats | GridSnapStoredStats>(
   value: (T & { updatedAt?: string }) | null,
 ): T | null {
   if (!value) {
@@ -73,15 +70,20 @@ function stripCachedStats<T extends StatsData | GridSnapStatsData>(
   return stats as T;
 }
 
-export async function loadWordHuntStats(): Promise<StatsData | null> {
+export async function loadWordHuntStats(): Promise<WordHuntStoredStats | null> {
   await migrateLegacyStatsKeys();
 
   const userId = getActiveStatsUserId();
   const key = userId ? userKey('word-hunt', userId) : guestKey('word-hunt');
-  return stripCachedStats(await loadJson<StatsData & { updatedAt?: string }>(key));
+  const raw = await loadJson<unknown & { updatedAt?: string }>(key);
+  if (!raw) {
+    return null;
+  }
+
+  return normalizeWordHuntStoredStats(stripCachedStats(raw));
 }
 
-export async function saveWordHuntStats(stats: StatsData): Promise<void> {
+export async function saveWordHuntStats(stats: WordHuntStoredStats): Promise<void> {
   await migrateLegacyStatsKeys();
 
   const userId = getActiveStatsUserId();
@@ -89,14 +91,15 @@ export async function saveWordHuntStats(stats: StatsData): Promise<void> {
   await saveJson(key, stats);
 }
 
-export async function loadGuestWordHuntStats(): Promise<StatsData | null> {
+export async function loadGuestWordHuntStats(): Promise<WordHuntStoredStats | null> {
   await migrateLegacyStatsKeys();
-  return loadJson<StatsData>(guestKey('word-hunt'));
+  const raw = await loadJson<unknown>(guestKey('word-hunt'));
+  return raw ? normalizeWordHuntStoredStats(raw) : null;
 }
 
 export async function saveUserWordHuntStats(
   userId: string,
-  stats: StatsData,
+  stats: WordHuntStoredStats,
   updatedAt = nowIso(),
 ): Promise<void> {
   await migrateLegacyStatsKeys();
@@ -105,20 +108,31 @@ export async function saveUserWordHuntStats(
 
 export async function loadUserWordHuntStats(
   userId: string,
-): Promise<CachedStats<StatsData> | null> {
+): Promise<CachedStats<WordHuntStoredStats> | null> {
   await migrateLegacyStatsKeys();
-  return loadJson<CachedStats<StatsData>>(userKey('word-hunt', userId));
+  const raw = await loadJson<CachedStats<unknown>>(userKey('word-hunt', userId));
+  if (!raw) {
+    return null;
+  }
+
+  const { updatedAt, ...rest } = raw;
+  return { ...normalizeWordHuntStoredStats(rest), updatedAt: updatedAt ?? nowIso() };
 }
 
-export async function loadGridSnapStats(): Promise<GridSnapStatsData | null> {
+export async function loadGridSnapStats(): Promise<GridSnapStoredStats | null> {
   await migrateLegacyStatsKeys();
 
   const userId = getActiveStatsUserId();
   const key = userId ? userKey('grid-snap', userId) : guestKey('grid-snap');
-  return stripCachedStats(await loadJson<GridSnapStatsData & { updatedAt?: string }>(key));
+  const raw = await loadJson<unknown & { updatedAt?: string }>(key);
+  if (!raw) {
+    return null;
+  }
+
+  return normalizeGridSnapStoredStats(stripCachedStats(raw));
 }
 
-export async function saveGridSnapStats(stats: GridSnapStatsData): Promise<void> {
+export async function saveGridSnapStats(stats: GridSnapStoredStats): Promise<void> {
   await migrateLegacyStatsKeys();
 
   const userId = getActiveStatsUserId();
@@ -126,14 +140,15 @@ export async function saveGridSnapStats(stats: GridSnapStatsData): Promise<void>
   await saveJson(key, stats);
 }
 
-export async function loadGuestGridSnapStats(): Promise<GridSnapStatsData | null> {
+export async function loadGuestGridSnapStats(): Promise<GridSnapStoredStats | null> {
   await migrateLegacyStatsKeys();
-  return loadJson<GridSnapStatsData>(guestKey('grid-snap'));
+  const raw = await loadJson<unknown>(guestKey('grid-snap'));
+  return raw ? normalizeGridSnapStoredStats(raw) : null;
 }
 
 export async function saveUserGridSnapStats(
   userId: string,
-  stats: GridSnapStatsData,
+  stats: GridSnapStoredStats,
   updatedAt = nowIso(),
 ): Promise<void> {
   await migrateLegacyStatsKeys();
@@ -142,17 +157,23 @@ export async function saveUserGridSnapStats(
 
 export async function loadUserGridSnapStats(
   userId: string,
-): Promise<CachedStats<GridSnapStatsData> | null> {
+): Promise<CachedStats<GridSnapStoredStats> | null> {
   await migrateLegacyStatsKeys();
-  return loadJson<CachedStats<GridSnapStatsData>>(userKey('grid-snap', userId));
+  const raw = await loadJson<CachedStats<unknown>>(userKey('grid-snap', userId));
+  if (!raw) {
+    return null;
+  }
+
+  const { updatedAt, ...rest } = raw;
+  return { ...normalizeGridSnapStoredStats(rest), updatedAt: updatedAt ?? nowIso() };
 }
 
 export async function resetGuestStats(): Promise<void> {
   await migrateLegacyStatsKeys();
   await Promise.all([
-    saveJson(guestKey('word-hunt'), emptyWordHuntStats()),
-    saveJson(guestKey('grid-snap'), emptyGridSnapStats()),
+    saveJson(guestKey('word-hunt'), { byMode: emptyWordHuntStatsByMode() }),
+    saveJson(guestKey('grid-snap'), { byMode: emptyGridSnapStatsByMode() }),
   ]);
 }
 
-export { emptyGridSnapStats, emptyWordHuntStats };
+export { emptyGridSnapStatsByMode as emptyGridSnapStats, emptyWordHuntStatsByMode as emptyWordHuntStats };

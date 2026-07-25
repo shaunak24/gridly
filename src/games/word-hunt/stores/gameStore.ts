@@ -33,9 +33,12 @@ interface GameState {
   shakeRow: boolean;
   dailyInProgress: boolean;
   practiceInProgress: boolean;
+  elapsedSec: number;
+  gameSessionId: number;
   hydrateProgress: () => Promise<void>;
   resumeOrStartGame: (mode: GameMode, options?: { secretWord?: string }) => Promise<boolean>;
   startGame: (mode: GameMode, options?: { secretWord?: string }) => void;
+  setElapsedSec: (elapsedSec: number) => void;
   appendLetter: (letter: string) => void;
   removeLetter: () => void;
   submitGuess: () => boolean;
@@ -113,6 +116,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   shakeRow: false,
   dailyInProgress: false,
   practiceInProgress: false,
+  elapsedSec: 0,
+  gameSessionId: 0,
 
   hydrateProgress: async () => {
     await refreshProgressFlags(set);
@@ -148,6 +153,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         currentGuess: saved.currentGuess,
         currentRowIndex: saved.currentRowIndex,
         letterStates: saved.letterStates,
+        elapsedSec: saved.elapsedSec ?? 0,
+        gameSessionId: get().gameSessionId + 1,
         errorMessage: null,
         shakeRow: false,
       });
@@ -176,6 +183,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       letterStates: {},
       errorMessage: null,
       shakeRow: false,
+      elapsedSec: 0,
+      gameSessionId: get().gameSessionId + 1,
     });
 
     void (async () => {
@@ -189,6 +198,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       await refreshProgressFlags(set);
     })();
   },
+
+  setElapsedSec: (elapsedSec) => set({ elapsedSec }),
 
   appendLetter: (letter) => {
     const { status, currentGuess } = get();
@@ -270,12 +281,10 @@ export const useGameStore = create<GameState>((set, get) => ({
         void clearPersistedGame(state.mode);
       }
       void refreshProgressFlags(set);
-      if (state.mode !== 'custom') {
-        const stats = useStatsStore.getState();
-        void stats.recordResult(isWin, isWin ? rowIndex + 1 : 0);
-        if (state.mode === 'daily') {
-          void stats.markDailyComplete();
-        }
+      const stats = useStatsStore.getState();
+      void stats.recordResult(state.mode, isWin, isWin ? rowIndex + 1 : 0, get().elapsedSec);
+      if (state.mode === 'daily') {
+        void stats.markDailyComplete();
       }
     } else {
       void persistIfPlaying(next);

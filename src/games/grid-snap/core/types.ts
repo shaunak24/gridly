@@ -33,6 +33,7 @@ export interface PersistedSnapGame {
   pieces: Piece[];
   imageSeed: string;
   status: SnapStatus;
+  elapsedSec: number;
 }
 
 export interface GridLayout {

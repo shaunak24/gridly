@@ -1,19 +1,36 @@
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useStatsStore } from '../../../src/games/word-hunt/stores/statsStore';
 import { HeaderHomeButton } from '../../../src/shared/components/HeaderHomeButton';
+import { ModePicker } from '../../../src/shared/components/ModePicker';
 import { SyncHint } from '../../../src/shared/components/SyncHint';
+import { averageElapsedSec } from '../../../src/shared/stats/timeAggregates';
+import {
+  WORD_HUNT_MODES,
+  type WordHuntMode,
+} from '../../../src/shared/stats/wordHuntModeStats';
 import { useTheme } from '../../../src/shared/theme/useTheme';
+import { formatElapsedOrDash } from '../../../src/shared/utils/formatElapsed';
+
+const MODE_LABELS: Record<WordHuntMode, string> = {
+  daily: 'Daily',
+  practice: 'Practice',
+  custom: 'Custom',
+};
 
 export default function WordHuntStatsScreen() {
   const router = useRouter();
   const theme = useTheme();
-  const { gamesPlayed, gamesWon, currentStreak, maxStreak, distribution } = useStatsStore();
+  const [mode, setMode] = useState<WordHuntMode>('daily');
+  const stats = useStatsStore((state) => state.getModeStats(mode));
 
+  const { gamesPlayed, gamesWon, currentStreak, maxStreak, distribution, time } = stats;
   const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
   const maxDist = Math.max(...distribution, 1);
+  const averageSec = averageElapsedSec(time);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -25,6 +42,12 @@ export default function WordHuntStatsScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         <SyncHint />
+        <ModePicker
+          options={WORD_HUNT_MODES.map((value) => ({ value, label: MODE_LABELS[value] }))}
+          value={mode}
+          onChange={setMode}
+        />
+
         <View style={styles.row}>
           <StatCard label="Played" value={String(gamesPlayed)} theme={theme} />
           <StatCard label="Win %" value={`${winRate}`} theme={theme} />
@@ -32,6 +55,13 @@ export default function WordHuntStatsScreen() {
         <View style={styles.row}>
           <StatCard label="Streak" value={String(currentStreak)} theme={theme} />
           <StatCard label="Max" value={String(maxStreak)} theme={theme} />
+        </View>
+
+        <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Solve time</Text>
+        <View style={styles.row}>
+          <StatCard label="Fastest" value={formatElapsedOrDash(time.fastestSec)} theme={theme} />
+          <StatCard label="Average" value={formatElapsedOrDash(averageSec)} theme={theme} />
+          <StatCard label="Slowest" value={formatElapsedOrDash(time.slowestSec)} theme={theme} />
         </View>
 
         <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Guess distribution</Text>
@@ -109,7 +139,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
   },
-  cardValue: { fontSize: 28, fontWeight: '700' },
+  cardValue: { fontSize: 22, fontWeight: '700' },
   cardLabel: { fontSize: 13, marginTop: 4 },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginTop: 8 },
   distRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },

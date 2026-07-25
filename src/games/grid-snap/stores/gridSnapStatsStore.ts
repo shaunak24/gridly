@@ -10,7 +10,17 @@ import {
 } from '../../../platform/sync/dailyCompletion';
 import { pushIfSignedIn } from '../../../platform/sync/pushIfSignedIn';
 import { getLocalDateKey } from '../core/dailyPuzzle';
+import type { SnapDifficulty } from '../core/types';
+import {
+  emptyGridSnapModeStats,
+  emptyGridSnapStatsByMode,
+  recordGridSnapModeResult,
+  type GridSnapModeStats,
+  type GridSnapStatsByMode,
+  type GridSnapStoredStats,
+} from '../../../shared/stats/gridSnapModeStats';
 
+/** @deprecated Use GridSnapModeStats — kept for sync migration helpers. */
 export interface GridSnapStatsData {
   gamesPlayed: number;
   gamesWon: number;
@@ -18,25 +28,20 @@ export interface GridSnapStatsData {
   maxStreak: number;
 }
 
-const emptyStats = (): GridSnapStatsData => ({
-  gamesPlayed: 0,
-  gamesWon: 0,
-  currentStreak: 0,
-  maxStreak: 0,
-});
-
-interface GridSnapStatsState extends GridSnapStatsData {
+interface GridSnapStatsState {
+  byMode: GridSnapStatsByMode;
   dailyCompletedDate: string | null;
   hydrated: boolean;
   hydrate: () => Promise<void>;
   persist: () => Promise<void>;
-  recordResult: (won: boolean) => Promise<void>;
+  getModeStats: (difficulty: SnapDifficulty) => GridSnapModeStats;
+  recordResult: (difficulty: SnapDifficulty, won: boolean, elapsedSec: number) => Promise<void>;
   markDailyComplete: () => Promise<void>;
   isDailyCompleteToday: () => boolean;
 }
 
 export const useGridSnapStatsStore = create<GridSnapStatsState>((set, get) => ({
-  ...emptyStats(),
+  byMode: emptyGridSnapStatsByMode(),
   dailyCompletedDate: null,
   hydrated: false,
 
@@ -47,7 +52,7 @@ export const useGridSnapStatsStore = create<GridSnapStatsState>((set, get) => ({
     ]);
 
     set({
-      ...(stats ?? emptyStats()),
+      byMode: stats?.byMode ?? emptyGridSnapStatsByMode(),
       dailyCompletedDate: dailyCompleted,
       hydrated: true,
     });
@@ -55,28 +60,23 @@ export const useGridSnapStatsStore = create<GridSnapStatsState>((set, get) => ({
 
   persist: async () => {
     const state = get();
-    await saveGridSnapStats({
-      gamesPlayed: state.gamesPlayed,
-      gamesWon: state.gamesWon,
-      currentStreak: state.currentStreak,
-      maxStreak: state.maxStreak,
-    });
+    const payload: GridSnapStoredStats = { byMode: state.byMode };
+    await saveGridSnapStats(payload);
 
     if (state.dailyCompletedDate) {
       await saveDailyCompletedDate('grid-snap', state.dailyCompletedDate);
     }
   },
 
-  recordResult: async (won) => {
-    const state = get();
-    const gamesPlayed = state.gamesPlayed + 1;
-    const gamesWon = state.gamesWon + (won ? 1 : 0);
-    const currentStreak = won ? state.currentStreak + 1 : 0;
-    const maxStreak = Math.max(state.maxStreak, currentStreak);
+  getModeStats: (difficulty) => get().byMode[difficulty] ?? emptyGridSnapModeStats(),
 
-    const next = { gamesPlayed, gamesWon, currentStreak, maxStreak };
-    set(next);
-    await saveGridSnapStats(next);
+  recordResult: async (difficulty, won, elapsedSec) => {
+    const state = get();
+    const nextMode = recordGridSnapModeResult(state.byMode[difficulty], won, elapsedSec);
+    const byMode = { ...state.byMode, [difficulty]: nextMode };
+
+    set({ byMode });
+    await saveGridSnapStats({ byMode });
     void pushIfSignedIn();
   },
 

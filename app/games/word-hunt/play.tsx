@@ -15,8 +15,11 @@ import { fetchInvite } from '../../../src/platform/invites/inviteService';
 import { getWordHuntCustomWord } from '../../../src/platform/invites/wordHuntInvite';
 import { GameEndExperience } from '../../../src/shared/components/GameEndExperience';
 import { HeaderHomeButton } from '../../../src/shared/components/HeaderHomeButton';
+import { HeaderTimer } from '../../../src/shared/components/HeaderTimer';
 import type { GameEndMode, GameEndOutcome } from '../../../src/shared/gameEnd/gameEndConfig';
+import { useGameTimer } from '../../../src/shared/hooks/useGameTimer';
 import { useTheme } from '../../../src/shared/theme/useTheme';
+import { formatElapsedSeconds } from '../../../src/shared/utils/formatElapsed';
 
 function resolveMode(modeParam?: string, inviteParam?: string): GameMode {
   if (inviteParam) {
@@ -64,7 +67,18 @@ export default function WordHuntPlayScreen() {
     removeLetter,
     submitGuess,
     clearShake,
+    elapsedSec,
+    setElapsedSec,
+    gameSessionId,
   } = useGameStore();
+
+  const getBaseElapsedSec = useCallback(() => useGameStore.getState().elapsedSec, []);
+  const { display: timerDisplay } = useGameTimer({
+    active: status === 'playing',
+    resetKey: gameSessionId,
+    getBaseElapsedSec,
+    onTick: setElapsedSec,
+  });
 
   useEffect(() => {
     const init = async () => {
@@ -183,7 +197,9 @@ export default function WordHuntPlayScreen() {
       <View style={styles.header}>
         <HeaderHomeButton onPress={goHome} />
         <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>{headerLabel}</Text>
-        <View style={styles.headerSpacer} />
+        <HeaderTimer
+          display={status === 'playing' ? timerDisplay : formatElapsedSeconds(elapsedSec)}
+        />
       </View>
 
       <View style={[styles.boardArea, isFinished && styles.boardAreaFinished]}>

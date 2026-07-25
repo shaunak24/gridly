@@ -4,6 +4,25 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ---
 
+## In development
+
+### v3.3
+
+**Status:** In development — see [v3.3.md](./v3.3.md).
+
+#### Player-facing
+
+- **In-game timer** — mm:ss elapsed time on Word Hunt and Grid Snap play screens; resumes with saved games
+- **Mode stats** — Daily / Practice / Custom (Word Hunt) and Easy / Medium / Hard (Grid Snap) with mode picker on stats screens
+- **Time stats** — fastest, average, and slowest solve time per mode
+
+#### Engineering
+
+- Per-mode stats stores with `TimeAggregates`; `useGameTimer` hook; `004_mode_stats.sql` cloud migration
+- Merge policy sums per-mode buckets on sign-in; legacy flat stats map to Daily / Easy locally and in Supabase
+
+---
+
 ## Shipped
 
 ### v3.2.3
@@ -284,20 +303,6 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 - AsyncStorage persistence for stats, settings, in-progress games
 - 30+ unit tests (`npm test`)
 - Word lists via `npm run build:words`
-
----
-
-## Planned
-
-### v3.3
-
-**Status:** Planned — see [v3.3.md](./v3.3.md).
-
-- In-game elapsed timer (Word Hunt + Grid Snap)
-- Time stats: fastest, average, slowest per mode
-- Word Hunt stats by Daily / Practice / Custom
-- Grid Snap stats by Easy / Medium / Hard
-- Stats screen mode picker; cloud sync for per-mode buckets
 
 ---
 

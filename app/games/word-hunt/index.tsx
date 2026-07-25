@@ -15,8 +15,9 @@ export default function WordHuntHubScreen() {
   const router = useRouter();
   const theme = useTheme();
   const dailyDone = useStatsStore((s) => s.isDailyCompleteToday());
-  const gamesPlayed = useStatsStore((s) => s.gamesPlayed);
-  const currentStreak = useStatsStore((s) => s.currentStreak);
+  const dailyStats = useStatsStore((s) => s.getModeStats('daily'));
+  const gamesPlayed = dailyStats.gamesPlayed;
+  const currentStreak = dailyStats.currentStreak;
   const dailyInProgress = useGameStore((s) => s.dailyInProgress);
   const practiceInProgress = useGameStore((s) => s.practiceInProgress);
   const remainingMs = useDailyCountdown(dailyDone);

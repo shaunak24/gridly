@@ -69,23 +69,12 @@ function collectSignedInStatsSnapshot(): Pick<UserCloudSnapshot, 'wordHuntStats'
 
   return {
     wordHuntStats: toWordHuntStatsCloud(
-      {
-        gamesPlayed: wordHuntStatsState.gamesPlayed,
-        gamesWon: wordHuntStatsState.gamesWon,
-        currentStreak: wordHuntStatsState.currentStreak,
-        maxStreak: wordHuntStatsState.maxStreak,
-        distribution: wordHuntStatsState.distribution,
-      },
+      wordHuntStatsState.byMode,
       wordHuntStatsState.dailyCompletedDate,
       timestamp,
     ),
     gridSnapStats: toGridSnapStatsCloud(
-      {
-        gamesPlayed: gridSnapStatsState.gamesPlayed,
-        gamesWon: gridSnapStatsState.gamesWon,
-        currentStreak: gridSnapStatsState.currentStreak,
-        maxStreak: gridSnapStatsState.maxStreak,
-      },
+      gridSnapStatsState.byMode,
       gridSnapStatsState.dailyCompletedDate,
       timestamp,
     ),
@@ -120,29 +109,10 @@ async function loadUserStatsSnapshot(
 
   return {
     wordHunt: wordHuntStats
-      ? toWordHuntStatsCloud(
-          {
-            gamesPlayed: wordHuntStats.gamesPlayed,
-            gamesWon: wordHuntStats.gamesWon,
-            currentStreak: wordHuntStats.currentStreak,
-            maxStreak: wordHuntStats.maxStreak,
-            distribution: wordHuntStats.distribution,
-          },
-          null,
-          wordHuntStats.updatedAt,
-        )
+      ? toWordHuntStatsCloud(wordHuntStats.byMode, null, wordHuntStats.updatedAt)
       : null,
     gridSnap: gridSnapStats
-      ? toGridSnapStatsCloud(
-          {
-            gamesPlayed: gridSnapStats.gamesPlayed,
-            gamesWon: gridSnapStats.gamesWon,
-            currentStreak: gridSnapStats.currentStreak,
-            maxStreak: gridSnapStats.maxStreak,
-          },
-          null,
-          gridSnapStats.updatedAt,
-        )
+      ? toGridSnapStatsCloud(gridSnapStats.byMode, null, gridSnapStats.updatedAt)
       : null,
   };
 }
@@ -152,27 +122,8 @@ async function persistUserStatsCache(
   snapshot: Pick<UserCloudSnapshot, 'wordHuntStats' | 'gridSnapStats'>,
 ): Promise<void> {
   await Promise.all([
-    saveUserWordHuntStats(
-      userId,
-      {
-        gamesPlayed: snapshot.wordHuntStats.gamesPlayed,
-        gamesWon: snapshot.wordHuntStats.gamesWon,
-        currentStreak: snapshot.wordHuntStats.currentStreak,
-        maxStreak: snapshot.wordHuntStats.maxStreak,
-        distribution: snapshot.wordHuntStats.distribution,
-      },
-      snapshot.wordHuntStats.updatedAt,
-    ),
-    saveUserGridSnapStats(
-      userId,
-      {
-        gamesPlayed: snapshot.gridSnapStats.gamesPlayed,
-        gamesWon: snapshot.gridSnapStats.gamesWon,
-        currentStreak: snapshot.gridSnapStats.currentStreak,
-        maxStreak: snapshot.gridSnapStats.maxStreak,
-      },
-      snapshot.gridSnapStats.updatedAt,
-    ),
+    saveUserWordHuntStats(userId, { byMode: snapshot.wordHuntStats.statsByMode }, snapshot.wordHuntStats.updatedAt),
+    saveUserGridSnapStats(userId, { byMode: snapshot.gridSnapStats.statsByMode }, snapshot.gridSnapStats.updatedAt),
   ]);
 }
 
@@ -180,20 +131,13 @@ async function applySnapshot(snapshot: UserCloudSnapshot): Promise<void> {
   const { wordHuntStats, gridSnapStats, wordHuntSettings, gridSnapSettings, appSettings } = snapshot;
 
   useStatsStore.setState({
-    gamesPlayed: wordHuntStats.gamesPlayed,
-    gamesWon: wordHuntStats.gamesWon,
-    currentStreak: wordHuntStats.currentStreak,
-    maxStreak: wordHuntStats.maxStreak,
-    distribution: wordHuntStats.distribution,
+    byMode: wordHuntStats.statsByMode,
     dailyCompletedDate: wordHuntStats.dailyCompletedDate,
     hydrated: true,
   });
 
   useGridSnapStatsStore.setState({
-    gamesPlayed: gridSnapStats.gamesPlayed,
-    gamesWon: gridSnapStats.gamesWon,
-    currentStreak: gridSnapStats.currentStreak,
-    maxStreak: gridSnapStats.maxStreak,
+    byMode: gridSnapStats.statsByMode,
     dailyCompletedDate: gridSnapStats.dailyCompletedDate,
     hydrated: true,
   });

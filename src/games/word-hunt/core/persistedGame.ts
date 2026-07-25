@@ -9,6 +9,7 @@ export interface PersistedGame {
   currentGuess: string;
   currentRowIndex: number;
   letterStates: Record<string, LetterState>;
+  elapsedSec: number;
 }
 
 export function toPersistedGame(state: {
@@ -20,6 +21,7 @@ export function toPersistedGame(state: {
   currentGuess: string;
   currentRowIndex: number;
   letterStates: Record<string, LetterState>;
+  elapsedSec?: number;
 }): PersistedGame | null {
   if (state.status !== 'playing' || !state.secretWord) {
     return null;
@@ -34,5 +36,6 @@ export function toPersistedGame(state: {
     currentGuess: state.currentGuess,
     currentRowIndex: state.currentRowIndex,
     letterStates: state.letterStates,
+    elapsedSec: state.elapsedSec ?? 0,
   };
 }

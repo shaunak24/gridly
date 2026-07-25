@@ -9,14 +9,16 @@ import { useGridSnapStatsStore } from '../../../src/games/grid-snap/stores/gridS
 import { useGridSnapStore } from '../../../src/games/grid-snap/stores/gridSnapStore';
 import { HeaderBackButton } from '../../../src/shared/components/HeaderBackButton';
 import { HeaderIconButton } from '../../../src/shared/components/HeaderIconButton';
+import { GRID_SNAP_STATS_MODES } from '../../../src/shared/stats/gridSnapModeStats';
 import { useTheme } from '../../../src/shared/theme/useTheme';
 
 export default function GridSnapHubScreen() {
   const router = useRouter();
   const theme = useTheme();
   const dailyDone = useGridSnapStatsStore((s) => s.isDailyCompleteToday());
-  const gamesPlayed = useGridSnapStatsStore((s) => s.gamesPlayed);
-  const currentStreak = useGridSnapStatsStore((s) => s.currentStreak);
+  const byMode = useGridSnapStatsStore((s) => s.byMode);
+  const gamesPlayed = GRID_SNAP_STATS_MODES.reduce((sum, mode) => sum + byMode[mode].gamesPlayed, 0);
+  const currentStreak = Math.max(...GRID_SNAP_STATS_MODES.map((mode) => byMode[mode].currentStreak));
   const dailyInProgress = useGridSnapStore((s) => s.dailyInProgress);
   const practiceInProgress = useGridSnapStore((s) => s.practiceInProgress);
   const remainingMs = useDailyCountdown(dailyDone);

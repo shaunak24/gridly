@@ -1,5 +1,15 @@
-import type { GridSnapStatsData } from '../../games/grid-snap/stores/gridSnapStatsStore';
-import type { StatsData } from '../../games/word-hunt/stores/statsStore';
+import {
+  emptyGridSnapStatsByMode,
+  mergeGridSnapStatsByMode,
+  type GridSnapStatsByMode,
+} from '../../shared/stats/gridSnapModeStats';
+import {
+  emptyWordHuntStatsByMode,
+  mergeWordHuntStatsByMode,
+  migrateLegacyGridSnapStats,
+  migrateLegacyWordHuntStats,
+  type WordHuntStatsByMode,
+} from '../../shared/stats/wordHuntModeStats';
 import type {
   AppSettingsCloud,
   GridSnapSettingsCloud,
@@ -32,26 +42,39 @@ function pickLatest<T extends Timestamped>(local: T, cloud: T | null): T {
   return local.updatedAt >= cloud.updatedAt ? local : cloud;
 }
 
+function wordHuntStatsFromLegacyRow(row: {
+  gamesPlayed: number;
+  gamesWon: number;
+  currentStreak: number;
+  maxStreak: number;
+  distribution: number[];
+}): WordHuntStatsByMode {
+  return migrateLegacyWordHuntStats(row).byMode;
+}
+
+function gridSnapStatsFromLegacyRow(row: {
+  gamesPlayed: number;
+  gamesWon: number;
+  currentStreak: number;
+  maxStreak: number;
+}): GridSnapStatsByMode {
+  return migrateLegacyGridSnapStats(row).byMode;
+}
+
 export function mergeGuestWordHuntStats(
   guest: WordHuntStatsCloud,
   cloud: WordHuntStatsCloud | null,
 ): WordHuntStatsCloud {
   if (!cloud) {
     return {
-      ...guest,
+      statsByMode: guest.statsByMode,
       dailyCompletedDate: null,
       updatedAt: nowIso(),
     };
   }
 
-  const distribution = guest.distribution.map((value, index) => value + (cloud.distribution[index] ?? 0));
-
   return {
-    gamesPlayed: guest.gamesPlayed + cloud.gamesPlayed,
-    gamesWon: guest.gamesWon + cloud.gamesWon,
-    currentStreak: Math.max(guest.currentStreak, cloud.currentStreak),
-    maxStreak: Math.max(guest.maxStreak, cloud.maxStreak),
-    distribution,
+    statsByMode: mergeWordHuntStatsByMode(guest.statsByMode, cloud.statsByMode),
     dailyCompletedDate: mergeDailyCompletedDate(guest.dailyCompletedDate, cloud.dailyCompletedDate),
     updatedAt: nowIso(),
   };
@@ -62,15 +85,13 @@ export function pickNewerWordHuntStats(
   cloud: WordHuntStatsCloud | null,
 ): WordHuntStatsCloud {
   if (!local) {
-    return cloud ?? {
-      gamesPlayed: 0,
-      gamesWon: 0,
-      currentStreak: 0,
-      maxStreak: 0,
-      distribution: [0, 0, 0, 0, 0, 0, 0],
-      dailyCompletedDate: null,
-      updatedAt: nowIso(),
-    };
+    return (
+      cloud ?? {
+        statsByMode: emptyWordHuntStatsByMode(),
+        dailyCompletedDate: null,
+        updatedAt: nowIso(),
+      }
+    );
   }
 
   if (!cloud) {
@@ -86,17 +107,14 @@ export function mergeGuestGridSnapStats(
 ): GridSnapStatsCloud {
   if (!cloud) {
     return {
-      ...guest,
+      statsByMode: guest.statsByMode,
       dailyCompletedDate: null,
       updatedAt: nowIso(),
     };
   }
 
   return {
-    gamesPlayed: guest.gamesPlayed + cloud.gamesPlayed,
-    gamesWon: guest.gamesWon + cloud.gamesWon,
-    currentStreak: Math.max(guest.currentStreak, cloud.currentStreak),
-    maxStreak: Math.max(guest.maxStreak, cloud.maxStreak),
+    statsByMode: mergeGridSnapStatsByMode(guest.statsByMode, cloud.statsByMode),
     dailyCompletedDate: mergeDailyCompletedDate(guest.dailyCompletedDate, cloud.dailyCompletedDate),
     updatedAt: nowIso(),
   };
@@ -107,14 +125,13 @@ export function pickNewerGridSnapStats(
   cloud: GridSnapStatsCloud | null,
 ): GridSnapStatsCloud {
   if (!local) {
-    return cloud ?? {
-      gamesPlayed: 0,
-      gamesWon: 0,
-      currentStreak: 0,
-      maxStreak: 0,
-      dailyCompletedDate: null,
-      updatedAt: nowIso(),
-    };
+    return (
+      cloud ?? {
+        statsByMode: emptyGridSnapStatsByMode(),
+        dailyCompletedDate: null,
+        updatedAt: nowIso(),
+      }
+    );
   }
 
   if (!cloud) {
@@ -162,17 +179,19 @@ export function mergeAppSettings(
 }
 
 export function toWordHuntStatsCloud(
-  stats: StatsData,
+  statsByMode: WordHuntStatsByMode,
   dailyCompletedDate: string | null,
   updatedAt = nowIso(),
 ): WordHuntStatsCloud {
-  return { ...stats, dailyCompletedDate, updatedAt };
+  return { statsByMode, dailyCompletedDate, updatedAt };
 }
 
 export function toGridSnapStatsCloud(
-  stats: GridSnapStatsData,
+  statsByMode: GridSnapStatsByMode,
   dailyCompletedDate: string | null,
   updatedAt = nowIso(),
 ): GridSnapStatsCloud {
-  return { ...stats, dailyCompletedDate, updatedAt };
+  return { statsByMode, dailyCompletedDate, updatedAt };
 }
+
+export { wordHuntStatsFromLegacyRow, gridSnapStatsFromLegacyRow };

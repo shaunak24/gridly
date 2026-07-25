@@ -178,7 +178,7 @@ Screen from home for sharing a custom word challenge.
 - **Share puzzle** creates a server invite and opens the system share sheet (WhatsApp, Messages, Mail, etc.) with an HTTPS link.
 - **Copy link** copies the same HTTPS invite URL to the clipboard.
 - Recipient taps the link; on Android the installed app opens and starts a custom game with that word. If a browser landing page appears, **Open in Gridly** must open the app.
-- Custom games do not count toward stats or daily completion (Custom mode stats in v3.3 are separate).
+- Custom games count toward **Custom** mode stats only (not Daily or Practice).
 - Legacy `gridly://…?code=g1:…` links still open custom puzzles for recipients who saved older shares.
 
 ## Stats screen
@@ -191,8 +191,9 @@ Screen from home for sharing a custom word challenge.
 
 ## In-game timer
 
-- Word Hunt and Grid Snap play screens show elapsed time (mm:ss) at the top while a puzzle is in progress.
-- The timer stops on win or loss.
+- Word Hunt and Grid Snap play screens show elapsed time (mm:ss) in a pill control (card background, border, accent bubble) at the top right, mirroring the Home button on the left.
+- The timer stops on win or loss and shows the final elapsed time on the end screen.
+- Resuming a saved in-progress game continues the timer from the elapsed time stored with the session.
 
 ## Daily completion (accounts)
 

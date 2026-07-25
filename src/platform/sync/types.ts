@@ -1,18 +1,20 @@
-import type { GridSnapStatsData } from '../../games/grid-snap/stores/gridSnapStatsStore';
+import type { GridSnapStatsByMode } from '../../shared/stats/gridSnapModeStats';
+import type { WordHuntStatsByMode } from '../../shared/stats/wordHuntModeStats';
 import type { SnapDifficulty } from '../../games/grid-snap/core/types';
-import type { StatsData } from '../../games/word-hunt/stores/statsStore';
 import type { ThemePreference } from '../../shared/theme/colors';
 
 export interface Timestamped {
   updatedAt: string;
 }
 
-export interface WordHuntStatsCloud extends StatsData, Timestamped {
+export interface WordHuntStatsCloud extends Timestamped {
   dailyCompletedDate: string | null;
+  statsByMode: WordHuntStatsByMode;
 }
 
-export interface GridSnapStatsCloud extends GridSnapStatsData, Timestamped {
+export interface GridSnapStatsCloud extends Timestamped {
   dailyCompletedDate: string | null;
+  statsByMode: GridSnapStatsByMode;
 }
 
 export interface WordHuntSettingsCloud extends Timestamped {

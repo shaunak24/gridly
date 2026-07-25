@@ -32,9 +32,11 @@ interface GridSnapGameState {
   gameSessionId: number;
   dailyInProgress: boolean;
   practiceInProgress: boolean;
+  elapsedSec: number;
   hydrateProgress: () => Promise<void>;
   resumeOrStartGame: (mode: SnapMode) => Promise<boolean>;
   startGame: (mode: SnapMode) => Promise<void>;
+  setElapsedSec: (elapsedSec: number) => void;
   setGridLayout: (layout: GridLayout) => void;
   commitDrag: (pieceId: string, dx: number, dy: number) => void;
 }
@@ -81,6 +83,7 @@ async function persistIfPlaying(state: GridSnapGameState): Promise<void> {
     pieces: state.puzzle.pieces,
     imageSeed: state.puzzle.imageSeed,
     status: state.status,
+    elapsedSec: state.elapsedSec,
   };
 
   await saveJson(storageKeyForMode(state.mode), snapshot);
@@ -101,6 +104,7 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
   gameSessionId: 0,
   dailyInProgress: false,
   practiceInProgress: false,
+  elapsedSec: 0,
 
   hydrateProgress: async () => {
     await refreshProgressFlags(set);
@@ -142,6 +146,7 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
             imageSeed: saved.imageSeed,
           },
           imageUrl,
+          elapsedSec: saved.elapsedSec ?? 0,
         });
         await refreshProgressFlags(set);
         return true;
@@ -179,6 +184,7 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
       pieceSize: 0,
       gridWidth: 0,
       gridHeight: 0,
+      elapsedSec: 0,
     });
 
     const imageUrl = await resolveImageUrl(imageSeed);
@@ -193,6 +199,8 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
     await persistIfPlaying(get());
     await refreshProgressFlags(set);
   },
+
+  setElapsedSec: (elapsedSec) => set({ elapsedSec }),
 
   setGridLayout: (layout) => {
     const current = get();
@@ -259,7 +267,7 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
         await removeKey(storageKeyForMode(state.mode));
         await refreshProgressFlags(set);
         const stats = useGridSnapStatsStore.getState();
-        await stats.recordResult(true);
+        await stats.recordResult(state.difficulty, true, get().elapsedSec);
         if (state.mode === 'daily') {
           await stats.markDailyComplete();
         }
