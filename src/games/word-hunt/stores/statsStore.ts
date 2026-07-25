@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 
 import {
-  loadDailyCompletedDate,
-  saveDailyCompletedDate,
-} from '../../../platform/sync/dailyCompletion';
+  loadWordHuntStats,
+  saveWordHuntStats,
+} from '../../../platform/sync/statsStorage';
 import { pushIfSignedIn } from '../../../platform/sync/pushIfSignedIn';
 import { getLocalDateKey } from '../core/dailyWord';
-import { loadJson, saveJson, storageKeys } from '../../../shared/services/storage';
+import { loadDailyCompletedDate, saveDailyCompletedDate } from '../../../platform/sync/dailyCompletion';
 
 export interface StatsData {
   gamesPlayed: number;
@@ -41,7 +41,7 @@ export const useStatsStore = create<StatsState>((set, get) => ({
 
   hydrate: async () => {
     const [stats, dailyCompleted] = await Promise.all([
-      loadJson<StatsData>(storageKeys.stats),
+      loadWordHuntStats(),
       loadDailyCompletedDate('word-hunt'),
     ]);
 
@@ -54,7 +54,7 @@ export const useStatsStore = create<StatsState>((set, get) => ({
 
   persist: async () => {
     const state = get();
-    await saveJson(storageKeys.stats, {
+    await saveWordHuntStats({
       gamesPlayed: state.gamesPlayed,
       gamesWon: state.gamesWon,
       currentStreak: state.currentStreak,
@@ -90,7 +90,7 @@ export const useStatsStore = create<StatsState>((set, get) => ({
     };
 
     set(next);
-    await saveJson(storageKeys.stats, next);
+    await saveWordHuntStats(next);
     void pushIfSignedIn();
   },
 

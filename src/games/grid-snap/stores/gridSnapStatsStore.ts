@@ -1,12 +1,15 @@
 import { create } from 'zustand';
 
 import {
+  loadGridSnapStats,
+  saveGridSnapStats,
+} from '../../../platform/sync/statsStorage';
+import {
   loadDailyCompletedDate,
   saveDailyCompletedDate,
 } from '../../../platform/sync/dailyCompletion';
 import { pushIfSignedIn } from '../../../platform/sync/pushIfSignedIn';
 import { getLocalDateKey } from '../core/dailyPuzzle';
-import { loadJson, saveJson, storageKeys } from '../../../shared/services/storage';
 
 export interface GridSnapStatsData {
   gamesPlayed: number;
@@ -39,7 +42,7 @@ export const useGridSnapStatsStore = create<GridSnapStatsState>((set, get) => ({
 
   hydrate: async () => {
     const [stats, dailyCompleted] = await Promise.all([
-      loadJson<GridSnapStatsData>(storageKeys.gridSnapStats),
+      loadGridSnapStats(),
       loadDailyCompletedDate('grid-snap'),
     ]);
 
@@ -52,7 +55,7 @@ export const useGridSnapStatsStore = create<GridSnapStatsState>((set, get) => ({
 
   persist: async () => {
     const state = get();
-    await saveJson(storageKeys.gridSnapStats, {
+    await saveGridSnapStats({
       gamesPlayed: state.gamesPlayed,
       gamesWon: state.gamesWon,
       currentStreak: state.currentStreak,
@@ -73,7 +76,7 @@ export const useGridSnapStatsStore = create<GridSnapStatsState>((set, get) => ({
 
     const next = { gamesPlayed, gamesWon, currentStreak, maxStreak };
     set(next);
-    await saveJson(storageKeys.gridSnapStats, next);
+    await saveGridSnapStats(next);
     void pushIfSignedIn();
   },
 

@@ -4,26 +4,67 @@ import { useWordHuntSettingsStore } from '../../games/word-hunt/stores/wordHuntS
 import { useStatsStore } from '../../games/word-hunt/stores/statsStore';
 import { scheduleGameReminder } from '../../services/notifications';
 import { useAppSettingsStore } from '../../shared/stores/appSettingsStore';
-import { saveDailyCompletedDate } from './dailyCompletion';
+import { loadDailyCompletedDate, saveDailyCompletedDate } from './dailyCompletion';
 import { fetchCloudSnapshot, upsertCloudSnapshot } from './cloudRepository';
 import {
   mergeAppSettings,
   mergeGridSnapSettings,
-  mergeGridSnapStats,
+  mergeGuestGridSnapStats,
+  mergeGuestWordHuntStats,
   mergeWordHuntSettings,
-  mergeWordHuntStats,
   nowIso,
+  pickNewerGridSnapStats,
+  pickNewerWordHuntStats,
   toGridSnapStatsCloud,
   toWordHuntStatsCloud,
 } from './mergePolicy';
+import {
+  emptyGridSnapStats,
+  emptyWordHuntStats,
+  loadGuestGridSnapStats,
+  loadGuestWordHuntStats,
+  loadUserGridSnapStats,
+  loadUserWordHuntStats,
+  resetGuestStats,
+  saveUserGridSnapStats,
+  saveUserWordHuntStats,
+} from './statsStorage';
 import type { UserCloudSnapshot } from './types';
 
-function collectLocalSnapshot(): UserCloudSnapshot {
-  const wordHuntStatsState = useStatsStore.getState();
-  const gridSnapStatsState = useGridSnapStatsStore.getState();
+function collectSettingsSnapshot(): Pick<
+  UserCloudSnapshot,
+  'wordHuntSettings' | 'gridSnapSettings' | 'appSettings'
+> {
   const wordHuntSettingsState = useWordHuntSettingsStore.getState();
   const gridSnapSettingsState = useGridSnapSettingsStore.getState();
   const appSettingsState = useAppSettingsStore.getState();
+  const timestamp = nowIso();
+
+  return {
+    wordHuntSettings: {
+      hardMode: wordHuntSettingsState.hardMode,
+      notificationsEnabled: wordHuntSettingsState.notificationsEnabled,
+      reminderHour: wordHuntSettingsState.reminderHour,
+      reminderMinute: wordHuntSettingsState.reminderMinute,
+      updatedAt: timestamp,
+    },
+    gridSnapSettings: {
+      difficulty: gridSnapSettingsState.difficulty,
+      notificationsEnabled: gridSnapSettingsState.notificationsEnabled,
+      reminderHour: gridSnapSettingsState.reminderHour,
+      reminderMinute: gridSnapSettingsState.reminderMinute,
+      updatedAt: timestamp,
+    },
+    appSettings: {
+      theme: appSettingsState.theme,
+      updatedAt: timestamp,
+    },
+  };
+}
+
+function collectSignedInStatsSnapshot(): Pick<UserCloudSnapshot, 'wordHuntStats' | 'gridSnapStats'> {
+  const wordHuntStatsState = useStatsStore.getState();
+  const gridSnapStatsState = useGridSnapStatsStore.getState();
   const timestamp = nowIso();
 
   return {
@@ -48,25 +89,91 @@ function collectLocalSnapshot(): UserCloudSnapshot {
       gridSnapStatsState.dailyCompletedDate,
       timestamp,
     ),
-    wordHuntSettings: {
-      hardMode: wordHuntSettingsState.hardMode,
-      notificationsEnabled: wordHuntSettingsState.notificationsEnabled,
-      reminderHour: wordHuntSettingsState.reminderHour,
-      reminderMinute: wordHuntSettingsState.reminderMinute,
-      updatedAt: timestamp,
-    },
-    gridSnapSettings: {
-      difficulty: gridSnapSettingsState.difficulty,
-      notificationsEnabled: gridSnapSettingsState.notificationsEnabled,
-      reminderHour: gridSnapSettingsState.reminderHour,
-      reminderMinute: gridSnapSettingsState.reminderMinute,
-      updatedAt: timestamp,
-    },
-    appSettings: {
-      theme: appSettingsState.theme,
-      updatedAt: timestamp,
-    },
   };
+}
+
+async function loadGuestStatsSnapshot(): Promise<Pick<UserCloudSnapshot, 'wordHuntStats' | 'gridSnapStats'>> {
+  const [wordHuntStats, gridSnapStats, wordHuntDaily, gridSnapDaily] = await Promise.all([
+    loadGuestWordHuntStats(),
+    loadGuestGridSnapStats(),
+    loadGuestDailyCompletedDate('word-hunt'),
+    loadGuestDailyCompletedDate('grid-snap'),
+  ]);
+  const timestamp = nowIso();
+
+  return {
+    wordHuntStats: toWordHuntStatsCloud(wordHuntStats ?? emptyWordHuntStats(), wordHuntDaily, timestamp),
+    gridSnapStats: toGridSnapStatsCloud(gridSnapStats ?? emptyGridSnapStats(), gridSnapDaily, timestamp),
+  };
+}
+
+async function loadUserStatsSnapshot(
+  userId: string,
+): Promise<{
+  wordHunt: WordHuntStatsCloud | null;
+  gridSnap: GridSnapStatsCloud | null;
+}> {
+  const [wordHuntStats, gridSnapStats] = await Promise.all([
+    loadUserWordHuntStats(userId),
+    loadUserGridSnapStats(userId),
+  ]);
+
+  return {
+    wordHunt: wordHuntStats
+      ? toWordHuntStatsCloud(
+          {
+            gamesPlayed: wordHuntStats.gamesPlayed,
+            gamesWon: wordHuntStats.gamesWon,
+            currentStreak: wordHuntStats.currentStreak,
+            maxStreak: wordHuntStats.maxStreak,
+            distribution: wordHuntStats.distribution,
+          },
+          null,
+          wordHuntStats.updatedAt,
+        )
+      : null,
+    gridSnap: gridSnapStats
+      ? toGridSnapStatsCloud(
+          {
+            gamesPlayed: gridSnapStats.gamesPlayed,
+            gamesWon: gridSnapStats.gamesWon,
+            currentStreak: gridSnapStats.currentStreak,
+            maxStreak: gridSnapStats.maxStreak,
+          },
+          null,
+          gridSnapStats.updatedAt,
+        )
+      : null,
+  };
+}
+
+async function persistUserStatsCache(
+  userId: string,
+  snapshot: Pick<UserCloudSnapshot, 'wordHuntStats' | 'gridSnapStats'>,
+): Promise<void> {
+  await Promise.all([
+    saveUserWordHuntStats(
+      userId,
+      {
+        gamesPlayed: snapshot.wordHuntStats.gamesPlayed,
+        gamesWon: snapshot.wordHuntStats.gamesWon,
+        currentStreak: snapshot.wordHuntStats.currentStreak,
+        maxStreak: snapshot.wordHuntStats.maxStreak,
+        distribution: snapshot.wordHuntStats.distribution,
+      },
+      snapshot.wordHuntStats.updatedAt,
+    ),
+    saveUserGridSnapStats(
+      userId,
+      {
+        gamesPlayed: snapshot.gridSnapStats.gamesPlayed,
+        gamesWon: snapshot.gridSnapStats.gamesWon,
+        currentStreak: snapshot.gridSnapStats.currentStreak,
+        maxStreak: snapshot.gridSnapStats.maxStreak,
+      },
+      snapshot.gridSnapStats.updatedAt,
+    ),
+  ]);
 }
 
 async function applySnapshot(snapshot: UserCloudSnapshot): Promise<void> {
@@ -139,20 +246,54 @@ async function applySnapshot(snapshot: UserCloudSnapshot): Promise<void> {
   ]);
 }
 
+export async function loadSignedInUserStores(userId: string): Promise<void> {
+  const [cloud, localUser, settings, userWordHuntDaily, userGridSnapDaily] = await Promise.all([
+    fetchCloudSnapshot(userId),
+    loadUserStatsSnapshot(userId),
+    collectSettingsSnapshot(),
+    loadDailyCompletedDate('word-hunt'),
+    loadDailyCompletedDate('grid-snap'),
+  ]);
+
+  const wordHuntStats = pickNewerWordHuntStats(localUser.wordHunt, cloud.wordHuntStats ?? null);
+  const gridSnapStats = pickNewerGridSnapStats(localUser.gridSnap, cloud.gridSnapStats ?? null);
+
+  wordHuntStats.dailyCompletedDate =
+    cloud.wordHuntStats?.dailyCompletedDate ?? userWordHuntDaily ?? null;
+  gridSnapStats.dailyCompletedDate =
+    cloud.gridSnapStats?.dailyCompletedDate ?? userGridSnapDaily ?? null;
+
+  const snapshot: UserCloudSnapshot = {
+    wordHuntStats,
+    gridSnapStats,
+    wordHuntSettings: mergeWordHuntSettings(settings.wordHuntSettings, cloud.wordHuntSettings ?? null),
+    gridSnapSettings: mergeGridSnapSettings(settings.gridSnapSettings, cloud.gridSnapSettings ?? null),
+    appSettings: mergeAppSettings(settings.appSettings, cloud.appSettings ?? null),
+  };
+
+  await applySnapshot(snapshot);
+  await persistUserStatsCache(userId, snapshot);
+}
+
 export async function mergeLocalToCloud(userId: string): Promise<void> {
-  const local = collectLocalSnapshot();
-  const cloud = await fetchCloudSnapshot(userId);
+  const [guestStats, cloud, settings] = await Promise.all([
+    loadGuestStatsSnapshot(),
+    fetchCloudSnapshot(userId),
+    collectSettingsSnapshot(),
+  ]);
 
   const merged: UserCloudSnapshot = {
-    wordHuntStats: mergeWordHuntStats(local.wordHuntStats, cloud.wordHuntStats ?? null),
-    gridSnapStats: mergeGridSnapStats(local.gridSnapStats, cloud.gridSnapStats ?? null),
-    wordHuntSettings: mergeWordHuntSettings(local.wordHuntSettings, cloud.wordHuntSettings ?? null),
-    gridSnapSettings: mergeGridSnapSettings(local.gridSnapSettings, cloud.gridSnapSettings ?? null),
-    appSettings: mergeAppSettings(local.appSettings, cloud.appSettings ?? null),
+    wordHuntStats: mergeGuestWordHuntStats(guestStats.wordHuntStats, cloud.wordHuntStats ?? null),
+    gridSnapStats: mergeGuestGridSnapStats(guestStats.gridSnapStats, cloud.gridSnapStats ?? null),
+    wordHuntSettings: mergeWordHuntSettings(settings.wordHuntSettings, cloud.wordHuntSettings ?? null),
+    gridSnapSettings: mergeGridSnapSettings(settings.gridSnapSettings, cloud.gridSnapSettings ?? null),
+    appSettings: mergeAppSettings(settings.appSettings, cloud.appSettings ?? null),
   };
 
   await upsertCloudSnapshot(userId, merged);
   await applySnapshot(merged);
+  await persistUserStatsCache(userId, merged);
+  await resetGuestStats();
 }
 
 export async function pushSnapshotIfSignedIn(): Promise<void> {
@@ -162,8 +303,13 @@ export async function pushSnapshotIfSignedIn(): Promise<void> {
     return;
   }
 
-  const snapshot = collectLocalSnapshot();
+  const snapshot: UserCloudSnapshot = {
+    ...collectSignedInStatsSnapshot(),
+    ...collectSettingsSnapshot(),
+  };
+
   await upsertCloudSnapshot(userId, snapshot);
+  await persistUserStatsCache(userId, snapshot);
 }
 
 export async function rehydrateLocalStores(): Promise<void> {

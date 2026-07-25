@@ -12,7 +12,7 @@ import {
 } from './authService';
 import { authError, authInfo, type AuthUserMessage } from './authMessages';
 import { isSupabaseConfigured } from './supabaseClient';
-import { mergeLocalToCloud, pushSnapshotIfSignedIn, rehydrateLocalStores } from '../sync/syncService';
+import { mergeLocalToCloud, pushSnapshotIfSignedIn, rehydrateLocalStores, loadSignedInUserStores } from '../sync/syncService';
 
 export type { AuthUserMessage } from './authMessages';
 
@@ -48,6 +48,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         user: session?.user ?? null,
         initialized: true,
       });
+
+      if (session?.user) {
+        try {
+          await loadSignedInUserStores(session.user.id);
+        } catch {
+          // Offline cold start still shows cached local stats.
+        }
+      }
 
       subscribeToAuthChanges(async (nextSession, nextUser) => {
         const wasSignedIn = Boolean(get().user);

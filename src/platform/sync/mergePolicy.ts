@@ -32,51 +32,112 @@ function pickLatest<T extends Timestamped>(local: T, cloud: T | null): T {
   return local.updatedAt >= cloud.updatedAt ? local : cloud;
 }
 
-export function mergeWordHuntStats(
-  local: WordHuntStatsCloud,
+export function mergeGuestWordHuntStats(
+  guest: WordHuntStatsCloud,
   cloud: WordHuntStatsCloud | null,
 ): WordHuntStatsCloud {
   if (!cloud) {
     return {
-      ...local,
+      ...guest,
       dailyCompletedDate: null,
       updatedAt: nowIso(),
     };
   }
 
-  const distribution = local.distribution.map((value, index) => value + (cloud.distribution[index] ?? 0));
+  const distribution = guest.distribution.map((value, index) => value + (cloud.distribution[index] ?? 0));
 
   return {
-    gamesPlayed: local.gamesPlayed + cloud.gamesPlayed,
-    gamesWon: local.gamesWon + cloud.gamesWon,
-    currentStreak: Math.max(local.currentStreak, cloud.currentStreak),
-    maxStreak: Math.max(local.maxStreak, cloud.maxStreak),
+    gamesPlayed: guest.gamesPlayed + cloud.gamesPlayed,
+    gamesWon: guest.gamesWon + cloud.gamesWon,
+    currentStreak: Math.max(guest.currentStreak, cloud.currentStreak),
+    maxStreak: Math.max(guest.maxStreak, cloud.maxStreak),
     distribution,
-    dailyCompletedDate: mergeDailyCompletedDate(local.dailyCompletedDate, cloud.dailyCompletedDate),
+    dailyCompletedDate: mergeDailyCompletedDate(guest.dailyCompletedDate, cloud.dailyCompletedDate),
     updatedAt: nowIso(),
   };
 }
 
-export function mergeGridSnapStats(
-  local: GridSnapStatsCloud,
+export function pickNewerWordHuntStats(
+  local: WordHuntStatsCloud | null,
+  cloud: WordHuntStatsCloud | null,
+): WordHuntStatsCloud {
+  if (!local) {
+    return cloud ?? {
+      gamesPlayed: 0,
+      gamesWon: 0,
+      currentStreak: 0,
+      maxStreak: 0,
+      distribution: [0, 0, 0, 0, 0, 0, 0],
+      dailyCompletedDate: null,
+      updatedAt: nowIso(),
+    };
+  }
+
+  if (!cloud) {
+    return local;
+  }
+
+  return local.updatedAt >= cloud.updatedAt ? local : cloud;
+}
+
+export function mergeGuestGridSnapStats(
+  guest: GridSnapStatsCloud,
   cloud: GridSnapStatsCloud | null,
 ): GridSnapStatsCloud {
   if (!cloud) {
     return {
-      ...local,
+      ...guest,
       dailyCompletedDate: null,
       updatedAt: nowIso(),
     };
   }
 
   return {
-    gamesPlayed: local.gamesPlayed + cloud.gamesPlayed,
-    gamesWon: local.gamesWon + cloud.gamesWon,
-    currentStreak: Math.max(local.currentStreak, cloud.currentStreak),
-    maxStreak: Math.max(local.maxStreak, cloud.maxStreak),
-    dailyCompletedDate: mergeDailyCompletedDate(local.dailyCompletedDate, cloud.dailyCompletedDate),
+    gamesPlayed: guest.gamesPlayed + cloud.gamesPlayed,
+    gamesWon: guest.gamesWon + cloud.gamesWon,
+    currentStreak: Math.max(guest.currentStreak, cloud.currentStreak),
+    maxStreak: Math.max(guest.maxStreak, cloud.maxStreak),
+    dailyCompletedDate: mergeDailyCompletedDate(guest.dailyCompletedDate, cloud.dailyCompletedDate),
     updatedAt: nowIso(),
   };
+}
+
+export function pickNewerGridSnapStats(
+  local: GridSnapStatsCloud | null,
+  cloud: GridSnapStatsCloud | null,
+): GridSnapStatsCloud {
+  if (!local) {
+    return cloud ?? {
+      gamesPlayed: 0,
+      gamesWon: 0,
+      currentStreak: 0,
+      maxStreak: 0,
+      dailyCompletedDate: null,
+      updatedAt: nowIso(),
+    };
+  }
+
+  if (!cloud) {
+    return local;
+  }
+
+  return local.updatedAt >= cloud.updatedAt ? local : cloud;
+}
+
+/** @deprecated Use mergeGuestWordHuntStats — sums guest progress into cloud on sign-in only. */
+export function mergeWordHuntStats(
+  guest: WordHuntStatsCloud,
+  cloud: WordHuntStatsCloud | null,
+): WordHuntStatsCloud {
+  return mergeGuestWordHuntStats(guest, cloud);
+}
+
+/** @deprecated Use mergeGuestGridSnapStats */
+export function mergeGridSnapStats(
+  guest: GridSnapStatsCloud,
+  cloud: GridSnapStatsCloud | null,
+): GridSnapStatsCloud {
+  return mergeGuestGridSnapStats(guest, cloud);
 }
 
 export function mergeWordHuntSettings(

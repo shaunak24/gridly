@@ -2,9 +2,11 @@ import { getReminderIdentifier } from '../../../services/notifications';
 import {
   mergeAppSettings,
   mergeGridSnapSettings,
-  mergeGridSnapStats,
+  mergeGuestGridSnapStats,
+  mergeGuestWordHuntStats,
   mergeWordHuntSettings,
-  mergeWordHuntStats,
+  pickNewerGridSnapStats,
+  pickNewerWordHuntStats,
   toGridSnapStatsCloud,
   toWordHuntStatsCloud,
 } from '../mergePolicy';
@@ -13,8 +15,8 @@ describe('mergePolicy', () => {
   const timestamp = '2026-07-18T10:00:00.000Z';
   const older = '2026-07-17T10:00:00.000Z';
 
-  it('merges word hunt stats by summing counts and taking max streaks', () => {
-    const local = toWordHuntStatsCloud(
+  it('merges guest word hunt stats into cloud on sign-in', () => {
+    const guest = toWordHuntStatsCloud(
       {
         gamesPlayed: 2,
         gamesWon: 1,
@@ -37,7 +39,7 @@ describe('mergePolicy', () => {
       older,
     );
 
-    const merged = mergeWordHuntStats(local, cloud);
+    const merged = mergeGuestWordHuntStats(guest, cloud);
 
     expect(merged.gamesPlayed).toBe(5);
     expect(merged.gamesWon).toBe(3);
@@ -48,7 +50,7 @@ describe('mergePolicy', () => {
   });
 
   it('does not inherit guest daily completion when cloud has no daily record', () => {
-    const local = toWordHuntStatsCloud(
+    const guest = toWordHuntStatsCloud(
       {
         gamesPlayed: 1,
         gamesWon: 1,
@@ -60,13 +62,13 @@ describe('mergePolicy', () => {
       timestamp,
     );
 
-    const merged = mergeWordHuntStats(local, null);
+    const merged = mergeGuestWordHuntStats(guest, null);
 
     expect(merged.dailyCompletedDate).toBeNull();
   });
 
-  it('merges grid snap stats', () => {
-    const local = toGridSnapStatsCloud(
+  it('merges guest grid snap stats into cloud on sign-in', () => {
+    const guest = toGridSnapStatsCloud(
       { gamesPlayed: 1, gamesWon: 1, currentStreak: 1, maxStreak: 1 },
       null,
       timestamp,
@@ -77,12 +79,43 @@ describe('mergePolicy', () => {
       older,
     );
 
-    const merged = mergeGridSnapStats(local, cloud);
+    const merged = mergeGuestGridSnapStats(guest, cloud);
 
     expect(merged.gamesPlayed).toBe(3);
     expect(merged.gamesWon).toBe(2);
     expect(merged.maxStreak).toBe(3);
     expect(merged.dailyCompletedDate).toBe('2026-07-16');
+  });
+
+  it('picks newer signed-in stats without summing local and cloud', () => {
+    const local = toWordHuntStatsCloud(
+      {
+        gamesPlayed: 200,
+        gamesWon: 100,
+        currentStreak: 1,
+        maxStreak: 2,
+        distribution: [0, 0, 0, 0, 0, 0, 200],
+      },
+      null,
+      timestamp,
+    );
+    const cloud = toWordHuntStatsCloud(
+      {
+        gamesPlayed: 40,
+        gamesWon: 20,
+        currentStreak: 0,
+        maxStreak: 2,
+        distribution: [0, 0, 0, 0, 16, 24, 0],
+      },
+      null,
+      older,
+    );
+
+    const picked = pickNewerWordHuntStats(local, cloud);
+
+    expect(picked.gamesPlayed).toBe(200);
+    expect(picked.gamesWon).toBe(100);
+    expect(picked.distribution).toEqual([0, 0, 0, 0, 0, 0, 200]);
   });
 
   it('picks latest settings by updatedAt', () => {

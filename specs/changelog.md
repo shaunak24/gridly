@@ -6,6 +6,23 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v3.2.1
+
+**Status:** Complete — see [v3.2.1.md](./v3.2.1.md).
+
+#### Player-facing
+
+- **Stats accuracy** — signed-in stats no longer inflate when switching accounts or signing in repeatedly; guest and each account keep separate progress on the device
+
+#### Engineering
+
+- `statsStorage.ts` — guest vs per-user local stats keys with legacy migration
+- Sign-in merges **guest progress only** into cloud; re-login uses `pickNewer*` (no local + cloud re-sum)
+- `loadSignedInUserStores` on cold start for signed-in sessions
+- Guest stats reset after successful sign-in merge; 81 tests total
+
+---
+
 ### v3.2
 
 **Status:** Complete — see [v3.2.md](./v3.2.md).
