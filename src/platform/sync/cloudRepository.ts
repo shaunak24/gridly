@@ -1,4 +1,5 @@
 import { getSupabaseClient } from '../auth/supabaseClient';
+import { GAME_REMINDER_DEFAULTS } from '../../services/notifications';
 import type {
   AppSettingsCloud,
   ColorFlowSettingsCloud,
@@ -57,35 +58,38 @@ function mapColorFlowStats(row: Record<string, unknown>): ColorFlowStatsCloud {
 }
 
 function mapWordHuntSettings(row: Record<string, unknown>): WordHuntSettingsCloud {
+  const defaults = GAME_REMINDER_DEFAULTS['word-hunt'];
   return {
     hardMode: Boolean(row.hard_mode),
-    notificationsEnabled: Boolean(row.notifications_enabled),
-    reminderHour: Number(row.reminder_hour ?? 8),
-    reminderMinute: Number(row.reminder_minute ?? 0),
+    notificationsEnabled: row.notifications_enabled !== false,
+    reminderHour: Number(row.reminder_hour ?? defaults.hour),
+    reminderMinute: Number(row.reminder_minute ?? defaults.minute),
     updatedAt: String(row.updated_at ?? new Date().toISOString()),
   };
 }
 
 function mapGridSnapSettings(row: Record<string, unknown>): GridSnapSettingsCloud {
   const difficulty = row.difficulty;
+  const defaults = GAME_REMINDER_DEFAULTS['grid-snap'];
   return {
     difficulty:
       difficulty === 'medium' || difficulty === 'hard' || difficulty === 'easy' ? difficulty : 'easy',
-    notificationsEnabled: Boolean(row.notifications_enabled),
-    reminderHour: Number(row.reminder_hour ?? 8),
-    reminderMinute: Number(row.reminder_minute ?? 0),
+    notificationsEnabled: row.notifications_enabled !== false,
+    reminderHour: Number(row.reminder_hour ?? defaults.hour),
+    reminderMinute: Number(row.reminder_minute ?? defaults.minute),
     updatedAt: String(row.updated_at ?? new Date().toISOString()),
   };
 }
 
 function mapColorFlowSettings(row: Record<string, unknown>): ColorFlowSettingsCloud {
   const difficulty = row.difficulty;
+  const defaults = GAME_REMINDER_DEFAULTS['color-flow'];
   return {
     difficulty:
       difficulty === 'medium' || difficulty === 'hard' || difficulty === 'easy' ? difficulty : 'easy',
-    notificationsEnabled: Boolean(row.notifications_enabled),
-    reminderHour: Number(row.reminder_hour ?? 8),
-    reminderMinute: Number(row.reminder_minute ?? 0),
+    notificationsEnabled: row.notifications_enabled !== false,
+    reminderHour: Number(row.reminder_hour ?? defaults.hour),
+    reminderMinute: Number(row.reminder_minute ?? defaults.minute),
     updatedAt: String(row.updated_at ?? new Date().toISOString()),
   };
 }

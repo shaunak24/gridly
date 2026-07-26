@@ -3,6 +3,41 @@ import * as Notifications from 'expo-notifications';
 
 export type GameReminderId = 'word-hunt' | 'grid-snap' | 'color-flow';
 
+export const GAME_REMINDER_DEFAULTS: Record<GameReminderId, { hour: number; minute: number }> = {
+  'word-hunt': { hour: 8, minute: 0 },
+  'grid-snap': { hour: 8, minute: 30 },
+  'color-flow': { hour: 9, minute: 0 },
+};
+
+export function parseNotificationsEnabled(value: string | null): boolean {
+  if (value === 'false') {
+    return false;
+  }
+  return true;
+}
+
+export function parseReminderHour(value: string | null, defaultHour: number): number {
+  if (value === null || value === '') {
+    return defaultHour;
+  }
+  const hour = Number(value);
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23) {
+    return defaultHour;
+  }
+  return hour;
+}
+
+export function parseReminderMinute(value: string | null, defaultMinute: number): number {
+  if (value === null || value === '') {
+    return defaultMinute;
+  }
+  const minute = Number(value);
+  if (!Number.isInteger(minute) || minute < 0 || minute > 59) {
+    return defaultMinute;
+  }
+  return minute;
+}
+
 export type NotificationScheduleResult =
   | { ok: true }
   | { ok: false; reason: 'expo_go' | 'permission_denied' | 'error'; message: string };
@@ -60,9 +95,12 @@ export async function requestNotificationPermission(): Promise<boolean> {
 export async function scheduleGameReminder(
   gameId: GameReminderId,
   enabled: boolean,
-  hour = 8,
-  minute = 0,
+  hour?: number,
+  minute?: number,
 ): Promise<NotificationScheduleResult> {
+  const defaults = GAME_REMINDER_DEFAULTS[gameId];
+  const resolvedHour = hour ?? defaults.hour;
+  const resolvedMinute = minute ?? defaults.minute;
   const identifier = REMINDER_IDS[gameId];
 
   try {
@@ -99,8 +137,8 @@ export async function scheduleGameReminder(
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DAILY,
-        hour,
-        minute,
+        hour: resolvedHour,
+        minute: resolvedMinute,
       },
     });
 

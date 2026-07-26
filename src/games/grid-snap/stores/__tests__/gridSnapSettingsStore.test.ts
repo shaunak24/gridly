@@ -20,6 +20,26 @@ jest.mock('../../../../shared/services/storage', () => ({
 }));
 
 jest.mock('../../../../services/notifications', () => ({
+  GAME_REMINDER_DEFAULTS: {
+    'word-hunt': { hour: 8, minute: 0 },
+    'grid-snap': { hour: 8, minute: 30 },
+    'color-flow': { hour: 9, minute: 0 },
+  },
+  parseNotificationsEnabled: (value: string | null) => value !== 'false',
+  parseReminderHour: (value: string | null, defaultHour: number) => {
+    if (value === null || value === '') {
+      return defaultHour;
+    }
+    const hour = Number(value);
+    return Number.isInteger(hour) && hour >= 0 && hour <= 23 ? hour : defaultHour;
+  },
+  parseReminderMinute: (value: string | null, defaultMinute: number) => {
+    if (value === null || value === '') {
+      return defaultMinute;
+    }
+    const minute = Number(value);
+    return Number.isInteger(minute) && minute >= 0 && minute <= 59 ? minute : defaultMinute;
+  },
   scheduleGameReminder: jest.fn().mockResolvedValue({ ok: true }),
 }));
 
@@ -38,7 +58,7 @@ describe('gridSnapSettingsStore', () => {
       difficulty: 'easy',
       notificationsEnabled: true,
       reminderHour: 8,
-      reminderMinute: 0,
+      reminderMinute: 30,
       hydrated: false,
     });
   });
@@ -54,6 +74,8 @@ describe('gridSnapSettingsStore', () => {
     await useGridSnapSettingsStore.getState().ensureHydrated();
 
     expect(useGridSnapSettingsStore.getState().difficulty).toBe('hard');
+    expect(useGridSnapSettingsStore.getState().reminderHour).toBe(8);
+    expect(useGridSnapSettingsStore.getState().reminderMinute).toBe(30);
     expect(useGridSnapSettingsStore.getState().hydrated).toBe(true);
   });
 

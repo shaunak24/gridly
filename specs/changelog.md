@@ -6,6 +6,21 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v4.0.1
+
+**Status:** Complete — see [v4.0.1.md](./v4.0.1.md).
+
+#### Player-facing
+
+- **Daily reminders** — all three games default on at staggered times (Word Hunt 8:00 AM, Grid Snap 8:30 AM, Color Flow 9:00 AM)
+- Fixes reminder time showing as 12:00 AM when no time was previously saved
+
+#### Engineering
+
+- `GAME_REMINDER_DEFAULTS`; null-safe reminder parsing; first-hydrate storage seeding; cloud defaults aligned per game
+
+---
+
 ### v4.0
 
 **Status:** In development — see [v4.0.md](./v4.0.md).

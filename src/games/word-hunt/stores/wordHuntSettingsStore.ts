@@ -1,37 +1,17 @@
 import { create } from 'zustand';
 
 import {
+  GAME_REMINDER_DEFAULTS,
+  parseNotificationsEnabled,
+  parseReminderHour,
+  parseReminderMinute,
   scheduleGameReminder,
   type NotificationScheduleResult,
 } from '../../../services/notifications';
 import { pushIfSignedIn } from '../../../platform/sync/pushIfSignedIn';
 import { loadString, saveString, storageKeys } from '../../../shared/services/storage';
 
-const DEFAULT_REMINDER_HOUR = 8;
-const DEFAULT_REMINDER_MINUTE = 0;
-
-function parseHour(value: string | null): number {
-  const hour = Number(value);
-  if (!Number.isInteger(hour) || hour < 0 || hour > 23) {
-    return DEFAULT_REMINDER_HOUR;
-  }
-  return hour;
-}
-
-function parseMinute(value: string | null): number {
-  const minute = Number(value);
-  if (!Number.isInteger(minute) || minute < 0 || minute > 59) {
-    return DEFAULT_REMINDER_MINUTE;
-  }
-  return minute;
-}
-
-function parseNotificationsEnabled(value: string | null): boolean {
-  if (value === 'false') {
-    return false;
-  }
-  return true;
-}
+const REMINDER_DEFAULTS = GAME_REMINDER_DEFAULTS['word-hunt'];
 
 interface WordHuntSettingsState {
   hardMode: boolean;
@@ -49,8 +29,8 @@ interface WordHuntSettingsState {
 export const useWordHuntSettingsStore = create<WordHuntSettingsState>((set, get) => ({
   hardMode: false,
   notificationsEnabled: true,
-  reminderHour: DEFAULT_REMINDER_HOUR,
-  reminderMinute: DEFAULT_REMINDER_MINUTE,
+  reminderHour: REMINDER_DEFAULTS.hour,
+  reminderMinute: REMINDER_DEFAULTS.minute,
   hydrated: false,
 
   hydrate: async () => {
@@ -62,8 +42,22 @@ export const useWordHuntSettingsStore = create<WordHuntSettingsState>((set, get)
     ]);
 
     const notificationsEnabled = parseNotificationsEnabled(notifications);
-    const hour = parseHour(reminderHour);
-    const minute = parseMinute(reminderMinute);
+    const hour = parseReminderHour(reminderHour, REMINDER_DEFAULTS.hour);
+    const minute = parseReminderMinute(reminderMinute, REMINDER_DEFAULTS.minute);
+
+    const seeds: Promise<void>[] = [];
+    if (notifications === null) {
+      seeds.push(saveString(storageKeys.notifications, 'true'));
+    }
+    if (reminderHour === null) {
+      seeds.push(saveString(storageKeys.reminderHour, String(REMINDER_DEFAULTS.hour)));
+    }
+    if (reminderMinute === null) {
+      seeds.push(saveString(storageKeys.reminderMinute, String(REMINDER_DEFAULTS.minute)));
+    }
+    if (seeds.length > 0) {
+      await Promise.all(seeds);
+    }
 
     set({
       hardMode: hardMode === 'true',

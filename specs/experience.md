@@ -94,7 +94,7 @@ Former v1.x home screen. Carries Word Hunt branding context.
 ## Word Hunt settings
 
 - **Hard mode** — revealed hints must be used in every guess.
-- **Daily reminder** — optional local notification (default 8:00 AM).
+- **Daily reminder** — optional local notification (default on at 8:00 AM).
 - **Reminder time** — hour and minute picker.
 
 ## Grid Snap hub
@@ -110,7 +110,7 @@ Mirrors Word Hunt hub structure for the image jigsaw game.
 - **Play daily** / **Continue daily** — countdown when complete.
 - **Practice** / **Continue practice**
 - **Stats** · **How to play**
-- **Settings** (gear) — default difficulty picker (Easy 4×4, Medium 6×6, Hard 8×8); daily reminder toggle and time picker; selection persists across sessions.
+- **Settings** (gear) — default difficulty picker (Easy 4×4, Medium 6×6, Hard 8×8); daily reminder toggle and time picker (default on at 8:30 AM); selection persists across sessions.
 
 ## Color Flow hub
 
@@ -125,7 +125,7 @@ Mirrors Grid Snap hub structure for the path-drawing puzzle.
 - **Play daily** / **Continue daily** — countdown when complete
 - **Practice** / **Continue practice**
 - **Stats** · **How to play**
-- **Settings** (gear) — default difficulty picker; daily reminder toggle and time picker
+- **Settings** (gear) — default difficulty picker; daily reminder toggle and time picker (default on at 9:00 AM)
 
 ## Color Flow play
 
@@ -231,7 +231,7 @@ Screen from home for sharing a custom word challenge.
 
 ## Notifications
 
-- Optional **local notification** at user-selected time (default 8:00 AM device local time).
+- Optional **local notification** at user-selected time per game (defaults on: Word Hunt 8:00 AM, Grid Snap 8:30 AM, Color Flow 9:00 AM device local time).
 - Configured on **Settings**; requests OS permission when enabled.
 - Reminder text: today's puzzle is ready.
 - Scheduling fails in Expo Go (SDK 53+); works in a development build.
