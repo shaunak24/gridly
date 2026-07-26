@@ -1,4 +1,9 @@
 import {
+  emptyColorFlowStatsByMode,
+  mergeColorFlowStatsByMode,
+  type ColorFlowStatsByMode,
+} from '../../shared/stats/colorFlowModeStats';
+import {
   emptyGridSnapStatsByMode,
   mergeGridSnapStatsByMode,
   type GridSnapStatsByMode,
@@ -12,6 +17,8 @@ import {
 } from '../../shared/stats/wordHuntModeStats';
 import type {
   AppSettingsCloud,
+  ColorFlowSettingsCloud,
+  ColorFlowStatsCloud,
   GridSnapSettingsCloud,
   GridSnapStatsCloud,
   Timestamped,
@@ -191,6 +198,61 @@ export function toGridSnapStatsCloud(
   dailyCompletedDate: string | null,
   updatedAt = nowIso(),
 ): GridSnapStatsCloud {
+  return { statsByMode, dailyCompletedDate, updatedAt };
+}
+
+export function mergeGuestColorFlowStats(
+  guest: ColorFlowStatsCloud,
+  cloud: ColorFlowStatsCloud | null,
+): ColorFlowStatsCloud {
+  if (!cloud) {
+    return {
+      statsByMode: guest.statsByMode,
+      dailyCompletedDate: null,
+      updatedAt: nowIso(),
+    };
+  }
+
+  return {
+    statsByMode: mergeColorFlowStatsByMode(guest.statsByMode, cloud.statsByMode),
+    dailyCompletedDate: mergeDailyCompletedDate(guest.dailyCompletedDate, cloud.dailyCompletedDate),
+    updatedAt: nowIso(),
+  };
+}
+
+export function pickNewerColorFlowStats(
+  local: ColorFlowStatsCloud | null,
+  cloud: ColorFlowStatsCloud | null,
+): ColorFlowStatsCloud {
+  if (!local) {
+    return (
+      cloud ?? {
+        statsByMode: emptyColorFlowStatsByMode(),
+        dailyCompletedDate: null,
+        updatedAt: nowIso(),
+      }
+    );
+  }
+
+  if (!cloud) {
+    return local;
+  }
+
+  return local.updatedAt >= cloud.updatedAt ? local : cloud;
+}
+
+export function mergeColorFlowSettings(
+  local: ColorFlowSettingsCloud,
+  cloud: ColorFlowSettingsCloud | null,
+): ColorFlowSettingsCloud {
+  return pickLatest(local, cloud);
+}
+
+export function toColorFlowStatsCloud(
+  statsByMode: ColorFlowStatsByMode,
+  dailyCompletedDate: string | null,
+  updatedAt = nowIso(),
+): ColorFlowStatsCloud {
   return { statsByMode, dailyCompletedDate, updatedAt };
 }
 

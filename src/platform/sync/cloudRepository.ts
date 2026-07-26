@@ -1,6 +1,8 @@
 import { getSupabaseClient } from '../auth/supabaseClient';
 import type {
   AppSettingsCloud,
+  ColorFlowSettingsCloud,
+  ColorFlowStatsCloud,
   FeedbackType,
   GridSnapSettingsCloud,
   GridSnapStatsCloud,
@@ -8,6 +10,7 @@ import type {
   WordHuntSettingsCloud,
   WordHuntStatsCloud,
 } from './types';
+import { emptyColorFlowStatsByMode } from '../../shared/stats/colorFlowModeStats';
 import { emptyGridSnapStatsByMode } from '../../shared/stats/gridSnapModeStats';
 import { emptyWordHuntStatsByMode } from '../../shared/stats/wordHuntModeStats';
 
@@ -39,6 +42,20 @@ function mapGridSnapStats(row: Record<string, unknown>): GridSnapStatsCloud {
   };
 }
 
+function mapColorFlowStats(row: Record<string, unknown>): ColorFlowStatsCloud {
+  const statsByModeRaw = row.stats_by_mode;
+  const statsByMode =
+    statsByModeRaw && typeof statsByModeRaw === 'object'
+      ? (statsByModeRaw as ColorFlowStatsCloud['statsByMode'])
+      : emptyColorFlowStatsByMode();
+
+  return {
+    statsByMode,
+    dailyCompletedDate: (row.daily_completed_date as string | null) ?? null,
+    updatedAt: String(row.updated_at ?? new Date().toISOString()),
+  };
+}
+
 function mapWordHuntSettings(row: Record<string, unknown>): WordHuntSettingsCloud {
   return {
     hardMode: Boolean(row.hard_mode),
@@ -50,6 +67,18 @@ function mapWordHuntSettings(row: Record<string, unknown>): WordHuntSettingsClou
 }
 
 function mapGridSnapSettings(row: Record<string, unknown>): GridSnapSettingsCloud {
+  const difficulty = row.difficulty;
+  return {
+    difficulty:
+      difficulty === 'medium' || difficulty === 'hard' || difficulty === 'easy' ? difficulty : 'easy',
+    notificationsEnabled: Boolean(row.notifications_enabled),
+    reminderHour: Number(row.reminder_hour ?? 8),
+    reminderMinute: Number(row.reminder_minute ?? 0),
+    updatedAt: String(row.updated_at ?? new Date().toISOString()),
+  };
+}
+
+function mapColorFlowSettings(row: Record<string, unknown>): ColorFlowSettingsCloud {
   const difficulty = row.difficulty;
   return {
     difficulty:
@@ -75,14 +104,23 @@ export async function fetchCloudSnapshot(userId: string): Promise<Partial<UserCl
     return {};
   }
 
-  const [wordHuntStats, gridSnapStats, wordHuntSettings, gridSnapSettings, appSettings] =
-    await Promise.all([
-      supabase.from('word_hunt_stats').select('*').eq('user_id', userId).maybeSingle(),
-      supabase.from('grid_snap_stats').select('*').eq('user_id', userId).maybeSingle(),
-      supabase.from('word_hunt_settings').select('*').eq('user_id', userId).maybeSingle(),
-      supabase.from('grid_snap_settings').select('*').eq('user_id', userId).maybeSingle(),
-      supabase.from('app_settings').select('*').eq('user_id', userId).maybeSingle(),
-    ]);
+  const [
+    wordHuntStats,
+    gridSnapStats,
+    colorFlowStats,
+    wordHuntSettings,
+    gridSnapSettings,
+    colorFlowSettings,
+    appSettings,
+  ] = await Promise.all([
+    supabase.from('word_hunt_stats').select('*').eq('user_id', userId).maybeSingle(),
+    supabase.from('grid_snap_stats').select('*').eq('user_id', userId).maybeSingle(),
+    supabase.from('color_flow_stats').select('*').eq('user_id', userId).maybeSingle(),
+    supabase.from('word_hunt_settings').select('*').eq('user_id', userId).maybeSingle(),
+    supabase.from('grid_snap_settings').select('*').eq('user_id', userId).maybeSingle(),
+    supabase.from('color_flow_settings').select('*').eq('user_id', userId).maybeSingle(),
+    supabase.from('app_settings').select('*').eq('user_id', userId).maybeSingle(),
+  ]);
 
   const snapshot: Partial<UserCloudSnapshot> = {};
 
@@ -92,11 +130,17 @@ export async function fetchCloudSnapshot(userId: string): Promise<Partial<UserCl
   if (gridSnapStats.data) {
     snapshot.gridSnapStats = mapGridSnapStats(gridSnapStats.data);
   }
+  if (colorFlowStats.data) {
+    snapshot.colorFlowStats = mapColorFlowStats(colorFlowStats.data);
+  }
   if (wordHuntSettings.data) {
     snapshot.wordHuntSettings = mapWordHuntSettings(wordHuntSettings.data);
   }
   if (gridSnapSettings.data) {
     snapshot.gridSnapSettings = mapGridSnapSettings(gridSnapSettings.data);
+  }
+  if (colorFlowSettings.data) {
+    snapshot.colorFlowSettings = mapColorFlowSettings(colorFlowSettings.data);
   }
   if (appSettings.data) {
     snapshot.appSettings = mapAppSettings(appSettings.data);
@@ -111,7 +155,15 @@ export async function upsertCloudSnapshot(userId: string, snapshot: UserCloudSna
     return;
   }
 
-  const { wordHuntStats, gridSnapStats, wordHuntSettings, gridSnapSettings, appSettings } = snapshot;
+  const {
+    wordHuntStats,
+    gridSnapStats,
+    colorFlowStats,
+    wordHuntSettings,
+    gridSnapSettings,
+    colorFlowSettings,
+    appSettings,
+  } = snapshot;
 
   await Promise.all([
     supabase.from('user_profiles').upsert({
@@ -130,6 +182,12 @@ export async function upsertCloudSnapshot(userId: string, snapshot: UserCloudSna
       daily_completed_date: gridSnapStats.dailyCompletedDate,
       updated_at: gridSnapStats.updatedAt,
     }),
+    supabase.from('color_flow_stats').upsert({
+      user_id: userId,
+      stats_by_mode: colorFlowStats.statsByMode,
+      daily_completed_date: colorFlowStats.dailyCompletedDate,
+      updated_at: colorFlowStats.updatedAt,
+    }),
     supabase.from('word_hunt_settings').upsert({
       user_id: userId,
       hard_mode: wordHuntSettings.hardMode,
@@ -145,6 +203,14 @@ export async function upsertCloudSnapshot(userId: string, snapshot: UserCloudSna
       reminder_hour: gridSnapSettings.reminderHour,
       reminder_minute: gridSnapSettings.reminderMinute,
       updated_at: gridSnapSettings.updatedAt,
+    }),
+    supabase.from('color_flow_settings').upsert({
+      user_id: userId,
+      difficulty: colorFlowSettings.difficulty,
+      notifications_enabled: colorFlowSettings.notificationsEnabled,
+      reminder_hour: colorFlowSettings.reminderHour,
+      reminder_minute: colorFlowSettings.reminderMinute,
+      updated_at: colorFlowSettings.updatedAt,
     }),
     supabase.from('app_settings').upsert({
       user_id: userId,

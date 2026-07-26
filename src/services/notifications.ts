@@ -1,7 +1,7 @@
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 
-export type GameReminderId = 'word-hunt' | 'grid-snap';
+export type GameReminderId = 'word-hunt' | 'grid-snap' | 'color-flow';
 
 export type NotificationScheduleResult =
   | { ok: true }
@@ -10,6 +10,7 @@ export type NotificationScheduleResult =
 const REMINDER_IDS: Record<GameReminderId, string> = {
   'word-hunt': 'gridly-word-hunt-reminder',
   'grid-snap': 'gridly-grid-snap-reminder',
+  'color-flow': 'gridly-color-flow-reminder',
 };
 
 const REMINDER_COPY: Record<GameReminderId, { title: string; body: string }> = {
@@ -20,6 +21,10 @@ const REMINDER_COPY: Record<GameReminderId, { title: string; body: string }> = {
   'grid-snap': {
     title: 'Gridly — Grid Snap',
     body: "Today's Grid Snap puzzle is ready! Open Gridly to play.",
+  },
+  'color-flow': {
+    title: 'Gridly — Color Flow',
+    body: "Today's Color Flow puzzle is ready! Open Gridly to play.",
   },
 };
 

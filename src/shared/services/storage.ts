@@ -27,6 +27,18 @@ const KEYS = {
   gridSnapNotifications: '@gridly/grid-snap/notifications',
   gridSnapReminderHour: '@gridly/grid-snap/reminderHour',
   gridSnapReminderMinute: '@gridly/grid-snap/reminderMinute',
+  colorFlowStats: '@gridly/color-flow/stats',
+  colorFlowStatsGuest: '@gridly/color-flow/stats/guest',
+  colorFlowStatsUserPrefix: '@gridly/color-flow/stats/user/',
+  colorFlowDailyCompleted: '@gridly/color-flow/dailyCompleted',
+  colorFlowDailyCompletedGuest: '@gridly/color-flow/dailyCompleted/guest',
+  colorFlowDailyCompletedUserPrefix: '@gridly/color-flow/dailyCompleted/user/',
+  colorFlowSavedDaily: '@gridly/color-flow/savedDaily',
+  colorFlowSavedPractice: '@gridly/color-flow/savedPractice',
+  colorFlowDifficulty: '@gridly/color-flow/difficulty',
+  colorFlowNotifications: '@gridly/color-flow/notifications',
+  colorFlowReminderHour: '@gridly/color-flow/reminderHour',
+  colorFlowReminderMinute: '@gridly/color-flow/reminderMinute',
   storageMigrated: '@gridly/app/storageMigrated',
 } as const;
 

@@ -1,3 +1,8 @@
+import type { ColorFlowStoredStats } from '../../shared/stats/colorFlowModeStats';
+import {
+  emptyColorFlowStatsByMode,
+  normalizeColorFlowStoredStats,
+} from '../../shared/stats/colorFlowModeStats';
 import type { GridSnapStoredStats } from '../../shared/stats/gridSnapModeStats';
 import {
   emptyGridSnapStatsByMode,
@@ -12,23 +17,34 @@ import { loadJson, removeKey, saveJson, storageKeys } from '../../shared/service
 import { useAuthStore } from '../auth/authStore';
 import { nowIso } from './mergePolicy';
 
-export type StatsGameId = 'word-hunt' | 'grid-snap';
+export type StatsGameId = 'word-hunt' | 'grid-snap' | 'color-flow';
 
 type CachedStats<T> = T & { updatedAt: string };
 
 const LEGACY_KEYS: Record<StatsGameId, string> = {
   'word-hunt': storageKeys.stats,
   'grid-snap': storageKeys.gridSnapStats,
+  'color-flow': storageKeys.colorFlowStats,
 };
 
 function guestKey(game: StatsGameId): string {
-  return game === 'word-hunt' ? storageKeys.statsGuest : storageKeys.gridSnapStatsGuest;
+  if (game === 'word-hunt') {
+    return storageKeys.statsGuest;
+  }
+  if (game === 'grid-snap') {
+    return storageKeys.gridSnapStatsGuest;
+  }
+  return storageKeys.colorFlowStatsGuest;
 }
 
 function userKey(game: StatsGameId, userId: string): string {
-  const prefix =
-    game === 'word-hunt' ? storageKeys.statsUserPrefix : storageKeys.gridSnapStatsUserPrefix;
-  return `${prefix}${userId}`;
+  if (game === 'word-hunt') {
+    return `${storageKeys.statsUserPrefix}${userId}`;
+  }
+  if (game === 'grid-snap') {
+    return `${storageKeys.gridSnapStatsUserPrefix}${userId}`;
+  }
+  return `${storageKeys.colorFlowStatsUserPrefix}${userId}`;
 }
 
 async function migrateLegacyStatsKeys(): Promise<void> {
@@ -46,7 +62,9 @@ async function migrateLegacyStatsKeys(): Promise<void> {
         const normalized =
           game === 'word-hunt'
             ? normalizeWordHuntStoredStats(legacyValue)
-            : normalizeGridSnapStoredStats(legacyValue);
+            : game === 'grid-snap'
+              ? normalizeGridSnapStoredStats(legacyValue)
+              : normalizeColorFlowStoredStats(legacyValue);
         await saveJson(guestStorageKey, normalized);
       }
 
@@ -59,7 +77,7 @@ export function getActiveStatsUserId(): string | null {
   return useAuthStore.getState().user?.id ?? null;
 }
 
-function stripCachedStats<T extends WordHuntStoredStats | GridSnapStoredStats>(
+function stripCachedStats<T extends WordHuntStoredStats | GridSnapStoredStats | ColorFlowStoredStats>(
   value: (T & { updatedAt?: string }) | null,
 ): T | null {
   if (!value) {
@@ -168,18 +186,69 @@ export async function loadUserGridSnapStats(
   return { ...normalizeGridSnapStoredStats(rest), updatedAt: updatedAt ?? nowIso() };
 }
 
+export async function loadColorFlowStats(): Promise<ColorFlowStoredStats | null> {
+  await migrateLegacyStatsKeys();
+
+  const userId = getActiveStatsUserId();
+  const key = userId ? userKey('color-flow', userId) : guestKey('color-flow');
+  const raw = await loadJson<unknown & { updatedAt?: string }>(key);
+  if (!raw) {
+    return null;
+  }
+
+  return normalizeColorFlowStoredStats(stripCachedStats(raw));
+}
+
+export async function saveColorFlowStats(stats: ColorFlowStoredStats): Promise<void> {
+  await migrateLegacyStatsKeys();
+
+  const userId = getActiveStatsUserId();
+  const key = userId ? userKey('color-flow', userId) : guestKey('color-flow');
+  await saveJson(key, stats);
+}
+
+export async function loadGuestColorFlowStats(): Promise<ColorFlowStoredStats | null> {
+  await migrateLegacyStatsKeys();
+  const raw = await loadJson<unknown>(guestKey('color-flow'));
+  return raw ? normalizeColorFlowStoredStats(raw) : null;
+}
+
+export async function saveUserColorFlowStats(
+  userId: string,
+  stats: ColorFlowStoredStats,
+  updatedAt = nowIso(),
+): Promise<void> {
+  await migrateLegacyStatsKeys();
+  await saveJson(userKey('color-flow', userId), { ...stats, updatedAt });
+}
+
+export async function loadUserColorFlowStats(
+  userId: string,
+): Promise<CachedStats<ColorFlowStoredStats> | null> {
+  await migrateLegacyStatsKeys();
+  const raw = await loadJson<CachedStats<unknown>>(userKey('color-flow', userId));
+  if (!raw) {
+    return null;
+  }
+
+  const { updatedAt, ...rest } = raw;
+  return { ...normalizeColorFlowStoredStats(rest), updatedAt: updatedAt ?? nowIso() };
+}
+
 export async function resetGuestStats(): Promise<void> {
   await migrateLegacyStatsKeys();
   await Promise.all([
     saveJson(guestKey('word-hunt'), { byMode: emptyWordHuntStatsByMode() }),
     saveJson(guestKey('grid-snap'), { byMode: emptyGridSnapStatsByMode() }),
+    saveJson(guestKey('color-flow'), { byMode: emptyColorFlowStatsByMode() }),
   ]);
 }
 
 export async function hasGuestStatsProgress(): Promise<boolean> {
-  const [wordHunt, gridSnap] = await Promise.all([
+  const [wordHunt, gridSnap, colorFlow] = await Promise.all([
     loadGuestWordHuntStats(),
     loadGuestGridSnapStats(),
+    loadGuestColorFlowStats(),
   ]);
 
   const wordHuntPlayed = wordHunt
@@ -188,8 +257,15 @@ export async function hasGuestStatsProgress(): Promise<boolean> {
   const gridSnapPlayed = gridSnap
     ? Object.values(gridSnap.byMode).some((mode) => mode.gamesPlayed > 0)
     : false;
+  const colorFlowPlayed = colorFlow
+    ? Object.values(colorFlow.byMode).some((mode) => mode.gamesPlayed > 0)
+    : false;
 
-  return wordHuntPlayed || gridSnapPlayed;
+  return wordHuntPlayed || gridSnapPlayed || colorFlowPlayed;
 }
 
-export { emptyGridSnapStatsByMode as emptyGridSnapStats, emptyWordHuntStatsByMode as emptyWordHuntStats };
+export {
+  emptyColorFlowStatsByMode as emptyColorFlowStats,
+  emptyGridSnapStatsByMode as emptyGridSnapStats,
+  emptyWordHuntStatsByMode as emptyWordHuntStats,
+};

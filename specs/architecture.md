@@ -33,6 +33,7 @@
 │  Core Layer (pure TypeScript, per game)                  │
 │  word-hunt: gameEngine, dailyWord, share, …              │
 │  grid-snap: puzzleEngine, dailyPuzzle, …                 │
+│  color-flow: flowEngine, puzzleBank, dailyPuzzle, …      │
 │  platform/sync: mergePolicy, cloudRepository             │
 └─────────────────────────┬────────────────────────────────┘
                           │
@@ -56,6 +57,7 @@ app/
   games/
     word-hunt/              # Hub, play, stats, settings, …
     grid-snap/
+    color-flow/
 
 src/
   platform/
@@ -67,6 +69,7 @@ src/
   games/
     word-hunt/              # core, components, stores, data, hooks
     grid-snap/              # core, components, stores, services
+    color-flow/             # core, components, stores
   services/                 # notifications, feedbackService, shareSheet
 
 supabase/
@@ -115,6 +118,18 @@ supabase/
 | `src/games/grid-snap/stores/gridSnapStore.ts` | Puzzle session state |
 | `src/games/grid-snap/stores/gridSnapSettingsStore.ts` | Difficulty, reminders |
 | `src/games/grid-snap/services/imageService.ts` | Picsum / optional Pexels images |
+
+### Color Flow
+
+| Module | Responsibility |
+|--------|----------------|
+| `app/games/color-flow/index.tsx` | Game hub |
+| `app/games/color-flow/play.tsx` | Flow board, path drawing, end states |
+| `src/games/color-flow/core/flowEngine.ts` | Path rules, coverage, win |
+| `src/games/color-flow/core/puzzleBank.ts` | Curated daily and practice puzzles |
+| `src/games/color-flow/stores/colorFlowStore.ts` | Session state |
+| `src/games/color-flow/stores/colorFlowSettingsStore.ts` | Difficulty, reminders |
+| `src/games/color-flow/stores/colorFlowStatsStore.ts` | Per-difficulty stats |
 
 ### Shared
 

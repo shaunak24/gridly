@@ -56,5 +56,10 @@ Each game has a programmatic icon (React Native views, theme-aware) used on its 
 |------|------|-------------|
 | Word Hunt | `WordHuntIcon` | Two rows of five letter tiles with guess feedback (teal/amber/slate) — a mixed guess above a solved row |
 | Grid Snap | `GridSnapIcon` | Photo-fragment tiles: a flush 2×2 snapped landscape group plus loose offset pieces still out of place |
+| Color Flow | `ColorFlowIcon` | Mini 3×3 grid with coral and teal curved paths connecting endpoint dots |
 
 Icons scale via a `size` prop (hub ~96px, game card ~52px).
+
+### Color Flow path colors
+
+Color Flow uses a dedicated multi-color palette for paths (distinct from Word Hunt feedback colors): coral, teal, amber, violet, slate, and pink. Endpoints use filled circles with the path color.

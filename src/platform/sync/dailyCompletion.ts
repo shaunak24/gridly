@@ -1,21 +1,32 @@
 import { useAuthStore } from '../auth/authStore';
 import { loadString, removeKey, saveString, storageKeys } from '../../shared/services/storage';
 
-export type DailyGameId = 'word-hunt' | 'grid-snap';
+export type DailyGameId = 'word-hunt' | 'grid-snap' | 'color-flow';
 
 const LEGACY_KEYS: Record<DailyGameId, string> = {
   'word-hunt': storageKeys.dailyCompleted,
   'grid-snap': storageKeys.gridSnapDailyCompleted,
+  'color-flow': storageKeys.colorFlowDailyCompleted,
 };
 
 function guestKey(game: DailyGameId): string {
-  return game === 'word-hunt' ? storageKeys.dailyCompletedGuest : storageKeys.gridSnapDailyCompletedGuest;
+  if (game === 'word-hunt') {
+    return storageKeys.dailyCompletedGuest;
+  }
+  if (game === 'grid-snap') {
+    return storageKeys.gridSnapDailyCompletedGuest;
+  }
+  return storageKeys.colorFlowDailyCompletedGuest;
 }
 
 function userKey(game: DailyGameId, userId: string): string {
-  const prefix =
-    game === 'word-hunt' ? storageKeys.dailyCompletedUserPrefix : storageKeys.gridSnapDailyCompletedUserPrefix;
-  return `${prefix}${userId}`;
+  if (game === 'word-hunt') {
+    return `${storageKeys.dailyCompletedUserPrefix}${userId}`;
+  }
+  if (game === 'grid-snap') {
+    return `${storageKeys.gridSnapDailyCompletedUserPrefix}${userId}`;
+  }
+  return `${storageKeys.colorFlowDailyCompletedUserPrefix}${userId}`;
 }
 
 async function migrateLegacyDailyKeys(): Promise<void> {

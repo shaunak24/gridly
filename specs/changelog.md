@@ -6,6 +6,22 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v4.0
+
+**Status:** In development — see [v4.0.md](./v4.0.md).
+
+#### Player-facing
+
+- **Color Flow** — third game: connect matching dots with orthogonal paths and fill the grid
+- Daily and practice modes, difficulty settings (4×4 / 6×6 / 8×8), stats, timer, reminders
+
+#### Engineering
+
+- `flowEngine` pure TypeScript core; hybrid curated daily + procedural practice puzzles
+- Full platform parity: registry, sync, Supabase `color_flow_*` tables, notifications
+
+---
+
 ### v3.3.1
 
 **Status:** Complete — see [v3.3.1.md](./v3.3.1.md).

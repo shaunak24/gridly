@@ -19,6 +19,10 @@ Platform Home (/home)
         ├── Play daily / practice
         ├── Stats · How to play · Settings (difficulty, reminder)
         └── Back → Platform Home
+  └── Color Flow hub (/games/color-flow)
+        ├── Play daily / practice
+        ├── Stats · How to play · Settings (difficulty, reminder)
+        └── Back → Platform Home
 
 Auth: /auth/sign-in · /auth/sign-up
 Feedback: /feedback
@@ -35,7 +39,7 @@ The platform home lists game cards after welcome or sign-in.
 - **App icon** — 5×6 grid logo (see [branding.md](./branding.md)).
 - **Wordmark** — “Gridly” with stylized coral “i”.
 - **Tagline** — “Grid-based games.”
-- **Game cards** — Word Hunt, Grid Snap (game icon, title, and tagline each).
+- **Game cards** — Word Hunt, Grid Snap, Color Flow (game icon, title, and tagline each).
 - **Top bar** — profile menu (guest or signed-in); light-bulb theme toggle; gear opens **app settings**.
 
 ### Behavior
@@ -107,6 +111,29 @@ Mirrors Word Hunt hub structure for the image jigsaw game.
 - **Practice** / **Continue practice**
 - **Stats** · **How to play**
 - **Settings** (gear) — default difficulty picker (Easy 4×4, Medium 6×6, Hard 8×8); daily reminder toggle and time picker; selection persists across sessions.
+
+## Color Flow hub
+
+Mirrors Grid Snap hub structure for the path-drawing puzzle.
+
+### Layout
+
+- **Back to Gridly**
+- **Game icon** — mini grid with coral and teal flow paths connecting endpoint dots
+- **Tagline** — "Connect the dots. Fill the grid."
+- **Streak summary** when stats exist
+- **Play daily** / **Continue daily** — countdown when complete
+- **Practice** / **Continue practice**
+- **Stats** · **How to play**
+- **Settings** (gear) — default difficulty picker; daily reminder toggle and time picker
+
+## Color Flow play
+
+- Square grid with colored endpoint dots and orthogonal path drawing
+- Status pill shows connected flows and coverage percentage
+- Dragging over another color's path cuts that path; dragging backward erases the active tail
+- Win when every pair is connected and every cell is filled
+- In-game timer, `GameEndExperience` on solve (same pattern as Grid Snap)
 
 ## Grid Snap play
 
@@ -185,13 +212,14 @@ Screen from home for sharing a custom word challenge.
 
 - Games played, win rate, current streak, max streak.
 - Guess distribution chart (1–6 and losses) on Word Hunt.
-- **Mode picker** — Word Hunt: Daily, Practice, Custom; Grid Snap: Easy, Medium, Hard. Summary cards and charts reflect the selected mode. Selected mode uses a coral highlight for contrast in dark and light themes.
+- **Mode picker** — Word Hunt: Daily, Practice, Custom; Grid Snap and Color Flow: Easy, Medium, Hard. Summary cards and charts reflect the selected mode. Selected mode uses a coral highlight for contrast in dark and light themes.
 - **Time stats** — fastest, average, and slowest solve time for the selected mode (when the player has completed at least one game in that mode).
 - Data persists locally across app restarts; per-mode stats sync when signed in.
 
 ## In-game timer
 
 - Word Hunt and Grid Snap play screens show elapsed time (mm:ss) in a pill control (card background, border, accent bubble) at the top right, mirroring the Home button on the left.
+- Color Flow uses the same timer pattern on its play screen.
 - The timer stops on win or loss and shows the final elapsed time on the end screen.
 - Resuming a saved in-progress game continues the timer from the elapsed time stored with the session.
 
@@ -216,8 +244,10 @@ Screen from home for sharing a custom word challenge.
 | Home | Practice puzzle | **Practice** (Word Hunt hub) |
 | Platform home | Word Hunt | Game card |
 | Platform home | Grid Snap | Game card |
+| Platform home | Color Flow | Game card |
 | Word Hunt hub | Play | Daily / Practice / Custom |
 | Grid Snap hub | Play | Daily / Practice |
+| Color Flow hub | Play | Daily / Practice |
 | Deep link | Custom puzzle (invite) | `gridly://games/word-hunt/play?mode=custom&invite=…` |
 | Deep link | Custom puzzle (legacy) | `gridly://games/word-hunt/play?mode=custom&code=g1:…` |
 | HTTPS invite | Custom puzzle | `{SUPABASE_URL}/functions/v1/resolve-invite/{id}` → app (Android intent URL when needed) |
@@ -228,6 +258,7 @@ Screen from home for sharing a custom word challenge.
 | Platform home | App settings | Gear icon |
 | Word Hunt play | Word Hunt hub | **Home** (header) |
 | Grid Snap play | Grid Snap hub | **Home** (header) |
+| Color Flow play | Color Flow hub | **Home** (header) |
 | Game hub | Platform home | **Gridly** back button |
 | Win / Loss modal | Board | Dismiss modal (✕) |
 | Board (after dismiss) | Practice | **Practice** (daily) or **Play again** (practice/custom) |
