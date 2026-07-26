@@ -2,7 +2,7 @@
 
 Gridly is a cross-platform **grid-based games** app. These documents are the authoritative reference for product behavior, architecture, and quality standards.
 
-**Current release:** v3.2.3 (back button and sign-out navigation). **In development:** [v3.3](./v3.3.md). See [changelog.md](./changelog.md) for version history and planned work.
+**Current release:** v3.3.1 (stats picker contrast and sign-out persistence). See [changelog.md](./changelog.md) for version history and planned work.
 
 ## Documents
 
@@ -27,6 +27,7 @@ Gridly is a cross-platform **grid-based games** app. These documents are the aut
 | [v3.2.2](./v3.2.2.md) | Sign-out speed and auth navigation fixes |
 | [v3.2.3](./v3.2.3.md) | Back button scoping and sign-out flash fix |
 | [v3.3](./v3.3.md) | Game timers and mode-segregated stats |
+| [v3.3.1](./v3.3.1.md) | Stats picker contrast and sign-out persistence |
 | [Backlog](./backlog.md) | Planned future work (not yet assigned to a version) |
 | [Architecture](./architecture.md) | System design, layers, modules, data flow |
 | [Tech Stack](./tech-stack.md) | Frameworks, dependencies, dev workflow, deployment |

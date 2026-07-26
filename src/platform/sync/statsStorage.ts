@@ -176,4 +176,20 @@ export async function resetGuestStats(): Promise<void> {
   ]);
 }
 
+export async function hasGuestStatsProgress(): Promise<boolean> {
+  const [wordHunt, gridSnap] = await Promise.all([
+    loadGuestWordHuntStats(),
+    loadGuestGridSnapStats(),
+  ]);
+
+  const wordHuntPlayed = wordHunt
+    ? Object.values(wordHunt.byMode).some((mode) => mode.gamesPlayed > 0)
+    : false;
+  const gridSnapPlayed = gridSnap
+    ? Object.values(gridSnap.byMode).some((mode) => mode.gamesPlayed > 0)
+    : false;
+
+  return wordHuntPlayed || gridSnapPlayed;
+}
+
 export { emptyGridSnapStatsByMode as emptyGridSnapStats, emptyWordHuntStatsByMode as emptyWordHuntStats };

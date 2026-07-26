@@ -185,7 +185,7 @@ Screen from home for sharing a custom word challenge.
 
 - Games played, win rate, current streak, max streak.
 - Guess distribution chart (1–6 and losses) on Word Hunt.
-- **Mode picker** — Word Hunt: Daily, Practice, Custom; Grid Snap: Easy, Medium, Hard. Summary cards and charts reflect the selected mode.
+- **Mode picker** — Word Hunt: Daily, Practice, Custom; Grid Snap: Easy, Medium, Hard. Summary cards and charts reflect the selected mode. Selected mode uses a coral highlight for contrast in dark and light themes.
 - **Time stats** — fastest, average, and slowest solve time for the selected mode (when the player has completed at least one game in that mode).
 - Data persists locally across app restarts; per-mode stats sync when signed in.
 

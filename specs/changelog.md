@@ -4,11 +4,26 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ---
 
-## In development
+## Shipped
+
+### v3.3.1
+
+**Status:** Complete — see [v3.3.1.md](./v3.3.1.md).
+
+#### Player-facing
+
+- **Stats mode picker** — clearer selected-state contrast in dark mode
+- **Sign-out / sign-in** — same-account stats and daily completion restore after re-login
+
+#### Engineering
+
+- `handlePostSignIn` vs guest-only `mergeLocalToCloud`; stats persist on each game end; sign-out unchanged (instant, background cloud push)
+
+---
 
 ### v3.3
 
-**Status:** In development — see [v3.3.md](./v3.3.md).
+**Status:** Complete — see [v3.3.md](./v3.3.md).
 
 #### Player-facing
 
@@ -18,12 +33,10 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 #### Engineering
 
-- Per-mode stats stores with `TimeAggregates`; `useGameTimer` hook; `004_mode_stats.sql` cloud migration
+- Per-mode stats stores with `TimeAggregates`; `useGameTimer` hook; `004_mode_stats.sql` and `005_drop_legacy_stats_columns.sql`
 - Merge policy sums per-mode buckets on sign-in; legacy flat stats map to Daily / Easy locally and in Supabase
 
 ---
-
-## Shipped
 
 ### v3.2.3
 

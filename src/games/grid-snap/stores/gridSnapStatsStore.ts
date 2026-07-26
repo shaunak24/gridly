@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import {
+  getActiveStatsUserId,
   loadGridSnapStats,
   saveGridSnapStats,
 } from '../../../platform/sync/statsStorage';
@@ -60,6 +61,11 @@ export const useGridSnapStatsStore = create<GridSnapStatsState>((set, get) => ({
 
   persist: async () => {
     const state = get();
+    if (getActiveStatsUserId()) {
+      await pushIfSignedIn();
+      return;
+    }
+
     const payload: GridSnapStoredStats = { byMode: state.byMode };
     await saveGridSnapStats(payload);
 
@@ -76,15 +82,21 @@ export const useGridSnapStatsStore = create<GridSnapStatsState>((set, get) => ({
     const byMode = { ...state.byMode, [difficulty]: nextMode };
 
     set({ byMode });
-    await saveGridSnapStats({ byMode });
-    void pushIfSignedIn();
+    if (getActiveStatsUserId()) {
+      await pushIfSignedIn();
+    } else {
+      await saveGridSnapStats({ byMode });
+    }
   },
 
   markDailyComplete: async () => {
     const today = getLocalDateKey();
     set({ dailyCompletedDate: today });
-    await saveDailyCompletedDate('grid-snap', today);
-    void pushIfSignedIn();
+    if (getActiveStatsUserId()) {
+      await pushIfSignedIn();
+    } else {
+      await saveDailyCompletedDate('grid-snap', today);
+    }
   },
 
   isDailyCompleteToday: () => get().dailyCompletedDate === getLocalDateKey(),

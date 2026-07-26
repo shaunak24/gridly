@@ -28,6 +28,7 @@ import {
   resetGuestStats,
   saveUserGridSnapStats,
   saveUserWordHuntStats,
+  hasGuestStatsProgress,
 } from './statsStorage';
 import type { UserCloudSnapshot } from './types';
 
@@ -258,6 +259,15 @@ export async function pushSnapshotForUser(userId: string): Promise<void> {
 
   await upsertCloudSnapshot(userId, snapshot);
   await persistUserStatsCache(userId, snapshot);
+
+  await Promise.all([
+    snapshot.wordHuntStats.dailyCompletedDate
+      ? saveDailyCompletedDate('word-hunt', snapshot.wordHuntStats.dailyCompletedDate)
+      : Promise.resolve(),
+    snapshot.gridSnapStats.dailyCompletedDate
+      ? saveDailyCompletedDate('grid-snap', snapshot.gridSnapStats.dailyCompletedDate)
+      : Promise.resolve(),
+  ]);
 }
 
 const SIGN_OUT_PUSH_TIMEOUT_MS = 2000;
@@ -283,4 +293,29 @@ export async function rehydrateLocalStores(): Promise<void> {
     useStatsStore.getState().hydrate(),
     useGridSnapStatsStore.getState().hydrate(),
   ]);
+}
+
+let lastPostSignInUserId: string | null = null;
+
+export function resetPostSignInState(): void {
+  lastPostSignInUserId = null;
+}
+
+export function markPostSignInComplete(userId: string): void {
+  lastPostSignInUserId = userId;
+}
+
+/** Load cloud/local account stats on sign-in; merge guest progress only when guest has played. */
+export async function handlePostSignIn(userId: string): Promise<void> {
+  if (lastPostSignInUserId === userId) {
+    return;
+  }
+
+  if (await hasGuestStatsProgress()) {
+    await mergeLocalToCloud(userId);
+  } else {
+    await loadSignedInUserStores(userId);
+  }
+
+  lastPostSignInUserId = userId;
 }

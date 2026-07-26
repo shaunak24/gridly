@@ -281,11 +281,13 @@ export const useGameStore = create<GameState>((set, get) => ({
         void clearPersistedGame(state.mode);
       }
       void refreshProgressFlags(set);
-      const stats = useStatsStore.getState();
-      void stats.recordResult(state.mode, isWin, isWin ? rowIndex + 1 : 0, get().elapsedSec);
-      if (state.mode === 'daily') {
-        void stats.markDailyComplete();
-      }
+      void (async () => {
+        const stats = useStatsStore.getState();
+        await stats.recordResult(state.mode, isWin, isWin ? rowIndex + 1 : 0, get().elapsedSec);
+        if (state.mode === 'daily') {
+          await stats.markDailyComplete();
+        }
+      })();
     } else {
       void persistIfPlaying(next);
       void refreshProgressFlags(set);

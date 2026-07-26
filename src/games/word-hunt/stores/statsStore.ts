@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import {
+  getActiveStatsUserId,
   loadWordHuntStats,
   saveWordHuntStats,
 } from '../../../platform/sync/statsStorage';
@@ -58,6 +59,11 @@ export const useStatsStore = create<StatsState>((set, get) => ({
 
   persist: async () => {
     const state = get();
+    if (getActiveStatsUserId()) {
+      await pushIfSignedIn();
+      return;
+    }
+
     const payload: WordHuntStoredStats = { byMode: state.byMode };
     await saveWordHuntStats(payload);
 
@@ -74,15 +80,21 @@ export const useStatsStore = create<StatsState>((set, get) => ({
     const byMode = { ...state.byMode, [mode]: nextMode };
 
     set({ byMode });
-    await saveWordHuntStats({ byMode });
-    void pushIfSignedIn();
+    if (getActiveStatsUserId()) {
+      await pushIfSignedIn();
+    } else {
+      await saveWordHuntStats({ byMode });
+    }
   },
 
   markDailyComplete: async () => {
     const today = getLocalDateKey();
     set({ dailyCompletedDate: today });
-    await saveDailyCompletedDate('word-hunt', today);
-    void pushIfSignedIn();
+    if (getActiveStatsUserId()) {
+      await pushIfSignedIn();
+    } else {
+      await saveDailyCompletedDate('word-hunt', today);
+    }
   },
 
   isDailyCompleteToday: () => {

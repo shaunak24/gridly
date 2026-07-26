@@ -12,7 +12,14 @@ import {
 } from './authService';
 import { authError, authInfo, type AuthUserMessage } from './authMessages';
 import { isSupabaseConfigured } from './supabaseClient';
-import { mergeLocalToCloud, pushSnapshotWithTimeout, rehydrateLocalStores, loadSignedInUserStores } from '../sync/syncService';
+import {
+  handlePostSignIn,
+  loadSignedInUserStores,
+  markPostSignInComplete,
+  pushSnapshotWithTimeout,
+  rehydrateLocalStores,
+  resetPostSignInState,
+} from '../sync/syncService';
 
 export type { AuthUserMessage } from './authMessages';
 
@@ -52,18 +59,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (session?.user) {
         try {
           await loadSignedInUserStores(session.user.id);
+          markPostSignInComplete(session.user.id);
         } catch {
           // Offline cold start still shows cached local stats.
         }
       }
 
       subscribeToAuthChanges(async (nextSession, nextUser) => {
-        const wasSignedIn = Boolean(get().user);
+        const previousUserId = get().user?.id ?? null;
         set({ session: nextSession, user: nextUser });
 
-        if (!wasSignedIn && nextUser) {
+        if (!previousUserId && nextUser) {
           try {
-            await mergeLocalToCloud(nextUser.id);
+            await handlePostSignIn(nextUser.id);
           } catch {
             // Keep the signed-in session even if sync fails offline.
           }
@@ -81,6 +89,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (!result.ok) {
         return authError('Sign in failed', result.message);
       }
+      await handlePostSignIn(result.session.user.id);
       set({ session: result.session, user: result.session.user });
       return null;
     } finally {
@@ -98,6 +107,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
         return authError('Sign up failed', result.message);
       }
+      await handlePostSignIn(result.session.user.id);
       set({ session: result.session, user: result.session.user });
       return null;
     } finally {
@@ -112,6 +122,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (!result.ok) {
         return authError('Sign in failed', result.message);
       }
+      await handlePostSignIn(result.session.user.id);
       set({ session: result.session, user: result.session.user });
       return null;
     } finally {
@@ -126,6 +137,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const existingSession = await getCurrentSession();
     if (existingSession) {
+      await handlePostSignIn(existingSession.user.id);
       set({ session: existingSession, user: existingSession.user });
       return null;
     }
@@ -134,6 +146,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!result.ok) {
       const retrySession = await getCurrentSession();
       if (retrySession) {
+        await handlePostSignIn(retrySession.user.id);
         set({ session: retrySession, user: retrySession.user });
         return null;
       }
@@ -141,6 +154,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return authError('Sign in failed', result.message);
     }
 
+    await handlePostSignIn(result.session.user.id);
     set({ session: result.session, user: result.session.user });
     return null;
   },
@@ -156,6 +170,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
       await authSignOut();
       set({ session: null, user: null });
+      resetPostSignInState();
       await rehydrateLocalStores();
     } finally {
       set({ busy: false });

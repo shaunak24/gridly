@@ -12,7 +12,7 @@ export function ModePicker<T extends string>({ options, value, onChange }: ModeP
   const theme = useTheme();
 
   return (
-    <View style={[styles.row, { backgroundColor: theme.tileEmpty, borderColor: theme.border }]}>
+    <View style={[styles.row, { backgroundColor: theme.keyDefault, borderColor: theme.border }]}>
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -21,7 +21,9 @@ export function ModePicker<T extends string>({ options, value, onChange }: ModeP
             onPress={() => onChange(option.value)}
             style={[
               styles.chip,
-              selected && { backgroundColor: theme.card, borderColor: theme.border },
+              selected
+                ? { backgroundColor: theme.coral, borderColor: theme.coral }
+                : { borderColor: 'transparent' },
             ]}
             accessibilityRole="button"
             accessibilityState={{ selected }}
@@ -29,7 +31,10 @@ export function ModePicker<T extends string>({ options, value, onChange }: ModeP
             <Text
               style={[
                 styles.chipText,
-                { color: selected ? theme.textPrimary : theme.textSecondary },
+                {
+                  color: selected ? theme.textPrimary : theme.textSecondary,
+                  fontWeight: selected ? '700' : '600',
+                },
               ]}
             >
               {option.label}
@@ -56,10 +61,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'transparent',
   },
   chipText: {
     fontSize: 14,
-    fontWeight: '600',
   },
 });
