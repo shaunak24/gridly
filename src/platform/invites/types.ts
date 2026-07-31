@@ -32,8 +32,12 @@ export interface FetchInviteResult {
   invite: GameInviteRow;
 }
 
+/** 'network' means we never got an answer — the link itself may be perfectly valid. */
+export type FetchInviteFailureReason = 'network' | 'not-found' | 'unsupported';
+
 export interface FetchInviteError {
   ok: false;
+  reason: FetchInviteFailureReason;
   message: string;
 }
 

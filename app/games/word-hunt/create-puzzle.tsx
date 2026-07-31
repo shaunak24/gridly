@@ -61,7 +61,7 @@ export default function CreatePuzzleScreen() {
     try {
       const result = await createInvite('word-hunt', { mode: 'custom', word: validWord });
       if (!result.ok) {
-        presentAppMessage({ title: 'Share failed', message: result.message });
+        presentAppMessage({ title: 'Share failed', body: result.message, emoji: '⚠️' });
         return null;
       }
 
@@ -88,7 +88,8 @@ export default function CreatePuzzleScreen() {
     } catch {
       presentAppMessage({
         title: 'Share failed',
-        message: 'Could not open the share sheet.',
+        body: 'Could not open the share sheet.',
+        emoji: '⚠️',
       });
     }
   }, [createShareInvite]);
@@ -102,7 +103,8 @@ export default function CreatePuzzleScreen() {
     await Clipboard.setStringAsync(result.url);
     presentAppMessage({
       title: 'Link copied',
-      message: 'Share it with a friend so they can play your puzzle.',
+      body: 'Share it with a friend so they can play your puzzle.',
+      emoji: '✅',
     });
   }, [createShareInvite]);
 

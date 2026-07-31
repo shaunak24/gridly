@@ -13,7 +13,7 @@ Testing focuses on **game engine correctness** (pure logic) and **manual device 
 | E2E | Detox or Maestro | Deferred |
 | Manual | Expo Go on device | Full acceptance |
 
-**Current:** 69 unit tests in 15 suites (`npm test`).
+**Current:** 182 unit tests in 28 suites (`npm test`).
 
 ## Unit tests — game engine
 
@@ -190,6 +190,53 @@ Requires `npm run build:apk`.
 - [ ] Daily win counts toward Daily stats only; practice toward Practice; custom puzzle toward Custom
 - [ ] Grid Snap win at Medium difficulty counts toward Medium stats only
 - [ ] Signed-in per-mode stats merge on second device
+
+## Manual test checklist — v4.2
+
+Requires `npm run supabase:deploy-invites` and `npm run build:apk`. The bug this
+release fixes only reproduces on a real link tap, so run the whole list on device.
+
+### Server response
+
+- [ ] `curl -s "<invite url>"` → no `&amp;` anywhere between `<script>` and `</script>`
+- [ ] `data-intent` carries `S.browser_fallback_url` = the canonical `https://…/functions/v1/resolve-invite/<id>?fallback=1` (not `http://`, not missing `/functions/v1`)
+- [ ] `curl -s "<invite url>?fallback=1"` → `data-autoredirect="0"` and the not-installed panel is not `hidden`
+- [ ] `curl -sI "<invite url>"` → `200`, `Cache-Control: no-store`
+- [ ] `curl -s "<invite url>x"` (bad id) → branded "Puzzle not found"
+
+### Android, Gridly installed
+
+- [ ] Create puzzle → **Share puzzle** → send to WhatsApp → preview card shows the Gridly title and description, not a bare URL
+- [ ] Tap the link → **Gridly opens straight into the custom puzzle with the correct word** (this is the regression)
+- [ ] Tap **Open in Gridly** on the landing page → same result
+- [ ] Open the same link from Chrome's address bar → same result
+
+### Android, Gridly not installed
+
+- [ ] Tap the link → branded "Don't have Gridly yet?" page
+- [ ] Watch the address bar — it settles on `…?fallback=1` and does **not** loop
+- [ ] **Copy puzzle link** copies the canonical URL
+
+### In-app browsers
+
+- [ ] Open the link inside Instagram or Facebook → "Open this in your browser" panel, no failed redirect
+
+### In-app behaviour
+
+- [ ] Invalid / expired invite → themed modal (not the OS alert) → returns to the Word Hunt hub
+- [ ] Airplane mode + valid link → "Couldn't load this puzzle. Check your connection and try again." (not "invalid or has expired")
+- [ ] Create puzzle → **Copy link** → modal shows both the title **and** the body text
+- [ ] Create puzzle with a non-word → **Share failed** modal shows its body text
+- [ ] Custom win counts toward Custom stats only
+- [ ] Legacy `gridly://games/word-hunt/play?mode=custom&code=g1:…` still opens the puzzle
+
+### iOS — deferred
+
+No iOS build exists (`eas.json` is Android-only). When one does:
+
+- [ ] `npx uri-scheme open "gridly://games/word-hunt/play?mode=custom&invite=<id>" --ios` starts the puzzle
+- [ ] Safari landing page hands off to the app
+- [ ] Declining the "Open in Gridly?" prompt reveals the not-installed panel after ~1.6s
 
 ## Manual test checklist — v2.0
 

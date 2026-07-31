@@ -6,6 +6,31 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v4.2
+
+**Status:** Complete — see [v4.2.md](./v4.2.md).
+
+#### Player-facing
+
+- **Word Hunt invite links open the puzzle** — the shared link opened Gridly but lost the invite code and reported "This custom puzzle link is not valid"; the deep link was HTML-escaped into a `<script>` block, so `&` became `&amp;` and everything after it was dropped
+- **Branded landing page** — Gridly mark, wordmark, and dark palette instead of unstyled defaults
+- **Rich link previews** — invite links now preview with a title and description in WhatsApp and Messages instead of a bare URL
+- **"Don't have Gridly yet?"** — a real not-installed state instead of a dead fallback URL, and no redirect loop on Android
+- **In-app browser guidance** — links opened inside Instagram/Facebook WebViews explain how to reopen in a browser
+- **Create-puzzle modals show their text** — "Link copied" and "Share failed" were rendering title-only with an empty body
+- **Offline ≠ expired** — a valid link opened with no connection says to check the connection
+- **Themed invite errors** — the play screen uses the app modal instead of the OS alert
+
+#### Engineering
+
+- `_shared/landingPage.ts` and `_shared/inviteLink.ts` — landing page and canonical URL builder extracted from the edge functions, pure and unit-tested; no dynamic value is ever interpolated into a `<script>` block
+- Android `browser_fallback_url` built from the canonical HTTPS URL (was `request.url`, which the edge runtime reports as `http://…` without `/functions/v1`), plus a `?fallback=1` loop guard
+- `resolve-invite` answers `HEAD`, sends `Cache-Control: no-store`; optional `INVITE_OG_IMAGE_URL` / `INVITE_STORE_URL_IOS` / `INVITE_STORE_URL_ANDROID` secrets
+- `FetchInviteError.reason`; duplicated `buildAndroidIntentUrl.ts` deleted in favour of the edge-function source
+- 28 new unit tests (182 total), including a jsdom suite that runs the landing page script and asserts the exact URL the browser navigates to; `allowImportingTsExtensions` in `tsconfig.json` with Deno entrypoints excluded from the app typecheck
+
+---
+
 ### v4.1
 
 **Status:** Complete — see [v4.1.md](./v4.1.md).

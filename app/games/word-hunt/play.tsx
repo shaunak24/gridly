@@ -1,7 +1,7 @@
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Board } from '../../../src/games/word-hunt/components/Board';
@@ -16,6 +16,7 @@ import { getWordHuntCustomWord } from '../../../src/platform/invites/wordHuntInv
 import { GameEndExperience } from '../../../src/shared/components/GameEndExperience';
 import { HeaderHomeButton } from '../../../src/shared/components/HeaderHomeButton';
 import { HeaderTimer } from '../../../src/shared/components/HeaderTimer';
+import { presentAppMessage } from '../../../src/shared/components/presentAppMessage';
 import type { GameEndMode, GameEndOutcome } from '../../../src/shared/gameEnd/gameEndConfig';
 import { useGameTimer } from '../../../src/shared/hooks/useGameTimer';
 import { useTheme } from '../../../src/shared/theme/useTheme';
@@ -89,13 +90,23 @@ export default function WordHuntPlayScreen() {
         if (inviteId) {
           const result = await fetchInvite(inviteId);
           if (!result.ok) {
-            Alert.alert('Invalid puzzle', result.message);
+            // A network failure means we never learned whether the link is good —
+            // don't tell the player their friend's puzzle is dead.
+            presentAppMessage({
+              title: result.reason === 'network' ? 'Could not load puzzle' : 'Invalid puzzle',
+              body: result.message,
+              emoji: '⚠️',
+            });
             router.replace('/games/word-hunt');
             return;
           }
 
           if (result.invite.game_id !== 'word-hunt') {
-            Alert.alert('Invalid puzzle', 'This invite is not a Word Hunt puzzle.');
+            presentAppMessage({
+              title: 'Invalid puzzle',
+              body: 'This invite is not a Word Hunt puzzle.',
+              emoji: '⚠️',
+            });
             router.replace('/games/word-hunt');
             return;
           }
@@ -106,7 +117,11 @@ export default function WordHuntPlayScreen() {
         }
 
         if (!word) {
-          Alert.alert('Invalid puzzle', 'This custom puzzle link is not valid.');
+          presentAppMessage({
+            title: 'Invalid puzzle',
+            body: 'This custom puzzle link is not valid.',
+            emoji: '⚠️',
+          });
           router.replace('/games/word-hunt');
           return;
         }
@@ -161,7 +176,11 @@ export default function WordHuntPlayScreen() {
       secretWord,
     );
     await Clipboard.setStringAsync(text);
-    Alert.alert('Copied', 'Results copied to clipboard.');
+    presentAppMessage({
+      title: 'Copied',
+      body: 'Results copied to clipboard.',
+      emoji: '✅',
+    });
   }, [guesses, currentRowIndex, status, mode, secretWord]);
 
   const goHome = useCallback(() => {

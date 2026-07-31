@@ -209,7 +209,11 @@ Screen from home for sharing a custom word challenge.
 - User enters a 5-letter word (must be in the allowed guess list).
 - **Share puzzle** creates a server invite and opens the system share sheet (WhatsApp, Messages, Mail, etc.) with an HTTPS link.
 - **Copy link** copies the same HTTPS invite URL to the clipboard.
+- The link previews in chat with the Gridly title and description, not a bare URL.
 - Recipient taps the link; on Android the installed app opens and starts a custom game with that word. If a browser landing page appears, **Open in Gridly** must open the app.
+- **Landing page states** — it auto-forwards to the app on arrival; if the app does not take over within ~1.6s it reveals *Don't have Gridly yet?* with the link to copy. Arriving with `?fallback=1` (Chrome bouncing back from a failed app handoff) skips the auto-forward and shows that state directly, so the page cannot loop. Inside an in-app WebView that blocks custom schemes, it shows *Open this in your browser* instead.
+- Invalid or expired links show a branded **Puzzle not found** page in the browser, and the app's themed modal in-app.
+- Opening a valid link with no connection says to check the connection — it does not claim the link expired.
 - Custom games count toward **Custom** mode stats only (not Daily or Practice).
 - Legacy `gridly://…?code=g1:…` links still open custom puzzles for recipients who saved older shares.
 

@@ -2,6 +2,7 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "allowImportingTsExtensions": true,
     "paths": {
       "@/*": [
         "./src/*"
@@ -11,5 +12,14 @@
   "include": [
     "**/*.ts",
     "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "android",
+    "ios",
+    "babel.config.js",
+    "metro.config.js",
+    "jest.config.js",
+    "supabase/functions/*/index.ts"
   ]
 }

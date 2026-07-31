@@ -2,6 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 
 import { corsHeaders, jsonResponse } from '../_shared/cors.ts';
 import { generateInviteId } from '../_shared/inviteId.ts';
+import { buildInviteUrl } from '../_shared/inviteLink.ts';
 import { validateWordHuntPayload } from '../_shared/validateWordHuntPayload.ts';
 
 const INVITE_TTL_DAYS = 90;
@@ -9,15 +10,6 @@ const INVITE_TTL_DAYS = 90;
 interface CreateInviteRequest {
   gameId?: string;
   payload?: unknown;
-}
-
-function getInviteLinkBase(supabaseUrl: string): string {
-  const configured = Deno.env.get('INVITE_LINK_BASE')?.replace(/\/$/, '');
-  if (configured) {
-    return configured;
-  }
-
-  return `${supabaseUrl.replace(/\/$/, '')}/functions/v1/resolve-invite`;
 }
 
 function validatePayload(gameId: string, payload: unknown): Record<string, unknown> | null {
@@ -88,6 +80,6 @@ Deno.serve(async (request) => {
     return jsonResponse({ ok: false, message: 'Could not create invite.' }, 500);
   }
 
-  const url = `${getInviteLinkBase(supabaseUrl)}/${inviteId}`;
+  const url = buildInviteUrl(supabaseUrl, inviteId, Deno.env.get('INVITE_LINK_BASE'));
   return jsonResponse({ ok: true, id: inviteId, url });
 });

@@ -12,6 +12,9 @@ In the Supabase SQL editor, run **in order**:
 1. `migrations/001_v3_initial.sql`
 2. `migrations/002_user_profile_trigger.sql`
 3. `migrations/003_game_invites.sql`
+4. `migrations/004_mode_stats.sql`
+5. `migrations/005_drop_legacy_stats_columns.sql`
+6. `migrations/006_color_flow.sql`
 
 ## 3. Configure auth
 
@@ -89,7 +92,43 @@ npm run supabase functions deploy resolve-invite
 Share links use:
 `https://{project-ref}.supabase.co/functions/v1/resolve-invite/{invite-id}`
 
-Optional: set `INVITE_LINK_BASE` as a function secret if you later use a custom domain for invite URLs.
+Redeploy both functions after any change under `functions/_shared/` — `create-invite`
+and `resolve-invite` each bundle their own copy of it.
+
+### Optional function secrets
+
+```bash
+npm run supabase secrets set INVITE_OG_IMAGE_URL=https://{project-ref}.supabase.co/storage/v1/object/public/public-assets/gridly-og.png
+```
+
+| Secret | Effect when unset |
+|--------|-------------------|
+| `INVITE_LINK_BASE` | Derived from `SUPABASE_URL`. Set this when moving to a custom domain. |
+| `INVITE_OG_IMAGE_URL` | No `og:image`; chat previews still show the title and description, just no thumbnail. |
+| `INVITE_STORE_URL_IOS` | The "Get Gridly for iPhone" button is not rendered. |
+| `INVITE_STORE_URL_ANDROID` | The "Get Gridly for Android" button is not rendered. |
+
+For the preview image, upload a ~1200×630 PNG to a **public** Storage bucket
+(**Storage → New bucket → public**), then set `INVITE_OG_IMAGE_URL` to its public URL.
+A 404 here makes previews worse than no image, which is why it is opt-in.
+
+### Landing page
+
+`functions/_shared/landingPage.ts` renders the browser interstitial. It is deliberately
+free of `Deno.*` so it is unit tested from Jest
+(`src/platform/invites/__tests__/landingPage.test.ts`).
+
+Two rules that page depends on — both were real bugs before v4.2:
+
+- **Never interpolate a URL into a `<script>` block.** HTML entities are not decoded
+  inside `<script>`, so an html-escaped `&` stays `&amp;` and every query param after
+  it is lost. URLs travel as `data-*` attributes and are read with `getAttribute()`.
+- **Never derive the invite URL from `request.url`.** Inside the edge runtime that is
+  `http://{project-ref}.supabase.co/resolve-invite/{id}` — wrong scheme, no
+  `/functions/v1`. Use `_shared/inviteLink.ts`.
+
+The Android `browser_fallback_url` points at `…/{invite-id}?fallback=1`; that flag
+suppresses the auto-redirect so a missing app cannot loop back into the intent.
 
 ## 6. Feedback email (optional)
 
