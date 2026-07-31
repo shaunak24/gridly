@@ -16,13 +16,14 @@ export interface GameDefinition {
   Icon: ComponentType<GameIconProps>;
 }
 
+/** Order here drives the home screen game list. */
 export const GAMES: GameDefinition[] = [
   {
-    id: 'word-hunt',
-    title: 'Word Hunt',
-    tagline: 'Guess the word in six tries',
-    hubRoute: '/games/word-hunt',
-    Icon: WordHuntIcon,
+    id: 'color-flow',
+    title: 'Color Flow',
+    tagline: 'Connect the dots. Fill the grid.',
+    hubRoute: '/games/color-flow',
+    Icon: ColorFlowIcon,
   },
   {
     id: 'grid-snap',
@@ -32,11 +33,11 @@ export const GAMES: GameDefinition[] = [
     Icon: GridSnapIcon,
   },
   {
-    id: 'color-flow',
-    title: 'Color Flow',
-    tagline: 'Connect the dots. Fill the grid.',
-    hubRoute: '/games/color-flow',
-    Icon: ColorFlowIcon,
+    id: 'word-hunt',
+    title: 'Word Hunt',
+    tagline: 'Guess the word in six tries',
+    hubRoute: '/games/word-hunt',
+    Icon: WordHuntIcon,
   },
 ];
 

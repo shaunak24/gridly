@@ -4,7 +4,7 @@ export const FLOW_PATH_COLORS = [
   '#14B8A6', // teal
   '#F59E0B', // amber
   '#8B5CF6', // violet
-  '#64748B', // slate
+  '#38BDF8', // sky
   '#EC4899', // pink
 ] as const;
 

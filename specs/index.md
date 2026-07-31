@@ -2,7 +2,7 @@
 
 Gridly is a cross-platform **grid-based games** app. These documents are the authoritative reference for product behavior, architecture, and quality standards.
 
-**Current release:** v4.0.1. See [changelog.md](./changelog.md) for version history and planned work.
+**Current release:** v4.1. See [changelog.md](./changelog.md) for version history and planned work.
 
 ## Documents
 
@@ -30,6 +30,7 @@ Gridly is a cross-platform **grid-based games** app. These documents are the aut
 | [v3.3.1](./v3.3.1.md) | Stats picker contrast and sign-out persistence |
 | [v4.0](./v4.0.md) | Color Flow — third grid game |
 | [v4.0.1](./v4.0.1.md) | Daily reminder defaults (staggered times, 12 AM fix) |
+| [v4.1](./v4.1.md) | Color Flow correctness and drag feel (locked flows, reset, haptics) |
 | [Backlog](./backlog.md) | Planned future work (not yet assigned to a version) |
 | [Architecture](./architecture.md) | System design, layers, modules, data flow |
 | [Tech Stack](./tech-stack.md) | Frameworks, dependencies, dev workflow, deployment |

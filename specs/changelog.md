@@ -6,6 +6,29 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v4.1
+
+**Status:** Complete — see [v4.1.md](./v4.1.md).
+
+#### Player-facing
+
+- **Color Flow — hard mode no longer freezes** — 8×8 board generation used an exponential search; entering hard practice or daily hung and sometimes crashed
+- **Connected flows lock** — a path can no longer be extended past its matching dot, which had inflated the fill count and allowed a false win
+- **Smoother drawing** — the colour is locked on touch-down (no more hijacking at another colour's dot), fast drags fill in skipped cells, and boundary jitter is gone
+- **Reset board** — clears every flow on the current puzzle; the puzzle and timer stay put
+- **Haptics**, tinted filled cells, done-markers on connected dots, and a `Cells: 47/64` readout
+- **Home screen order** — Color Flow, Grid Snap, Word Hunt
+- **Faster end-of-game modal** — 2s → 1.1s across all three games
+
+#### Engineering
+
+- `buildHamiltonianPath` rewritten as snake + backbite (linear, cannot fail) instead of DFS backtracking — 25 hard boards from ~10s to ~30ms
+- `isPairConnected` guard in `applyPathStep`; exclusive `cutOtherPathsAtCell`; hardened `updatePath`
+- `sanitizeSavedPaths` repairs v4.0 saves on load; new pure input helpers (`interpolateCells`, `applyDragTo`, `beginDragAt`, `resolveTouchCell`)
+- Stroke lifecycle in the store (`beginDrag` / `extendDrag` / `commitDrag`) — one persist per stroke, no `set()` on rejected steps; per-field selectors in `play.tsx`
+
+---
+
 ### v4.0.1
 
 **Status:** Complete — see [v4.0.1.md](./v4.0.1.md).

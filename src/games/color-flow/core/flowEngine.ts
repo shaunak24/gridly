@@ -56,49 +56,71 @@ function neighbors(point: Point, rows: number, cols: number): Point[] {
   return candidates.filter((candidate) => isInBounds(candidate, rows, cols));
 }
 
-function buildHamiltonianPath(rows: number, cols: number, rng: () => number): Point[] | null {
+/**
+ * Random Hamiltonian path over the whole grid.
+ *
+ * A boustrophedon ("snake") ordering is always a valid Hamiltonian path, and
+ * "backbite" moves shuffle it into an unpredictable one in linear time: take an end
+ * of the path, pick a random grid-neighbour of it, and reverse the run between them.
+ * Every intermediate state is still a Hamiltonian path, so this cannot fail.
+ *
+ * The previous implementation searched with DFS + backtracking, which is exponential
+ * in the worst case — 8x8 boards took seconds each and froze the app.
+ */
+function buildHamiltonianPath(rows: number, cols: number, rng: () => number): Point[] {
   const total = rows * cols;
-  const startRow = Math.floor(rng() * rows);
-  const startCol = Math.floor(rng() * cols);
-  const visited = new Set<string>();
   const path: Point[] = [];
-
-  function dfs(point: Point): boolean {
-    const key = pointKey(point);
-    if (visited.has(key)) {
-      return false;
-    }
-
-    visited.add(key);
-    path.push(point);
-
-    if (path.length === total) {
-      return true;
-    }
-
-    const options = neighbors(point, rows, cols)
-      .filter((neighbor) => !visited.has(pointKey(neighbor)))
-      .sort((a, b) => {
-        const aOptions = neighbors(a, rows, cols).filter((n) => !visited.has(pointKey(n))).length;
-        const bOptions = neighbors(b, rows, cols).filter((n) => !visited.has(pointKey(n))).length;
-        if (aOptions !== bOptions) {
-          return aOptions - bOptions;
-        }
-        return rng() - 0.5;
-      });
-
-    for (const next of options) {
-      if (dfs(next)) {
-        return true;
+  for (let r = 0; r < rows; r += 1) {
+    if (r % 2 === 0) {
+      for (let c = 0; c < cols; c += 1) {
+        path.push({ r, c });
+      }
+    } else {
+      for (let c = cols - 1; c >= 0; c -= 1) {
+        path.push({ r, c });
       }
     }
-
-    visited.delete(key);
-    path.pop();
-    return false;
   }
 
-  return dfs({ r: startRow, c: startCol }) ? path : null;
+  const positionOf = new Map<string, number>();
+  path.forEach((point, index) => positionOf.set(pointKey(point), index));
+
+  const reverseRange = (from: number, to: number) => {
+    let low = from;
+    let high = to;
+    while (low < high) {
+      const a = path[low];
+      const b = path[high];
+      path[low] = b;
+      path[high] = a;
+      positionOf.set(pointKey(b), low);
+      positionOf.set(pointKey(a), high);
+      low += 1;
+      high -= 1;
+    }
+  };
+
+  const iterations = total * 20;
+  for (let i = 0; i < iterations; i += 1) {
+    const fromHead = rng() < 0.5;
+    const endIndex = fromHead ? 0 : total - 1;
+    const options = neighbors(path[endIndex], rows, cols);
+    const pick = options[Math.floor(rng() * options.length)];
+    const pickIndex = positionOf.get(pointKey(pick));
+    if (pickIndex === undefined) {
+      continue;
+    }
+
+    if (fromHead) {
+      if (pickIndex > 1) {
+        reverseRange(0, pickIndex - 1);
+      }
+    } else if (pickIndex < total - 2) {
+      reverseRange(pickIndex + 1, total - 1);
+    }
+  }
+
+  return path;
 }
 
 function splitHamiltonianPath(path: Point[], pairCount: number): Point[][] {
@@ -137,13 +159,9 @@ export function generateBoard(difficulty: FlowDifficulty, seed: string): FlowBoa
   const cols = rows;
   const pairCount = PAIR_COUNT_BY_DIFFICULTY[difficulty];
 
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
     const rng = createRng(`${seed}:${attempt}`);
     const hamiltonian = buildHamiltonianPath(rows, cols, rng);
-    if (!hamiltonian) {
-      continue;
-    }
-
     const segments = splitHamiltonianPath(hamiltonian, pairCount);
     if (segments.length !== pairCount) {
       continue;
@@ -217,7 +235,7 @@ function occupiedCells(paths: PathState, excludeColorId?: string): Map<string, s
   return map;
 }
 
-function isPairConnected(pair: ColorPair, path: Point[]): boolean {
+export function isPairConnected(pair: ColorPair, path: Point[]): boolean {
   if (path.length < 2) {
     return false;
   }
@@ -279,6 +297,11 @@ export function clearPath(paths: PathState, colorId: string): PathState {
   return { ...paths, [colorId]: [] };
 }
 
+/**
+ * Hand `point` to `activeColorId` by cutting every other path *before* the cell.
+ * The crossed cell must end up owned by exactly one color, so the victim keeps
+ * only the run that precedes it.
+ */
 export function cutOtherPathsAtCell(
   paths: PathState,
   point: Point,
@@ -291,7 +314,7 @@ export function cutOtherPathsAtCell(
     }
     const index = findPointIndex(path, point);
     if (index >= 0) {
-      next[colorId] = trimPathToIndex(path, index);
+      next[colorId] = path.slice(0, index);
     }
   }
   return next;
@@ -312,10 +335,17 @@ export function updatePath(
     if (!isInBounds(point, state.board.rows, state.board.cols)) {
       return state;
     }
-    if (validated.length > 0 && !isAdjacent(validated[validated.length - 1], point)) {
+    if (validated.length === 0) {
+      if (!pointsEqual(point, pair.p1) && !pointsEqual(point, pair.p2)) {
+        return state;
+      }
+    } else if (!isAdjacent(validated[validated.length - 1], point)) {
       return state;
     }
     validated.push(point);
+    if (validated.length > 1 && isPairConnected(pair, validated)) {
+      break;
+    }
   }
 
   const nextPaths = { ...state.paths, [colorId]: validated };
@@ -348,6 +378,11 @@ export function applyPathStep(
     return recomputeState({ board: state.board, paths });
   }
 
+  // A connected pair is sealed: only backtracking (handled above) can reopen it.
+  if (isPairConnected(pair, path)) {
+    return state;
+  }
+
   if (path.length === 0) {
     if (!pointsEqual(point, pair.p1) && !pointsEqual(point, pair.p2)) {
       return state;
@@ -375,4 +410,307 @@ export function applyPathStep(
 
 export function connectedPairCount(board: FlowBoard, paths: PathState): number {
   return board.pairs.filter((pair) => isPairConnected(pair, paths[pair.id] ?? [])).length;
+}
+
+export function pathOwnerAt(paths: PathState, point: Point): string | null {
+  for (const [colorId, path] of Object.entries(paths)) {
+    if (findPointIndex(path, point) >= 0) {
+      return colorId;
+    }
+  }
+  return null;
+}
+
+export function filledCellCount(paths: PathState): number {
+  const filled = new Set<string>();
+  for (const path of Object.values(paths)) {
+    for (const point of path) {
+      filled.add(pointKey(point));
+    }
+  }
+  return filled.size;
+}
+
+export function buildPathColorMap(board: FlowBoard, paths: PathState): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const pair of board.pairs) {
+    for (const point of paths[pair.id] ?? []) {
+      map.set(pointKey(point), pair.colorHex);
+    }
+  }
+  return map;
+}
+
+export function clearColor(state: FlowGameState, colorId: string): FlowGameState {
+  if ((state.paths[colorId] ?? []).length === 0) {
+    return state;
+  }
+  return recomputeState({ board: state.board, paths: clearPath(state.paths, colorId) });
+}
+
+export function resetBoard(state: FlowGameState): FlowGameState {
+  if (filledCellCount(state.paths) === 0) {
+    return state;
+  }
+  return createInitialState(state.board);
+}
+
+/**
+ * Repair a persisted board. Earlier builds let a path grow past its second dot and
+ * let two colors claim the same cell, so saves can be illegal; replay each path and
+ * cut it at the first rule violation.
+ */
+export function sanitizeSavedPaths(board: FlowBoard, paths: PathState): PathState {
+  const claimed = new Set<string>();
+  const result: PathState = {};
+
+  for (const pair of board.pairs) {
+    const raw = paths[pair.id] ?? [];
+    const clean: Point[] = [];
+
+    for (const point of raw) {
+      if (!isInBounds(point, board.rows, board.cols)) {
+        break;
+      }
+      if (clean.length === 0) {
+        if (!pointsEqual(point, pair.p1) && !pointsEqual(point, pair.p2)) {
+          break;
+        }
+      } else if (!isAdjacent(clean[clean.length - 1], point)) {
+        break;
+      }
+      if (findPointIndex(clean, point) >= 0) {
+        break;
+      }
+
+      const key = pointKey(point);
+      if (claimed.has(key)) {
+        break;
+      }
+      const endpointOwner = getEndpointColor(board, point);
+      if (endpointOwner && endpointOwner !== pair.id) {
+        break;
+      }
+
+      clean.push(point);
+      claimed.add(key);
+
+      if (isPairConnected(pair, clean)) {
+        break;
+      }
+    }
+
+    result[pair.id] = clean;
+  }
+
+  return result;
+}
+
+export const MAX_INTERPOLATION_STEPS = 6;
+
+/**
+ * Candidate orthogonal routes from `from` (exclusive) to `to` (inclusive). Pan events
+ * can skip cells on a fast drag, and a raw non-adjacent step would be rejected outright,
+ * so the caller replays one of these chains instead. Diagonal moves yield both L shapes
+ * because only one of them may be free of other paths.
+ */
+export function interpolateCells(from: Point, to: Point): Point[][] {
+  const dr = to.r - from.r;
+  const dc = to.c - from.c;
+  const distance = Math.abs(dr) + Math.abs(dc);
+  if (distance === 0 || distance > MAX_INTERPOLATION_STEPS) {
+    return [];
+  }
+
+  const stepR = Math.sign(dr);
+  const stepC = Math.sign(dc);
+
+  const rowFirst: Point[] = [];
+  for (let r = from.r; r !== to.r; ) {
+    r += stepR;
+    rowFirst.push({ r, c: from.c });
+  }
+  for (let c = from.c; c !== to.c; ) {
+    c += stepC;
+    rowFirst.push({ r: to.r, c });
+  }
+
+  if (dr === 0 || dc === 0) {
+    return [rowFirst];
+  }
+
+  const colFirst: Point[] = [];
+  for (let c = from.c; c !== to.c; ) {
+    c += stepC;
+    colFirst.push({ r: from.r, c });
+  }
+  for (let r = from.r; r !== to.r; ) {
+    r += stepR;
+    colFirst.push({ r, c: to.c });
+  }
+
+  return [rowFirst, colFirst];
+}
+
+function applyChain(
+  state: FlowGameState,
+  colorId: string,
+  points: Point[],
+): { state: FlowGameState; applied: number } {
+  let current = state;
+  let applied = 0;
+  for (const point of points) {
+    const next = applyPathStep(current, colorId, point);
+    if (next === current) {
+      break;
+    }
+    current = next;
+    applied += 1;
+  }
+  return { state: current, applied };
+}
+
+export function applyPathSteps(
+  state: FlowGameState,
+  colorId: string,
+  points: Point[],
+): FlowGameState {
+  return applyChain(state, colorId, points).state;
+}
+
+/**
+ * Move `colorId`'s path from the last committed cell to `to`, replaying whichever
+ * interpolated route gets furthest.
+ */
+export function applyDragTo(
+  state: FlowGameState,
+  colorId: string,
+  from: Point | null,
+  to: Point,
+): FlowGameState {
+  if (!from) {
+    return applyPathStep(state, colorId, to);
+  }
+
+  let best = state;
+  let bestApplied = 0;
+
+  for (const chain of interpolateCells(from, to)) {
+    const result = applyChain(state, colorId, chain);
+    if (result.applied === chain.length) {
+      return result.state;
+    }
+    if (result.applied > bestApplied) {
+      best = result.state;
+      bestApplied = result.applied;
+    }
+  }
+
+  return best;
+}
+
+export interface BeginResult {
+  state: FlowGameState;
+  colorId: string | null;
+  cell: Point;
+}
+
+/**
+ * Resolve what a touch-down means: grabbing a dot restarts that color, grabbing a
+ * drawn cell adopts that color and trims to it, and anything else is inert so a
+ * stray tap cannot scribble with whichever color happened to be active.
+ */
+export function beginDragAt(state: FlowGameState, point: Point): BeginResult {
+  if (!isInBounds(point, state.board.rows, state.board.cols)) {
+    return { state, colorId: null, cell: point };
+  }
+
+  const endpointColor = getEndpointColor(state.board, point);
+  if (endpointColor) {
+    const existing = state.paths[endpointColor] ?? [];
+    const existingIndex = findPointIndex(existing, point);
+    const paths = cutOtherPathsAtCell(state.paths, point, endpointColor);
+    paths[endpointColor] = existingIndex >= 0 ? trimPathToIndex(existing, existingIndex) : [point];
+    return {
+      state: recomputeState({ board: state.board, paths }),
+      colorId: endpointColor,
+      cell: point,
+    };
+  }
+
+  const owner = pathOwnerAt(state.paths, point);
+  if (owner) {
+    return { state: applyPathStep(state, owner, point), colorId: owner, cell: point };
+  }
+
+  return { state, colorId: null, cell: point };
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+export function isInsideBoard(
+  x: number,
+  y: number,
+  cellSize: number,
+  rows: number,
+  cols: number,
+): boolean {
+  if (cellSize <= 0) {
+    return false;
+  }
+  return x >= 0 && y >= 0 && x < cols * cellSize && y < rows * cellSize;
+}
+
+function commitAxis(
+  currentIndex: number,
+  rawIndex: number,
+  coord: number,
+  cellSize: number,
+  margin: number,
+): number {
+  if (rawIndex === currentIndex) {
+    return currentIndex;
+  }
+  // Hysteresis only guards against flicker between neighbours; a real jump commits.
+  if (Math.abs(rawIndex - currentIndex) > 1) {
+    return rawIndex;
+  }
+  if (rawIndex > currentIndex) {
+    return coord >= rawIndex * cellSize + margin ? rawIndex : currentIndex;
+  }
+  return coord <= (rawIndex + 1) * cellSize - margin ? rawIndex : currentIndex;
+}
+
+/**
+ * Map a touch to a cell, clamped in bounds. `current` is the last committed cell;
+ * the touch must cross `marginRatio` of a cell into a neighbour before it counts,
+ * so a finger resting on a boundary does not flicker between two cells.
+ */
+export function resolveTouchCell(params: {
+  x: number;
+  y: number;
+  cellSize: number;
+  rows: number;
+  cols: number;
+  current: Point | null;
+  marginRatio?: number;
+}): Point {
+  const { x, y, cellSize, rows, cols, current, marginRatio = 0.15 } = params;
+  if (cellSize <= 0) {
+    return current ?? { r: 0, c: 0 };
+  }
+
+  const rawC = clamp(Math.floor(x / cellSize), 0, cols - 1);
+  const rawR = clamp(Math.floor(y / cellSize), 0, rows - 1);
+  if (!current) {
+    return { r: rawR, c: rawC };
+  }
+
+  const margin = cellSize * marginRatio;
+  return {
+    r: commitAxis(current.r, rawR, y, cellSize, margin),
+    c: commitAxis(current.c, rawC, x, cellSize, margin),
+  };
 }

@@ -1,39 +1,33 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 
 import {
-  connectedPairCount,
-  getEndpointColor,
+  buildPathColorMap,
+  filledCellCount,
+  isInsideBoard,
+  isPairConnected,
   pointKey,
   pointsEqual,
+  resolveTouchCell,
 } from '../core/flowEngine';
 import type { FlowBoard, FlowGameState, Point } from '../core/types';
 import { useTheme } from '../../../shared/theme/useTheme';
+import { impactLight, selection } from '../../../shared/utils/haptics';
 
 interface FlowBoardProps {
   board: FlowBoard;
   gameState: FlowGameState;
   activeColorId: string | null;
   isPlaying: boolean;
-  onSelectColor: (colorId: string) => void;
-  onApplyPoint: (colorId: string, point: Point) => void;
+  onBeginDrag: (point: Point) => string | null;
+  onExtendDrag: (colorId: string, from: Point | null, to: Point) => void;
+  onCommitDrag: () => void;
 }
 
-function pathColorAt(
-  board: FlowBoard,
-  paths: FlowGameState['paths'],
-  point: Point,
-): string | null {
-  for (const pair of board.pairs) {
-    const path = paths[pair.id] ?? [];
-    if (path.some((cell) => pointsEqual(cell, point))) {
-      return pair.colorHex;
-    }
-  }
-  return null;
-}
+/** Alpha suffix for the faint fill behind a drawn cell. */
+const CELL_TINT_ALPHA = '22';
 
 function cellCenter(cellSize: number, point: Point): { x: number; y: number } {
   return {
@@ -42,79 +36,134 @@ function cellCenter(cellSize: number, point: Point): { x: number; y: number } {
   };
 }
 
-export function FlowBoardView({
+function FlowBoardViewComponent({
   board,
   gameState,
   activeColorId,
   isPlaying,
-  onSelectColor,
-  onApplyPoint,
+  onBeginDrag,
+  onExtendDrag,
+  onCommitDrag,
 }: FlowBoardProps) {
   const theme = useTheme();
   const [layoutSize, setLayoutSize] = useState(0);
-  const activeColorRef = useRef(activeColorId);
-  activeColorRef.current = activeColorId;
+
+  const gestureColorRef = useRef<string | null>(null);
+  const lastCellRef = useRef<Point | null>(null);
+  const inertRef = useRef(true);
 
   const cellSize = layoutSize > 0 ? layoutSize / board.cols : 0;
   const pipeThickness = Math.max(10, cellSize * 0.34);
-  const flowsConnected = connectedPairCount(board, gameState.paths);
+
+  const connectedIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const pair of board.pairs) {
+      if (isPairConnected(pair, gameState.paths[pair.id] ?? [])) {
+        ids.add(pair.id);
+      }
+    }
+    return ids;
+  }, [board.pairs, gameState.paths]);
+
+  const filledCells = filledCellCount(gameState.paths);
+  const totalCells = board.rows * board.cols;
   const totalPairs = board.pairs.length;
 
-  const pointFromTouch = useCallback(
-    (locationX: number, locationY: number): Point | null => {
-      if (cellSize <= 0) {
-        return null;
-      }
-      const c = Math.floor(locationX / cellSize);
-      const r = Math.floor(locationY / cellSize);
-      if (r < 0 || r >= board.rows || c < 0 || c >= board.cols) {
-        return null;
-      }
-      return { r, c };
-    },
-    [board.cols, board.rows, cellSize],
-  );
+  // Buzz once when a pair snaps together, not on every cell entered.
+  const previousConnectedRef = useRef(connectedIds.size);
+  useEffect(() => {
+    if (connectedIds.size > previousConnectedRef.current) {
+      impactLight();
+    }
+    previousConnectedRef.current = connectedIds.size;
+  }, [connectedIds.size]);
 
-  const handleTouch = useCallback(
-    (locationX: number, locationY: number) => {
-      if (!isPlaying) {
+  const handleBegin = useCallback(
+    (x: number, y: number) => {
+      inertRef.current = true;
+      gestureColorRef.current = null;
+      lastCellRef.current = null;
+
+      if (!isPlaying || !isInsideBoard(x, y, cellSize, board.rows, board.cols)) {
         return;
       }
 
-      const point = pointFromTouch(locationX, locationY);
-      if (!point) {
-        return;
-      }
-
-      const endpointColor = getEndpointColor(board, point);
-      const colorId = endpointColor ?? activeColorRef.current;
+      const cell = resolveTouchCell({
+        x,
+        y,
+        cellSize,
+        rows: board.rows,
+        cols: board.cols,
+        current: null,
+      });
+      const colorId = onBeginDrag(cell);
       if (!colorId) {
         return;
       }
 
-      if (endpointColor) {
-        onSelectColor(endpointColor);
+      inertRef.current = false;
+      gestureColorRef.current = colorId;
+      lastCellRef.current = cell;
+      selection();
+    },
+    [board.cols, board.rows, cellSize, isPlaying, onBeginDrag],
+  );
+
+  const handleUpdate = useCallback(
+    (x: number, y: number) => {
+      const colorId = gestureColorRef.current;
+      if (inertRef.current || !colorId || !isPlaying) {
+        return;
       }
 
-      onApplyPoint(colorId, point);
+      const from = lastCellRef.current;
+      const cell = resolveTouchCell({
+        x,
+        y,
+        cellSize,
+        rows: board.rows,
+        cols: board.cols,
+        current: from,
+      });
+      if (from && pointsEqual(from, cell)) {
+        return;
+      }
+
+      onExtendDrag(colorId, from, cell);
+      lastCellRef.current = cell;
     },
-    [board, isPlaying, onApplyPoint, onSelectColor, pointFromTouch],
+    [board.cols, board.rows, cellSize, isPlaying, onExtendDrag],
   );
+
+  const handleFinalize = useCallback(() => {
+    const wasDrawing = !inertRef.current;
+    inertRef.current = true;
+    gestureColorRef.current = null;
+    lastCellRef.current = null;
+    if (wasDrawing) {
+      onCommitDrag();
+    }
+  }, [onCommitDrag]);
 
   const drawGesture = useMemo(
     () =>
       Gesture.Pan()
         .enabled(isPlaying)
         .minDistance(0)
+        .maxPointers(1)
         .onBegin((event) => {
-          runOnJS(handleTouch)(event.x, event.y);
+          runOnJS(handleBegin)(event.x, event.y);
         })
         .onUpdate((event) => {
-          runOnJS(handleTouch)(event.x, event.y);
+          runOnJS(handleUpdate)(event.x, event.y);
+        })
+        .onFinalize(() => {
+          runOnJS(handleFinalize)();
         }),
-    [handleTouch, isPlaying],
+    [handleBegin, handleFinalize, handleUpdate, isPlaying],
   );
 
+  // Measure the grid itself, not the bordered frame, so gesture and cell coordinates share an origin.
   const onLayout = useCallback((event: LayoutChangeEvent) => {
     setLayoutSize(event.nativeEvent.layout.width);
   }, []);
@@ -125,6 +174,11 @@ export function FlowBoardView({
         Array.from({ length: board.cols }, (_, col) => ({ r: row, c: col })),
       ),
     [board.cols, board.rows],
+  );
+
+  const cellColors = useMemo(
+    () => buildPathColorMap(board, gameState.paths),
+    [board, gameState.paths],
   );
 
   const pathSegments = useMemo(() => {
@@ -162,153 +216,161 @@ export function FlowBoardView({
     if (cellSize <= 0) {
       return [];
     }
-
-    const joints = new Map<string, string>();
-    for (const pair of board.pairs) {
-      for (const point of gameState.paths[pair.id] ?? []) {
-        joints.set(pointKey(point), pair.colorHex);
-      }
-    }
-    return Array.from(joints.entries()).map(([key, colorHex]) => {
+    return Array.from(cellColors.entries()).map(([key, colorHex]) => {
       const [r, c] = key.split(',').map(Number);
       const center = cellCenter(cellSize, { r, c });
       return { ...center, colorHex };
     });
-  }, [cellSize, board.pairs, gameState.paths]);
+  }, [cellColors, cellSize]);
 
   return (
     <View style={styles.wrapper}>
       <View style={[styles.statusPill, { backgroundColor: theme.card, borderColor: theme.border }]}>
         <Text style={[styles.statusText, { color: theme.textPrimary }]}>
-          Flows: {flowsConnected}/{totalPairs} · Coverage: {gameState.coveragePercent}%
+          Flows: {connectedIds.size}/{totalPairs} · Cells: {filledCells}/{totalCells}
         </Text>
       </View>
 
       {isPlaying ? (
-        <>
-          <Text style={[styles.hint, { color: theme.textSecondary }]}>
-            Drag from a colored dot to its matching dot. Fill every cell.
-          </Text>
-          <Text style={[styles.activeHint, { color: activeColorId ? theme.coral : theme.textSecondary }]}>
-            {activeColorId
-              ? 'Keep dragging to the other dot of the same color'
-              : 'Start on any colored dot'}
-          </Text>
-        </>
+        <Text style={[styles.hint, { color: activeColorId ? theme.coral : theme.textSecondary }]}>
+          {activeColorId
+            ? 'Keep dragging to the matching dot · drag back to erase'
+            : 'Drag from a colored dot to its match and fill every cell'}
+        </Text>
       ) : null}
 
-      <GestureDetector gesture={drawGesture}>
-        <View
-          style={[styles.boardFrame, { borderColor: theme.border, backgroundColor: theme.card }]}
-          onLayout={onLayout}
-        >
-          {cellSize > 0 ? (
-            <View style={[styles.grid, { width: layoutSize, height: layoutSize }]}>
-              {rows.map((row, rowIndex) => (
-                <View key={`row-${rowIndex}`} style={styles.row}>
-                  {row.map(({ r, c }) => {
-                    const point = { r, c };
-                    const onPath = Boolean(pathColorAt(board, gameState.paths, point));
-                    const isLastCol = c === board.cols - 1;
-                    const isLastRow = r === board.rows - 1;
+      <View
+        style={[styles.boardFrame, { borderColor: theme.border, backgroundColor: theme.card }]}
+      >
+        <GestureDetector gesture={drawGesture}>
+          <View style={styles.grid} onLayout={onLayout}>
+            {cellSize > 0 ? (
+              <>
+                {rows.map((row, rowIndex) => (
+                  <View key={`row-${rowIndex}`} style={styles.row}>
+                    {row.map(({ r, c }) => {
+                      const colorHex = cellColors.get(pointKey({ r, c }));
+                      const isLastCol = c === board.cols - 1;
+                      const isLastRow = r === board.rows - 1;
 
-                    return (
-                      <View
-                        key={`cell-${r}-${c}`}
-                        pointerEvents="none"
-                        style={[
-                          styles.cell,
-                          {
-                            width: cellSize,
-                            height: cellSize,
-                            borderRightColor: isLastCol ? 'transparent' : theme.border,
-                            borderBottomColor: isLastRow ? 'transparent' : theme.border,
-                            backgroundColor: onPath ? `${theme.tileEmpty}` : theme.tileEmpty,
-                          },
-                        ]}
-                      />
-                    );
-                  })}
-                </View>
-              ))}
-
-              <View style={StyleSheet.absoluteFill} pointerEvents="none">
-                {pathSegments.map((segment, index) => {
-                  const horizontal = segment.y1 === segment.y2;
-                  const length = horizontal
-                    ? Math.abs(segment.x2 - segment.x1)
-                    : Math.abs(segment.y2 - segment.y1);
-                  const left = horizontal
-                    ? Math.min(segment.x1, segment.x2)
-                    : segment.x1 - pipeThickness / 2;
-                  const top = horizontal
-                    ? segment.y1 - pipeThickness / 2
-                    : Math.min(segment.y1, segment.y2);
-
-                  return (
-                    <View
-                      key={`segment-${index}`}
-                      style={{
-                        position: 'absolute',
-                        left,
-                        top,
-                        width: horizontal ? length : pipeThickness,
-                        height: horizontal ? pipeThickness : length,
-                        backgroundColor: segment.colorHex,
-                        borderRadius: pipeThickness / 2,
-                      }}
-                    />
-                  );
-                })}
-
-                {pathJoints.map((joint, index) => (
-                  <View
-                    key={`joint-${index}`}
-                    style={{
-                      position: 'absolute',
-                      left: joint.x - pipeThickness / 2,
-                      top: joint.y - pipeThickness / 2,
-                      width: pipeThickness,
-                      height: pipeThickness,
-                      borderRadius: pipeThickness / 2,
-                      backgroundColor: joint.colorHex,
-                    }}
-                  />
+                      return (
+                        <View
+                          key={`cell-${r}-${c}`}
+                          pointerEvents="none"
+                          style={[
+                            styles.cell,
+                            {
+                              width: cellSize,
+                              height: cellSize,
+                              borderRightColor: isLastCol ? 'transparent' : theme.border,
+                              borderBottomColor: isLastRow ? 'transparent' : theme.border,
+                              backgroundColor: colorHex
+                                ? `${colorHex}${CELL_TINT_ALPHA}`
+                                : theme.tileEmpty,
+                            },
+                          ]}
+                        />
+                      );
+                    })}
+                  </View>
                 ))}
 
-                {board.pairs.map((pair) => {
-                  const isSelected = activeColorId === pair.id;
-                  const dotSize = cellSize * 0.42;
-                  const endpoints = [pair.p1, pair.p2];
+                <View style={StyleSheet.absoluteFill} pointerEvents="none">
+                  {pathSegments.map((segment, index) => {
+                    const horizontal = segment.y1 === segment.y2;
+                    const length = horizontal
+                      ? Math.abs(segment.x2 - segment.x1)
+                      : Math.abs(segment.y2 - segment.y1);
+                    const left = horizontal
+                      ? Math.min(segment.x1, segment.x2)
+                      : segment.x1 - pipeThickness / 2;
+                    const top = horizontal
+                      ? segment.y1 - pipeThickness / 2
+                      : Math.min(segment.y1, segment.y2);
 
-                  return endpoints.map((point, index) => {
-                    const center = cellCenter(cellSize, point);
                     return (
                       <View
-                        key={`${pair.id}-endpoint-${index}`}
+                        key={`segment-${index}`}
                         style={{
                           position: 'absolute',
-                          left: center.x - dotSize / 2,
-                          top: center.y - dotSize / 2,
-                          width: dotSize,
-                          height: dotSize,
-                          borderRadius: dotSize / 2,
-                          backgroundColor: pair.colorHex,
-                          borderWidth: isSelected ? 3 : 2,
-                          borderColor: isSelected ? theme.textPrimary : theme.background,
+                          left,
+                          top,
+                          width: horizontal ? length : pipeThickness,
+                          height: horizontal ? pipeThickness : length,
+                          backgroundColor: segment.colorHex,
+                          borderRadius: pipeThickness / 2,
                         }}
                       />
                     );
-                  });
-                })}
-              </View>
-            </View>
-          ) : null}
-        </View>
-      </GestureDetector>
+                  })}
+
+                  {pathJoints.map((joint, index) => (
+                    <View
+                      key={`joint-${index}`}
+                      style={{
+                        position: 'absolute',
+                        left: joint.x - pipeThickness / 2,
+                        top: joint.y - pipeThickness / 2,
+                        width: pipeThickness,
+                        height: pipeThickness,
+                        borderRadius: pipeThickness / 2,
+                        backgroundColor: joint.colorHex,
+                      }}
+                    />
+                  ))}
+
+                  {board.pairs.map((pair) => {
+                    const isSelected = activeColorId === pair.id;
+                    const isConnected = connectedIds.has(pair.id);
+                    const dotSize = cellSize * (isConnected ? 0.5 : 0.42);
+                    const endpoints = [pair.p1, pair.p2];
+
+                    return endpoints.map((point, index) => {
+                      const center = cellCenter(cellSize, point);
+                      return (
+                        <View
+                          key={`${pair.id}-endpoint-${index}`}
+                          style={{
+                            position: 'absolute',
+                            left: center.x - dotSize / 2,
+                            top: center.y - dotSize / 2,
+                            width: dotSize,
+                            height: dotSize,
+                            borderRadius: dotSize / 2,
+                            backgroundColor: pair.colorHex,
+                            borderWidth: isSelected || isConnected ? 3 : 2,
+                            borderColor: isSelected ? theme.textPrimary : theme.background,
+                            // Centre the "done" pip with layout, not offsets: the border
+                            // insets the content box and its width varies by state.
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          {isConnected ? (
+                            <View
+                              style={{
+                                width: dotSize * 0.34,
+                                height: dotSize * 0.34,
+                                borderRadius: dotSize * 0.17,
+                                backgroundColor: theme.background,
+                              }}
+                            />
+                          ) : null}
+                        </View>
+                      );
+                    });
+                  })}
+                </View>
+              </>
+            ) : null}
+          </View>
+        </GestureDetector>
+      </View>
     </View>
   );
 }
+
+export const FlowBoardView = memo(FlowBoardViewComponent);
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -334,22 +396,15 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     paddingHorizontal: 8,
   },
-  activeHint: {
-    fontSize: 13,
-    fontWeight: '600',
-    textAlign: 'center',
-    paddingHorizontal: 8,
-  },
   boardFrame: {
     width: '100%',
     aspectRatio: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     borderRadius: 12,
     borderWidth: 1,
     overflow: 'hidden',
   },
   grid: {
+    flex: 1,
     position: 'relative',
   },
   row: {

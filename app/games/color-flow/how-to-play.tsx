@@ -7,9 +7,12 @@ import { useTheme } from '../../../src/shared/theme/useTheme';
 const STEPS = [
   'Each color has two matching dots on the grid.',
   'Drag from a dot to draw an orthogonal path through empty cells.',
-  'Paths cannot cross different colors. Dragging over another color cuts that path.',
+  'Dragging over another color takes that cell and cuts their path short.',
   'Drag back along your path to erase the tail.',
-  'Connect every pair and fill 100% of the grid to win.',
+  'A flow locks once it reaches its matching dot. Drag back to change it.',
+  'Tap either dot of a color to start that path over, or grab a drawn cell to pick it up from there.',
+  'Reset board clears everything without changing the puzzle or the timer.',
+  'Connect every pair and fill every cell to win.',
 ];
 
 export default function ColorFlowHowToPlayScreen() {

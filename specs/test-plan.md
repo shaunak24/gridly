@@ -262,7 +262,7 @@ Run on at least one physical device via Expo Go.
 
 - [ ] Keyboard hides on win/loss
 - [ ] Result and Play again visible below board
-- [ ] Modal appears ~2 seconds after final guess
+- [ ] Modal appears ~1.1 seconds after final guess
 - [ ] Dismiss modal (✕) reviews board
 - [ ] Share copies to clipboard on win
 

@@ -124,8 +124,9 @@ supabase/
 | Module | Responsibility |
 |--------|----------------|
 | `app/games/color-flow/index.tsx` | Game hub |
-| `app/games/color-flow/play.tsx` | Flow board, path drawing, end states |
-| `src/games/color-flow/core/flowEngine.ts` | Path rules, coverage, win |
+| `app/games/color-flow/play.tsx` | Flow board, path drawing, reset, end states |
+| `src/games/color-flow/components/FlowBoard.tsx` | Grid rendering and the pan gesture (begin / extend / commit) |
+| `src/games/color-flow/core/flowEngine.ts` | Path rules, coverage, win, drag interpolation, hit-testing, saved-path repair |
 | `src/games/color-flow/core/puzzleBank.ts` | Curated daily and practice puzzles |
 | `src/games/color-flow/stores/colorFlowStore.ts` | Session state |
 | `src/games/color-flow/stores/colorFlowSettingsStore.ts` | Difficulty, reminders |

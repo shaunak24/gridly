@@ -39,7 +39,7 @@ The platform home lists game cards after welcome or sign-in.
 - **App icon** — 5×6 grid logo (see [branding.md](./branding.md)).
 - **Wordmark** — “Gridly” with stylized coral “i”.
 - **Tagline** — “Grid-based games.”
-- **Game cards** — Word Hunt, Grid Snap, Color Flow (game icon, title, and tagline each).
+- **Game cards** — Color Flow, Grid Snap, Word Hunt (game icon, title, and tagline each). Order comes from `GAMES` in `gameRegistry.ts`.
 - **Top bar** — profile menu (guest or signed-in); light-bulb theme toggle; gear opens **app settings**.
 
 ### Behavior
@@ -130,8 +130,13 @@ Mirrors Grid Snap hub structure for the path-drawing puzzle.
 ## Color Flow play
 
 - Square grid with colored endpoint dots and orthogonal path drawing
-- Status pill shows connected flows and coverage percentage
-- Dragging over another color's path cuts that path; dragging backward erases the active tail
+- Status pill shows connected flows and filled cells (`Cells: 47/64`)
+- Touching down picks the color: a dot starts that flow over, a drawn cell picks up that flow and trims to it, an empty cell does nothing. The color stays locked for the rest of the drag
+- Dragging over another color's path cuts that path **before** the crossed cell; dragging backward erases the active tail
+- A flow **locks** once it reaches its matching dot — it cannot be extended further, only backtracked
+- Drawn cells carry a faint tint of their color; connected pairs' dots are marked done
+- **Reset board** below the grid clears every flow on the same puzzle; the timer keeps running
+- Haptics: a tick on grabbing a dot, a thump on connecting a pair, a flourish on solving
 - Win when every pair is connected and every cell is filled
 - In-game timer, `GameEndExperience` on solve (same pattern as Grid Snap)
 
@@ -186,7 +191,7 @@ Interactive tutorial from home.
 **Win**
 
 - Keyboard hides immediately; prominent result and actions below the board.
-- After ~2 seconds, a modal shows guess count with a celebration emoji; dismissible via ✕ to review the board.
+- After ~1.1 seconds, a modal shows guess count with a celebration emoji; dismissible via ✕ to review the board.
 - Daily modals have no action button; practice/custom modals offer **Play again**.
 - Daily end bar offers **Practice**; practice/custom end bar offers **Play again**.
 - **Share** copies emoji grid to clipboard (daily wins).
@@ -194,7 +199,7 @@ Interactive tutorial from home.
 **Loss**
 
 - Keyboard hides immediately; answer and actions below the board.
-- After ~2 seconds, a modal reveals the answer with a sympathetic emoji; dismissible to review guesses.
+- After ~1.1 seconds, a modal reveals the answer with a sympathetic emoji; dismissible to review guesses.
 - Daily modals have no action button; practice/custom modals offer **Play again** / **Practice**.
 
 ## Create puzzle
