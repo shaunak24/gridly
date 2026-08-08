@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { HeaderBackButton } from '../src/shared/components/HeaderBackButton';
 import { useAppSettingsStore } from '../src/shared/stores/appSettingsStore';
 import type { ThemePreference } from '../src/shared/theme/colors';
+import { useHardwareBack } from '../src/shared/hooks/useHardwareBack';
 import { useTheme } from '../src/shared/theme/useTheme';
 
 const THEME_ORDER: ThemePreference[] = ['dark', 'light', 'system'];
@@ -13,6 +14,7 @@ const THEME_ORDER: ThemePreference[] = ['dark', 'light', 'system'];
 export default function AppSettingsScreen() {
   const router = useRouter();
   const theme = useTheme();
+  useHardwareBack('/home');
   const themePref = useAppSettingsStore((s) => s.theme);
   const setTheme = useAppSettingsStore((s) => s.setTheme);
 

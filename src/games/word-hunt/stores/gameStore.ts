@@ -17,6 +17,7 @@ import {
   savePersistedGame,
   toPersistedGame,
 } from './gamePersistence';
+import { fetchWordDefinition, type WordDefinition } from '../services/wordDefinition';
 import { useWordHuntSettingsStore } from './wordHuntSettingsStore';
 import { useStatsStore } from './statsStore';
 
@@ -35,6 +36,7 @@ interface GameState {
   practiceInProgress: boolean;
   elapsedSec: number;
   gameSessionId: number;
+  wordDefinition: WordDefinition | null;
   hydrateProgress: () => Promise<void>;
   resumeOrStartGame: (mode: GameMode, options?: { secretWord?: string }) => Promise<boolean>;
   startGame: (mode: GameMode, options?: { secretWord?: string }) => void;
@@ -118,6 +120,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   practiceInProgress: false,
   elapsedSec: 0,
   gameSessionId: 0,
+  wordDefinition: null,
 
   hydrateProgress: async () => {
     await refreshProgressFlags(set);
@@ -155,10 +158,17 @@ export const useGameStore = create<GameState>((set, get) => ({
         letterStates: saved.letterStates,
         elapsedSec: saved.elapsedSec ?? 0,
         gameSessionId: get().gameSessionId + 1,
+        wordDefinition: null,
         errorMessage: null,
         shakeRow: false,
       });
       await refreshProgressFlags(set);
+      const word = get().secretWord;
+      void fetchWordDefinition(word).then((definition) => {
+        if (get().secretWord === word) {
+          set({ wordDefinition: definition });
+        }
+      });
       return true;
     }
 
@@ -185,6 +195,14 @@ export const useGameStore = create<GameState>((set, get) => ({
       shakeRow: false,
       elapsedSec: 0,
       gameSessionId: get().gameSessionId + 1,
+      wordDefinition: null,
+    });
+
+    const secretWord = get().secretWord;
+    void fetchWordDefinition(secretWord).then((definition) => {
+      if (get().secretWord === secretWord) {
+        set({ wordDefinition: definition });
+      }
     });
 
     void (async () => {

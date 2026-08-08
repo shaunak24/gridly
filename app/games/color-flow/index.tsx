@@ -9,16 +9,17 @@ import { useColorFlowStatsStore } from '../../../src/games/color-flow/stores/col
 import { useColorFlowStore } from '../../../src/games/color-flow/stores/colorFlowStore';
 import { HeaderBackButton } from '../../../src/shared/components/HeaderBackButton';
 import { HeaderIconButton } from '../../../src/shared/components/HeaderIconButton';
-import { COLOR_FLOW_STATS_MODES } from '../../../src/shared/stats/colorFlowModeStats';
+import { useHardwareBack } from '../../../src/shared/hooks/useHardwareBack';
 import { useTheme } from '../../../src/shared/theme/useTheme';
 
 export default function ColorFlowHubScreen() {
   const router = useRouter();
   const theme = useTheme();
+  useHardwareBack('/home');
   const dailyDone = useColorFlowStatsStore((s) => s.isDailyCompleteToday());
-  const byMode = useColorFlowStatsStore((s) => s.byMode);
-  const gamesPlayed = COLOR_FLOW_STATS_MODES.reduce((sum, mode) => sum + byMode[mode].gamesPlayed, 0);
-  const currentStreak = Math.max(...COLOR_FLOW_STATS_MODES.map((mode) => byMode[mode].currentStreak));
+  const dailyStats = useColorFlowStatsStore((s) => s.getDailyStats());
+  const gamesPlayed = dailyStats.gamesPlayed;
+  const currentStreak = dailyStats.currentStreak;
   const dailyInProgress = useColorFlowStore((s) => s.dailyInProgress);
   const practiceInProgress = useColorFlowStore((s) => s.practiceInProgress);
   const remainingMs = useDailyCountdown(dailyDone);

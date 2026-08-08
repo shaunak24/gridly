@@ -1,17 +1,23 @@
 import {
   emptyColorFlowStatsByMode,
+  emptyColorFlowStoredStats,
   mergeColorFlowStatsByMode,
+  mergeColorFlowStoredStats,
   type ColorFlowStatsByMode,
+  type ColorFlowStoredStats,
 } from '../../shared/stats/colorFlowModeStats';
 import {
   emptyGridSnapStatsByMode,
+  emptyGridSnapStoredStats,
   mergeGridSnapStatsByMode,
+  mergeGridSnapStoredStats,
+  migrateLegacyGridSnapStats,
   type GridSnapStatsByMode,
+  type GridSnapStoredStats,
 } from '../../shared/stats/gridSnapModeStats';
 import {
   emptyWordHuntStatsByMode,
   mergeWordHuntStatsByMode,
-  migrateLegacyGridSnapStats,
   migrateLegacyWordHuntStats,
   type WordHuntStatsByMode,
 } from '../../shared/stats/wordHuntModeStats';
@@ -64,8 +70,8 @@ function gridSnapStatsFromLegacyRow(row: {
   gamesWon: number;
   currentStreak: number;
   maxStreak: number;
-}): GridSnapStatsByMode {
-  return migrateLegacyGridSnapStats(row).byMode;
+}): GridSnapStoredStats {
+  return migrateLegacyGridSnapStats(row);
 }
 
 export function mergeGuestWordHuntStats(
@@ -121,7 +127,7 @@ export function mergeGuestGridSnapStats(
   }
 
   return {
-    statsByMode: mergeGridSnapStatsByMode(guest.statsByMode, cloud.statsByMode),
+    statsByMode: mergeGridSnapStoredStats(guest.statsByMode, cloud.statsByMode),
     dailyCompletedDate: mergeDailyCompletedDate(guest.dailyCompletedDate, cloud.dailyCompletedDate),
     updatedAt: nowIso(),
   };
@@ -134,7 +140,7 @@ export function pickNewerGridSnapStats(
   if (!local) {
     return (
       cloud ?? {
-        statsByMode: emptyGridSnapStatsByMode(),
+        statsByMode: emptyGridSnapStoredStats(),
         dailyCompletedDate: null,
         updatedAt: nowIso(),
       }
@@ -194,11 +200,11 @@ export function toWordHuntStatsCloud(
 }
 
 export function toGridSnapStatsCloud(
-  statsByMode: GridSnapStatsByMode,
+  stored: GridSnapStoredStats,
   dailyCompletedDate: string | null,
   updatedAt = nowIso(),
 ): GridSnapStatsCloud {
-  return { statsByMode, dailyCompletedDate, updatedAt };
+  return { statsByMode: stored, dailyCompletedDate, updatedAt };
 }
 
 export function mergeGuestColorFlowStats(
@@ -214,7 +220,7 @@ export function mergeGuestColorFlowStats(
   }
 
   return {
-    statsByMode: mergeColorFlowStatsByMode(guest.statsByMode, cloud.statsByMode),
+    statsByMode: mergeColorFlowStoredStats(guest.statsByMode, cloud.statsByMode),
     dailyCompletedDate: mergeDailyCompletedDate(guest.dailyCompletedDate, cloud.dailyCompletedDate),
     updatedAt: nowIso(),
   };
@@ -227,7 +233,7 @@ export function pickNewerColorFlowStats(
   if (!local) {
     return (
       cloud ?? {
-        statsByMode: emptyColorFlowStatsByMode(),
+        statsByMode: emptyColorFlowStoredStats(),
         dailyCompletedDate: null,
         updatedAt: nowIso(),
       }
@@ -249,11 +255,11 @@ export function mergeColorFlowSettings(
 }
 
 export function toColorFlowStatsCloud(
-  statsByMode: ColorFlowStatsByMode,
+  stored: ColorFlowStoredStats,
   dailyCompletedDate: string | null,
   updatedAt = nowIso(),
 ): ColorFlowStatsCloud {
-  return { statsByMode, dailyCompletedDate, updatedAt };
+  return { statsByMode: stored, dailyCompletedDate, updatedAt };
 }
 
 export { wordHuntStatsFromLegacyRow, gridSnapStatsFromLegacyRow };

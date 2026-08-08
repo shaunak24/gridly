@@ -1,4 +1,12 @@
 import type { FlowDifficulty } from '../../games/color-flow/core/types';
+import type { FlowMode } from '../../games/color-flow/core/types';
+import {
+  deriveDailyFromModeStreaks,
+  emptyDailyChallengeStats,
+  mergeDailyChallengeStats,
+  recordDailyChallengeResult,
+  type DailyChallengeStats,
+} from './dailyChallengeStats';
 import type { TimeAggregates } from './timeAggregates';
 import { emptyTimeAggregates, mergeTimeAggregates, recordElapsedTime } from './timeAggregates';
 
@@ -17,6 +25,7 @@ export interface ColorFlowModeStats {
 export type ColorFlowStatsByMode = Record<ColorFlowStatsMode, ColorFlowModeStats>;
 
 export interface ColorFlowStoredStats {
+  daily: DailyChallengeStats;
   byMode: ColorFlowStatsByMode;
 }
 
@@ -38,6 +47,13 @@ export function emptyColorFlowStatsByMode(): ColorFlowStatsByMode {
   };
 }
 
+export function emptyColorFlowStoredStats(): ColorFlowStoredStats {
+  return {
+    daily: emptyDailyChallengeStats(),
+    byMode: emptyColorFlowStatsByMode(),
+  };
+}
+
 export function recordColorFlowModeResult(
   stats: ColorFlowModeStats,
   won: boolean,
@@ -45,16 +61,33 @@ export function recordColorFlowModeResult(
 ): ColorFlowModeStats {
   const gamesPlayed = stats.gamesPlayed + 1;
   const gamesWon = stats.gamesWon + (won ? 1 : 0);
-  const currentStreak = won ? stats.currentStreak + 1 : 0;
-  const maxStreak = Math.max(stats.maxStreak, currentStreak);
 
   return {
+    ...stats,
     gamesPlayed,
     gamesWon,
-    currentStreak,
-    maxStreak,
-    time: recordElapsedTime(stats.time, elapsedSec),
+    time: won ? recordElapsedTime(stats.time, elapsedSec) : stats.time,
   };
+}
+
+export function recordColorFlowGameResult(
+  stored: ColorFlowStoredStats,
+  difficulty: FlowDifficulty,
+  mode: FlowMode,
+  won: boolean,
+  elapsedSec: number,
+): ColorFlowStoredStats {
+  const byMode = {
+    ...stored.byMode,
+    [difficulty]: recordColorFlowModeResult(stored.byMode[difficulty], won, elapsedSec),
+  };
+
+  const daily =
+    mode === 'daily'
+      ? recordDailyChallengeResult(stored.daily, won)
+      : stored.daily;
+
+  return { daily, byMode };
 }
 
 export function mergeColorFlowModeStats(a: ColorFlowModeStats, b: ColorFlowModeStats): ColorFlowModeStats {
@@ -78,18 +111,59 @@ export function mergeColorFlowStatsByMode(
   };
 }
 
+export function mergeColorFlowStoredStats(
+  local: ColorFlowStoredStats,
+  cloud: ColorFlowStoredStats,
+): ColorFlowStoredStats {
+  return {
+    daily: mergeDailyChallengeStats(local.daily, cloud.daily),
+    byMode: mergeColorFlowStatsByMode(local.byMode, cloud.byMode),
+  };
+}
+
+function isColorFlowStatsByModeOnly(value: unknown): value is ColorFlowStatsByMode {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'easy' in value &&
+    'medium' in value &&
+    'hard' in value &&
+    !('daily' in value)
+  );
+}
+
 export function normalizeColorFlowStoredStats(value: unknown): ColorFlowStoredStats {
   if (value && typeof value === 'object' && 'byMode' in value) {
-    const byMode = (value as ColorFlowStoredStats).byMode;
+    const raw = value as ColorFlowStoredStats;
+    const byMode = raw.byMode;
     const empty = emptyColorFlowStatsByMode();
+    const normalizedByMode = {
+      easy: { ...empty.easy, ...byMode.easy, time: { ...empty.easy.time, ...byMode.easy?.time } },
+      medium: { ...empty.medium, ...byMode.medium, time: { ...empty.medium.time, ...byMode.medium?.time } },
+      hard: { ...empty.hard, ...byMode.hard, time: { ...empty.hard.time, ...byMode.hard?.time } },
+    };
+
+    const daily =
+      raw.daily && typeof raw.daily === 'object'
+        ? { ...emptyDailyChallengeStats(), ...raw.daily }
+        : deriveDailyFromModeStreaks(Object.values(normalizedByMode));
+
+    return { daily, byMode: normalizedByMode };
+  }
+
+  if (isColorFlowStatsByModeOnly(value)) {
+    const byMode = value;
+    const empty = emptyColorFlowStatsByMode();
+    const normalizedByMode = {
+      easy: { ...empty.easy, ...byMode.easy, time: { ...empty.easy.time, ...byMode.easy?.time } },
+      medium: { ...empty.medium, ...byMode.medium, time: { ...empty.medium.time, ...byMode.medium?.time } },
+      hard: { ...empty.hard, ...byMode.hard, time: { ...empty.hard.time, ...byMode.hard?.time } },
+    };
     return {
-      byMode: {
-        easy: { ...empty.easy, ...byMode.easy, time: { ...empty.easy.time, ...byMode.easy?.time } },
-        medium: { ...empty.medium, ...byMode.medium, time: { ...empty.medium.time, ...byMode.medium?.time } },
-        hard: { ...empty.hard, ...byMode.hard, time: { ...empty.hard.time, ...byMode.hard?.time } },
-      },
+      byMode: normalizedByMode,
+      daily: deriveDailyFromModeStreaks(Object.values(normalizedByMode)),
     };
   }
 
-  return { byMode: emptyColorFlowStatsByMode() };
+  return emptyColorFlowStoredStats();
 }

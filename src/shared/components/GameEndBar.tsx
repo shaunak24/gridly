@@ -1,3 +1,4 @@
+import { type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '../theme/useTheme';
@@ -10,6 +11,7 @@ export interface GameEndBarProps {
   onShare?: () => void;
   shareLabel?: string;
   prominent?: boolean;
+  footer?: ReactNode;
 }
 
 export function GameEndBar({
@@ -20,6 +22,7 @@ export function GameEndBar({
   onShare,
   shareLabel = 'Share',
   prominent = false,
+  footer,
 }: GameEndBarProps) {
   const theme = useTheme();
 
@@ -34,6 +37,7 @@ export function GameEndBar({
       >
         {message}
       </Text>
+      {footer ? <View style={styles.footer}>{footer}</View> : null}
       <View style={styles.actions}>
         {onShare ? (
           <Pressable
@@ -68,9 +72,10 @@ export function GameEndBar({
 
 const styles = StyleSheet.create({
   container: { gap: 10, paddingVertical: 8, paddingHorizontal: 4 },
-  containerProminent: { gap: 20, paddingVertical: 16 },
+  containerProminent: { gap: 16, paddingVertical: 16 },
   message: { fontSize: 15, fontWeight: '600', textAlign: 'center' },
   messageProminent: { fontSize: 22, fontWeight: '700', lineHeight: 30 },
+  footer: { width: '100%', paddingHorizontal: 4 },
   actions: { flexDirection: 'row', gap: 8 },
   primaryButton: {
     flex: 1,

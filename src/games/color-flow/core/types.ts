@@ -1,6 +1,6 @@
 export type FlowDifficulty = 'easy' | 'medium' | 'hard';
 export type FlowMode = 'daily' | 'practice';
-export type FlowStatus = 'idle' | 'loading' | 'playing' | 'won';
+export type FlowStatus = 'idle' | 'loading' | 'playing' | 'won' | 'lost';
 
 export const GRID_SIZE_BY_DIFFICULTY: Record<FlowDifficulty, number> = {
   easy: 4,

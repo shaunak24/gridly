@@ -1,4 +1,4 @@
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, View, type ReactNode } from 'react-native';
 
 import { useTheme } from '../theme/useTheme';
 
@@ -12,6 +12,7 @@ export interface GameModalProps {
   secondaryLabel?: string;
   onSecondary?: () => void;
   onDismiss: () => void;
+  footer?: ReactNode;
 }
 
 export function GameModal({
@@ -24,6 +25,7 @@ export function GameModal({
   secondaryLabel,
   onSecondary,
   onDismiss,
+  footer,
 }: GameModalProps) {
   const theme = useTheme();
   const showPrimary = Boolean(primaryLabel && onPrimary);
@@ -45,6 +47,7 @@ export function GameModal({
           {emoji ? <Text style={styles.emoji}>{emoji}</Text> : null}
           <Text style={[styles.title, { color: theme.textPrimary }]}>{title}</Text>
           <Text style={[styles.message, { color: theme.textSecondary }]}>{message}</Text>
+          {footer ? <View style={styles.footer}>{footer}</View> : null}
           {showPrimary ? (
             <Pressable
               style={[styles.primaryButton, { backgroundColor: theme.coral }]}
@@ -97,6 +100,7 @@ const styles = StyleSheet.create({
   emoji: { fontSize: 48, textAlign: 'center' },
   title: { fontSize: 24, fontWeight: '700', textAlign: 'center' },
   message: { fontSize: 16, textAlign: 'center' },
+  footer: { width: '100%' },
   primaryButton: {
     borderRadius: 8,
     minHeight: 48,

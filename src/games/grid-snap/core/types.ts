@@ -1,6 +1,6 @@
 export type SnapDifficulty = 'easy' | 'medium' | 'hard';
 export type SnapMode = 'daily' | 'practice';
-export type SnapStatus = 'idle' | 'loading' | 'playing' | 'won';
+export type SnapStatus = 'idle' | 'loading' | 'playing' | 'won' | 'lost';
 
 export const GRID_SIZE_BY_DIFFICULTY: Record<SnapDifficulty, number> = {
   easy: 4,

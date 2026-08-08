@@ -8,6 +8,7 @@ import { useColorFlowStatsStore } from '../../../src/games/color-flow/stores/col
 import { HeaderHomeButton } from '../../../src/shared/components/HeaderHomeButton';
 import { ModePicker } from '../../../src/shared/components/ModePicker';
 import { SyncHint } from '../../../src/shared/components/SyncHint';
+import { useHardwareBack } from '../../../src/shared/hooks/useHardwareBack';
 import { COLOR_FLOW_STATS_MODES } from '../../../src/shared/stats/colorFlowModeStats';
 import { averageElapsedSec } from '../../../src/shared/stats/timeAggregates';
 import { useTheme } from '../../../src/shared/theme/useTheme';
@@ -22,10 +23,12 @@ const MODE_LABELS: Record<FlowDifficulty, string> = {
 export default function ColorFlowStatsScreen() {
   const router = useRouter();
   const theme = useTheme();
+  useHardwareBack('/games/color-flow');
   const [mode, setMode] = useState<FlowDifficulty>('easy');
   const stats = useColorFlowStatsStore((state) => state.getModeStats(mode));
+  const daily = useColorFlowStatsStore((state) => state.getDailyStats());
 
-  const { gamesPlayed, gamesWon, currentStreak, maxStreak, time } = stats;
+  const { gamesPlayed, gamesWon, time } = stats;
   const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
   const averageSec = averageElapsedSec(time);
 
@@ -39,6 +42,15 @@ export default function ColorFlowStatsScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         <SyncHint />
+
+        <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Daily challenge</Text>
+        <View style={styles.row}>
+          <StatCard label="Played" value={String(daily.gamesPlayed)} theme={theme} />
+          <StatCard label="Streak" value={String(daily.currentStreak)} theme={theme} />
+          <StatCard label="Max" value={String(daily.maxStreak)} theme={theme} />
+        </View>
+
+        <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>By difficulty</Text>
         <ModePicker
           options={COLOR_FLOW_STATS_MODES.map((value) => ({ value, label: MODE_LABELS[value] }))}
           value={mode}
@@ -48,10 +60,6 @@ export default function ColorFlowStatsScreen() {
         <View style={styles.row}>
           <StatCard label="Played" value={String(gamesPlayed)} theme={theme} />
           <StatCard label="Win %" value={`${winRate}`} theme={theme} />
-        </View>
-        <View style={styles.row}>
-          <StatCard label="Streak" value={String(currentStreak)} theme={theme} />
-          <StatCard label="Max" value={String(maxStreak)} theme={theme} />
         </View>
 
         <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Solve time</Text>

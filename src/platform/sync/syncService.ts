@@ -24,10 +24,10 @@ import {
   toGridSnapStatsCloud,
   toWordHuntStatsCloud,
 } from './mergePolicy';
+import { emptyColorFlowStoredStats } from '../../shared/stats/colorFlowModeStats';
+import { emptyGridSnapStoredStats } from '../../shared/stats/gridSnapModeStats';
+import { emptyWordHuntStatsByMode } from '../../shared/stats/wordHuntModeStats';
 import {
-  emptyColorFlowStats,
-  emptyGridSnapStats,
-  emptyWordHuntStats,
   loadGuestColorFlowStats,
   loadGuestGridSnapStats,
   loadGuestWordHuntStats,
@@ -97,12 +97,12 @@ function collectSignedInStatsSnapshot(): Pick<
       timestamp,
     ),
     gridSnapStats: toGridSnapStatsCloud(
-      gridSnapStatsState.byMode,
+      { daily: gridSnapStatsState.daily, byMode: gridSnapStatsState.byMode },
       gridSnapStatsState.dailyCompletedDate,
       timestamp,
     ),
     colorFlowStats: toColorFlowStatsCloud(
-      colorFlowStatsState.byMode,
+      { daily: colorFlowStatsState.daily, byMode: colorFlowStatsState.byMode },
       colorFlowStatsState.dailyCompletedDate,
       timestamp,
     ),
@@ -124,10 +124,14 @@ async function loadGuestStatsSnapshot(): Promise<
   const timestamp = nowIso();
 
   return {
-    wordHuntStats: toWordHuntStatsCloud(wordHuntStats?.byMode ?? emptyWordHuntStats(), wordHuntDaily, timestamp),
-    gridSnapStats: toGridSnapStatsCloud(gridSnapStats?.byMode ?? emptyGridSnapStats(), gridSnapDaily, timestamp),
+    wordHuntStats: toWordHuntStatsCloud(
+      wordHuntStats?.byMode ?? emptyWordHuntStatsByMode(),
+      wordHuntDaily,
+      timestamp,
+    ),
+    gridSnapStats: toGridSnapStatsCloud(gridSnapStats ?? emptyGridSnapStoredStats(), gridSnapDaily, timestamp),
     colorFlowStats: toColorFlowStatsCloud(
-      colorFlowStats?.byMode ?? emptyColorFlowStats(),
+      colorFlowStats ?? emptyColorFlowStoredStats(),
       colorFlowDaily,
       timestamp,
     ),
@@ -152,10 +156,18 @@ async function loadUserStatsSnapshot(
       ? toWordHuntStatsCloud(wordHuntStats.byMode, null, wordHuntStats.updatedAt)
       : null,
     gridSnap: gridSnapStats
-      ? toGridSnapStatsCloud(gridSnapStats.byMode, null, gridSnapStats.updatedAt)
+      ? toGridSnapStatsCloud(
+          { daily: gridSnapStats.daily, byMode: gridSnapStats.byMode },
+          null,
+          gridSnapStats.updatedAt,
+        )
       : null,
     colorFlow: colorFlowStats
-      ? toColorFlowStatsCloud(colorFlowStats.byMode, null, colorFlowStats.updatedAt)
+      ? toColorFlowStatsCloud(
+          { daily: colorFlowStats.daily, byMode: colorFlowStats.byMode },
+          null,
+          colorFlowStats.updatedAt,
+        )
       : null,
   };
 }
@@ -166,10 +178,10 @@ async function persistUserStatsCache(
 ): Promise<void> {
   await Promise.all([
     saveUserWordHuntStats(userId, { byMode: snapshot.wordHuntStats.statsByMode }, snapshot.wordHuntStats.updatedAt),
-    saveUserGridSnapStats(userId, { byMode: snapshot.gridSnapStats.statsByMode }, snapshot.gridSnapStats.updatedAt),
+    saveUserGridSnapStats(userId, snapshot.gridSnapStats.statsByMode, snapshot.gridSnapStats.updatedAt),
     saveUserColorFlowStats(
       userId,
-      { byMode: snapshot.colorFlowStats.statsByMode },
+      snapshot.colorFlowStats.statsByMode,
       snapshot.colorFlowStats.updatedAt,
     ),
   ]);
@@ -193,13 +205,15 @@ async function applySnapshot(snapshot: UserCloudSnapshot): Promise<void> {
   });
 
   useGridSnapStatsStore.setState({
-    byMode: gridSnapStats.statsByMode,
+    daily: gridSnapStats.statsByMode.daily,
+    byMode: gridSnapStats.statsByMode.byMode,
     dailyCompletedDate: gridSnapStats.dailyCompletedDate,
     hydrated: true,
   });
 
   useColorFlowStatsStore.setState({
-    byMode: colorFlowStats.statsByMode,
+    daily: colorFlowStats.statsByMode.daily,
+    byMode: colorFlowStats.statsByMode.byMode,
     dailyCompletedDate: colorFlowStats.dailyCompletedDate,
     hydrated: true,
   });

@@ -1,9 +1,10 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PuzzleCanvas } from '../../../src/games/grid-snap/components/PuzzleCanvas';
+import { timeLimitSecForDifficulty } from '../../../src/games/grid-snap/core/timeLimit';
 import type { SnapMode } from '../../../src/games/grid-snap/core/types';
 import { useGridSnapStatsStore } from '../../../src/games/grid-snap/stores/gridSnapStatsStore';
 import { useGridSnapStore } from '../../../src/games/grid-snap/stores/gridSnapStore';
@@ -11,7 +12,9 @@ import { GameEndExperience } from '../../../src/shared/components/GameEndExperie
 import { HeaderHomeButton } from '../../../src/shared/components/HeaderHomeButton';
 import { HeaderTimer } from '../../../src/shared/components/HeaderTimer';
 import type { GameEndMode, GameEndOutcome } from '../../../src/shared/gameEnd/gameEndConfig';
-import { useGameTimer } from '../../../src/shared/hooks/useGameTimer';
+import { useGameTimeLimit } from '../../../src/shared/hooks/useGameTimeLimit';
+import { useFlushGameSessionOnBlur } from '../../../src/shared/hooks/useFlushGameSessionOnBlur';
+import { useHardwareBack } from '../../../src/shared/hooks/useHardwareBack';
 import { useTheme } from '../../../src/shared/theme/useTheme';
 import { formatElapsedSeconds } from '../../../src/shared/utils/formatElapsed';
 
@@ -30,21 +33,38 @@ function toEndMode(mode: SnapMode): GameEndMode {
 export default function GridSnapPlayScreen() {
   const router = useRouter();
   const theme = useTheme();
+  useHardwareBack('/games/grid-snap');
   const { mode: modeParam, continue: continueParam } = useLocalSearchParams<{
     mode?: string;
     continue?: string;
   }>();
   const mode = resolveMode(modeParam);
   const continueGame = shouldContinue(continueParam);
-  const { status, mode: activeMode, gameSessionId, elapsedSec, setElapsedSec, resumeOrStartGame, startGame } =
-    useGridSnapStore();
+  const {
+    status,
+    mode: activeMode,
+    difficulty,
+    gameSessionId,
+    elapsedSec,
+    setElapsedSec,
+    resumeOrStartGame,
+    startGame,
+    handleTimeUp,
+    imageDecodeReady,
+    persistSession,
+  } = useGridSnapStore();
+
+  const limitSec = useMemo(() => timeLimitSecForDifficulty(difficulty), [difficulty]);
+  const timerActive = status === 'playing' && imageDecodeReady;
 
   const getBaseElapsedSec = useCallback(() => useGridSnapStore.getState().elapsedSec, []);
-  const { display: timerDisplay } = useGameTimer({
-    active: status === 'playing',
+  const { remainingDisplay } = useGameTimeLimit({
+    active: timerActive,
     resetKey: gameSessionId,
     getBaseElapsedSec,
     onTick: setElapsedSec,
+    limitSec,
+    onTimeUp: handleTimeUp,
   });
 
   useEffect(() => {
@@ -68,9 +88,12 @@ export default function GridSnapPlayScreen() {
     void init();
   }, [mode, continueGame, resumeOrStartGame, startGame, router]);
 
+  useFlushGameSessionOnBlur(persistSession);
+
   const goHome = useCallback(() => {
+    void persistSession();
     router.replace('/games/grid-snap');
-  }, [router]);
+  }, [router, persistSession]);
 
   const handlePractice = useCallback(() => {
     void startGame('practice');
@@ -80,8 +103,15 @@ export default function GridSnapPlayScreen() {
     void startGame(activeMode);
   }, [startGame, activeMode]);
 
-  const outcome: GameEndOutcome = status === 'won' ? 'won' : 'playing';
+  const outcome: GameEndOutcome =
+    status === 'won' ? 'won' : status === 'lost' ? 'lost' : 'playing';
   const headerLabel = mode === 'daily' ? 'Daily' : 'Practice';
+  const endMessage =
+    outcome === 'won' ? 'Puzzle complete!' : outcome === 'lost' ? "Time's up" : '';
+
+  const timerDisplay = timerActive
+    ? remainingDisplay
+    : formatElapsedSeconds(Math.min(elapsedSec, limitSec));
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -89,7 +119,8 @@ export default function GridSnapPlayScreen() {
         <HeaderHomeButton onPress={goHome} />
         <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>{headerLabel}</Text>
         <HeaderTimer
-          display={status === 'playing' ? timerDisplay : formatElapsedSeconds(elapsedSec)}
+          display={timerDisplay}
+          variant={timerActive ? 'countdown' : 'elapsed'}
         />
       </View>
 
@@ -100,7 +131,7 @@ export default function GridSnapPlayScreen() {
       <GameEndExperience
         outcome={outcome}
         mode={toEndMode(mode)}
-        message="Puzzle complete!"
+        message={endMessage}
         onPlayAgain={handlePlayAgain}
         onPractice={handlePractice}
         endAreaStyle={styles.endArea}

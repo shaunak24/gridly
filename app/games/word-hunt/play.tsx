@@ -1,6 +1,6 @@
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -16,9 +16,11 @@ import { getWordHuntCustomWord } from '../../../src/platform/invites/wordHuntInv
 import { GameEndExperience } from '../../../src/shared/components/GameEndExperience';
 import { HeaderHomeButton } from '../../../src/shared/components/HeaderHomeButton';
 import { HeaderTimer } from '../../../src/shared/components/HeaderTimer';
+import { WordDefinitionCard } from '../../../src/games/word-hunt/components/WordDefinitionCard';
 import { presentAppMessage } from '../../../src/shared/components/presentAppMessage';
 import type { GameEndMode, GameEndOutcome } from '../../../src/shared/gameEnd/gameEndConfig';
 import { useGameTimer } from '../../../src/shared/hooks/useGameTimer';
+import { useHardwareBack } from '../../../src/shared/hooks/useHardwareBack';
 import { useTheme } from '../../../src/shared/theme/useTheme';
 import { formatElapsedSeconds } from '../../../src/shared/utils/formatElapsed';
 
@@ -42,6 +44,7 @@ function toEndMode(mode: GameMode): GameEndMode {
 export default function WordHuntPlayScreen() {
   const router = useRouter();
   const theme = useTheme();
+  useHardwareBack('/games/word-hunt');
   const { mode: modeParam, code: codeParam, invite: inviteParam } = useLocalSearchParams<{
     mode?: string;
     code?: string;
@@ -71,6 +74,7 @@ export default function WordHuntPlayScreen() {
     elapsedSec,
     setElapsedSec,
     gameSessionId,
+    wordDefinition,
   } = useGameStore();
 
   const getBaseElapsedSec = useCallback(() => useGameStore.getState().elapsedSec, []);
@@ -197,8 +201,28 @@ export default function WordHuntPlayScreen() {
     outcome === 'won'
       ? `Solved in ${winGuessCount} ${winGuessCount === 1 ? 'guess' : 'guesses'}`
       : outcome === 'lost'
-        ? `The word was ${secretWord}`
+        ? wordDefinition
+          ? 'Out of guesses'
+          : `The word was ${secretWord}`
         : '';
+
+  const endFooter = useMemo(() => {
+    if (!wordDefinition || outcome === 'playing') {
+      return undefined;
+    }
+    return (
+      <WordDefinitionCard word={secretWord} definition={wordDefinition} variant="bar" />
+    );
+  }, [wordDefinition, outcome, secretWord]);
+
+  const modalFooter = useMemo(() => {
+    if (!wordDefinition || outcome === 'playing') {
+      return undefined;
+    }
+    return (
+      <WordDefinitionCard word={secretWord} definition={wordDefinition} variant="modal" />
+    );
+  }, [wordDefinition, outcome, secretWord]);
 
   const headerLabel =
     mode === 'daily' ? 'Daily' : mode === 'custom' ? 'Custom' : 'Practice';
@@ -238,6 +262,8 @@ export default function WordHuntPlayScreen() {
         outcome={outcome}
         mode={toEndMode(mode)}
         message={endMessage}
+        endFooter={endFooter}
+        modalFooter={modalFooter}
         onPlayAgain={handlePlayAgain}
         onPractice={handlePractice}
         onShare={handleShare}

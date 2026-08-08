@@ -252,6 +252,18 @@ No iOS build exists (`eas.json` is Android-only). When one does:
 - [ ] In-game Home returns to Word Hunt hub (not platform home)
 - [ ] Legacy `gridly://game?mode=custom&code=…` opens custom puzzle
 
+### v4.3 — streaks, timers, back, definitions
+
+- [ ] Grid Snap / Color Flow hub streak increases only on **daily** wins; practice does not change it
+- [ ] Daily loss (time-up or abandon after time-up) resets streak and locks daily until midnight
+- [ ] Grid Snap / Color Flow header shows countdown; time-up shows loss modal like Word Hunt
+- [ ] Grid Snap / Color Flow: note elapsed time, tap Home, wait ~10s, Continue — timer resumes near the same value (does not reset)
+- [ ] Per-difficulty win % drops after a time-up loss
+- [ ] Grid Snap shows loading indicator before image tiles appear (try slow network)
+- [ ] Word Hunt win/loss may show definition when online (e.g. CRANE, SLATE)
+- [ ] Android: stats → hardware back → game hub → hardware back → platform home
+- [ ] Apply `007_feedback_implemented.sql` on Supabase; toggle `implemented` in dashboard (app unchanged)
+
 ### Grid Snap
 
 - [ ] Daily and practice load an image puzzle at the selected difficulty (16 / 36 / 64 tiles in test mode)

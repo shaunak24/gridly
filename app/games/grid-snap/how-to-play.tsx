@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useHardwareBack } from '../../../src/shared/hooks/useHardwareBack';
 import { useTheme } from '../../../src/shared/theme/useTheme';
 
 const STEPS = [
@@ -14,6 +15,7 @@ const STEPS = [
 export default function GridSnapHowToPlayScreen() {
   const router = useRouter();
   const theme = useTheme();
+  useHardwareBack('/games/grid-snap');
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>

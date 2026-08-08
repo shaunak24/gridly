@@ -1,3 +1,4 @@
+import { emptyDailyChallengeStats } from '../../../shared/stats/dailyChallengeStats';
 import { emptyGridSnapStatsByMode } from '../../../shared/stats/gridSnapModeStats';
 import { emptyWordHuntStatsByMode } from '../../../shared/stats/wordHuntModeStats';
 import { hasGuestStatsProgress } from '../statsStorage';
@@ -55,6 +56,7 @@ describe('hasGuestStatsProgress', () => {
     loadJsonMock.mockImplementation(async (key: string) => {
       if (key === 'gridSnapStatsGuest') {
         return {
+          daily: emptyDailyChallengeStats(),
           byMode: {
             ...emptyGridSnapStatsByMode(),
             medium: { ...emptyGridSnapStatsByMode().medium, gamesPlayed: 1 },

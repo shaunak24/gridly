@@ -12,6 +12,7 @@ import {
   WORD_HUNT_MODES,
   type WordHuntMode,
 } from '../../../src/shared/stats/wordHuntModeStats';
+import { useHardwareBack } from '../../../src/shared/hooks/useHardwareBack';
 import { useTheme } from '../../../src/shared/theme/useTheme';
 import { formatElapsedOrDash } from '../../../src/shared/utils/formatElapsed';
 
@@ -24,6 +25,7 @@ const MODE_LABELS: Record<WordHuntMode, string> = {
 export default function WordHuntStatsScreen() {
   const router = useRouter();
   const theme = useTheme();
+  useHardwareBack('/games/word-hunt');
   const [mode, setMode] = useState<WordHuntMode>('daily');
   const stats = useStatsStore((state) => state.getModeStats(mode));
 

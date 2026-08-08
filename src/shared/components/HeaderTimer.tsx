@@ -4,16 +4,19 @@ import { useTheme } from '../theme/useTheme';
 
 interface HeaderTimerProps {
   display: string;
+  variant?: 'elapsed' | 'countdown';
 }
 
-export function HeaderTimer({ display }: HeaderTimerProps) {
+export function HeaderTimer({ display, variant = 'elapsed' }: HeaderTimerProps) {
   const theme = useTheme();
+  const accessibilityLabel =
+    variant === 'countdown' ? `Time remaining ${display}` : `Elapsed time ${display}`;
 
   return (
     <View
       style={[styles.container, { backgroundColor: theme.card, borderColor: theme.border }]}
       accessibilityRole="text"
-      accessibilityLabel={`Elapsed time ${display}`}
+      accessibilityLabel={accessibilityLabel}
     >
       <Text style={[styles.time, { color: theme.textPrimary }]}>{display}</Text>
       <View style={[styles.iconBubble, { backgroundColor: theme.teal }]}>

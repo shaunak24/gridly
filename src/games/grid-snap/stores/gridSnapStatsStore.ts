@@ -11,11 +11,16 @@ import {
 } from '../../../platform/sync/dailyCompletion';
 import { pushIfSignedIn } from '../../../platform/sync/pushIfSignedIn';
 import { getLocalDateKey } from '../core/dailyPuzzle';
-import type { SnapDifficulty } from '../core/types';
+import type { SnapDifficulty, SnapMode } from '../core/types';
+import {
+  emptyDailyChallengeStats,
+  type DailyChallengeStats,
+} from '../../../shared/stats/dailyChallengeStats';
 import {
   emptyGridSnapModeStats,
   emptyGridSnapStatsByMode,
-  recordGridSnapModeResult,
+  emptyGridSnapStoredStats,
+  recordGridSnapGameResult,
   type GridSnapModeStats,
   type GridSnapStatsByMode,
   type GridSnapStoredStats,
@@ -30,18 +35,30 @@ export interface GridSnapStatsData {
 }
 
 interface GridSnapStatsState {
+  daily: DailyChallengeStats;
   byMode: GridSnapStatsByMode;
   dailyCompletedDate: string | null;
   hydrated: boolean;
   hydrate: () => Promise<void>;
   persist: () => Promise<void>;
   getModeStats: (difficulty: SnapDifficulty) => GridSnapModeStats;
-  recordResult: (difficulty: SnapDifficulty, won: boolean, elapsedSec: number) => Promise<void>;
+  getDailyStats: () => DailyChallengeStats;
+  recordResult: (
+    difficulty: SnapDifficulty,
+    mode: SnapMode,
+    won: boolean,
+    elapsedSec: number,
+  ) => Promise<void>;
   markDailyComplete: () => Promise<void>;
   isDailyCompleteToday: () => boolean;
 }
 
+function toPayload(state: Pick<GridSnapStatsState, 'daily' | 'byMode'>): GridSnapStoredStats {
+  return { daily: state.daily, byMode: state.byMode };
+}
+
 export const useGridSnapStatsStore = create<GridSnapStatsState>((set, get) => ({
+  daily: emptyDailyChallengeStats(),
   byMode: emptyGridSnapStatsByMode(),
   dailyCompletedDate: null,
   hydrated: false,
@@ -52,8 +69,10 @@ export const useGridSnapStatsStore = create<GridSnapStatsState>((set, get) => ({
       loadDailyCompletedDate('grid-snap'),
     ]);
 
+    const stored = stats ?? emptyGridSnapStoredStats();
     set({
-      byMode: stats?.byMode ?? emptyGridSnapStatsByMode(),
+      daily: stored.daily,
+      byMode: stored.byMode,
       dailyCompletedDate: dailyCompleted,
       hydrated: true,
     });
@@ -66,8 +85,7 @@ export const useGridSnapStatsStore = create<GridSnapStatsState>((set, get) => ({
       return;
     }
 
-    const payload: GridSnapStoredStats = { byMode: state.byMode };
-    await saveGridSnapStats(payload);
+    await saveGridSnapStats(toPayload(state));
 
     if (state.dailyCompletedDate) {
       await saveDailyCompletedDate('grid-snap', state.dailyCompletedDate);
@@ -76,16 +94,17 @@ export const useGridSnapStatsStore = create<GridSnapStatsState>((set, get) => ({
 
   getModeStats: (difficulty) => get().byMode[difficulty] ?? emptyGridSnapModeStats(),
 
-  recordResult: async (difficulty, won, elapsedSec) => {
-    const state = get();
-    const nextMode = recordGridSnapModeResult(state.byMode[difficulty], won, elapsedSec);
-    const byMode = { ...state.byMode, [difficulty]: nextMode };
+  getDailyStats: () => get().daily,
 
-    set({ byMode });
+  recordResult: async (difficulty, mode, won, elapsedSec) => {
+    const state = get();
+    const next = recordGridSnapGameResult(toPayload(state), difficulty, mode, won, elapsedSec);
+
+    set({ daily: next.daily, byMode: next.byMode });
     if (getActiveStatsUserId()) {
       await pushIfSignedIn();
     } else {
-      await saveGridSnapStats({ byMode });
+      await saveGridSnapStats(next);
     }
   },
 

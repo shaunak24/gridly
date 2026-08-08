@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
 import {
   GAME_END_LOSS_COPY,
@@ -19,6 +19,8 @@ export interface UseGameEndFlowOptions {
   onShare?: () => void;
   shareLabel?: string;
   modalDelayMs?: number;
+  endFooter?: ReactNode;
+  modalFooter?: ReactNode;
 }
 
 export interface UseGameEndFlowResult {
@@ -35,6 +37,7 @@ export interface UseGameEndFlowResult {
     primaryLabel?: string;
     onPrimary?: () => void;
     onDismiss: () => void;
+    footer?: ReactNode;
   };
   lossModalProps: {
     emoji: string;
@@ -43,6 +46,7 @@ export interface UseGameEndFlowResult {
     primaryLabel?: string;
     onPrimary?: () => void;
     onDismiss: () => void;
+    footer?: ReactNode;
   };
 }
 
@@ -55,6 +59,8 @@ export function useGameEndFlow({
   onShare,
   shareLabel = 'Share',
   modalDelayMs = GAME_END_MODAL_DELAY_MS,
+  endFooter,
+  modalFooter,
 }: UseGameEndFlowOptions): UseGameEndFlowResult {
   const [modalVisible, setModalVisible] = useState(false);
   const lastPresentedRef = useRef<GameEndOutcome | null>(null);
@@ -114,6 +120,7 @@ export function useGameEndFlow({
     onShare: outcome === 'won' && mode === 'daily' ? onShare : undefined,
     shareLabel: mode === 'daily' ? shareLabel : undefined,
     prominent: true,
+    footer: endFooter,
   };
 
   return {
@@ -129,6 +136,7 @@ export function useGameEndFlow({
       primaryLabel: showModalPrimary ? 'Play again' : undefined,
       onPrimary: modalPrimaryAction,
       onDismiss: dismissModal,
+      footer: modalFooter ?? endFooter,
     },
     lossModalProps: {
       ...GAME_END_LOSS_COPY,
@@ -136,6 +144,7 @@ export function useGameEndFlow({
       primaryLabel: showModalPrimary ? 'Play again' : undefined,
       onPrimary: modalPrimaryAction,
       onDismiss: dismissModal,
+      footer: modalFooter ?? endFooter,
     },
   };
 }

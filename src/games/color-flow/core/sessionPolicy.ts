@@ -1,4 +1,4 @@
-import type { FlowDifficulty, FlowMode, PersistedFlowGame } from './types';
+import type { FlowDifficulty, FlowMode, FlowStatus, PersistedFlowGame, FlowBoard } from './types';
 import { GRID_SIZE_BY_DIFFICULTY } from './types';
 
 function gridSizeForDifficulty(difficulty: FlowDifficulty): number {
@@ -26,5 +26,30 @@ export function shouldResumeSavedColorFlowGame(params: {
     return false;
   }
 
+  return true;
+}
+
+export function isInMemoryColorFlowResumable(
+  state: {
+    status: FlowStatus;
+    mode: FlowMode;
+    dateKey: string;
+    board: FlowBoard | null;
+    difficulty: FlowDifficulty;
+  },
+  mode: FlowMode,
+  selectedDifficulty: FlowDifficulty,
+  todayDateKey: string,
+): boolean {
+  if (state.status !== 'playing' || state.mode !== mode || !state.board) {
+    return false;
+  }
+  if (mode === 'daily' && state.dateKey !== todayDateKey) {
+    return false;
+  }
+  const expectedSize = gridSizeForDifficulty(selectedDifficulty);
+  if (state.difficulty !== selectedDifficulty || state.board.rows !== expectedSize) {
+    return false;
+  }
   return true;
 }

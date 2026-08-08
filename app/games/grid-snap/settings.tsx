@@ -8,11 +8,13 @@ import { useGridSnapSettingsStore } from '../../../src/games/grid-snap/stores/gr
 import { useGridSnapStore } from '../../../src/games/grid-snap/stores/gridSnapStore';
 import { ReminderTimePicker } from '../../../src/games/word-hunt/components/ReminderTimePicker';
 import { HeaderHomeButton } from '../../../src/shared/components/HeaderHomeButton';
+import { useHardwareBack } from '../../../src/shared/hooks/useHardwareBack';
 import { useTheme } from '../../../src/shared/theme/useTheme';
 
 export default function GridSnapSettingsScreen() {
   const router = useRouter();
   const theme = useTheme();
+  useHardwareBack('/games/grid-snap');
   const difficulty = useGridSnapSettingsStore((s) => s.difficulty);
   const notificationsEnabled = useGridSnapSettingsStore((s) => s.notificationsEnabled);
   const reminderHour = useGridSnapSettingsStore((s) => s.reminderHour);

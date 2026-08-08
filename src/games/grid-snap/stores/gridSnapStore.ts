@@ -9,10 +9,11 @@ import {
   recomputeGroups,
   targetSlotFromDrag,
 } from '../core/puzzleEngine';
-import { shouldResumeSavedGridSnapGame } from '../core/sessionPolicy';
+import { isInMemoryGridSnapResumable, shouldResumeSavedGridSnapGame } from '../core/sessionPolicy';
 import { IS_TEST_MODE, TEST_IMAGE_SENTINEL } from '../core/testMode';
 import type { GridLayout, PersistedSnapGame, PuzzleState, SnapDifficulty, SnapMode, SnapStatus } from '../core/types';
 import { fetchPuzzleImage } from '../services/imageService';
+import { timeLimitSecForDifficulty } from '../core/timeLimit';
 import { loadJson, removeKey, saveJson, storageKeys } from '../../../shared/services/storage';
 import { useGridSnapSettingsStore } from './gridSnapSettingsStore';
 import { useGridSnapStatsStore } from './gridSnapStatsStore';
@@ -33,12 +34,16 @@ interface GridSnapGameState {
   dailyInProgress: boolean;
   practiceInProgress: boolean;
   elapsedSec: number;
+  imageDecodeReady: boolean;
   hydrateProgress: () => Promise<void>;
   resumeOrStartGame: (mode: SnapMode) => Promise<boolean>;
   startGame: (mode: SnapMode) => Promise<void>;
   setElapsedSec: (elapsedSec: number) => void;
+  setImageDecodeReady: (ready: boolean) => void;
   setGridLayout: (layout: GridLayout) => void;
   commitDrag: (pieceId: string, dx: number, dy: number) => void;
+  handleTimeUp: () => void;
+  persistSession: () => Promise<void>;
 }
 
 async function resolveImageUrl(seed: string): Promise<string> {
@@ -105,6 +110,7 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
   dailyInProgress: false,
   practiceInProgress: false,
   elapsedSec: 0,
+  imageDecodeReady: false,
 
   hydrateProgress: async () => {
     await refreshProgressFlags(set);
@@ -114,6 +120,13 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
     await useGridSnapSettingsStore.getState().ensureHydrated();
     const selectedDifficulty = useGridSnapSettingsStore.getState().difficulty;
     const todayDateKey = getLocalDateKey();
+
+    const current = get();
+    if (isInMemoryGridSnapResumable(current, mode, selectedDifficulty, todayDateKey)) {
+      applyTimeExpiredIfNeeded(get, set);
+      await persistIfPlaying(current);
+      return true;
+    }
 
     if (mode === 'daily' && useGridSnapStatsStore.getState().isDailyCompleteToday()) {
       const saved = await loadJson<PersistedSnapGame>(storageKeys.gridSnapSavedDaily);
@@ -146,8 +159,10 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
             imageSeed: saved.imageSeed,
           },
           imageUrl,
+          imageDecodeReady: IS_TEST_MODE,
           elapsedSec: saved.elapsedSec ?? 0,
         });
+        applyTimeExpiredIfNeeded(get, set);
         await refreshProgressFlags(set);
         return true;
       }
@@ -180,6 +195,7 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
       dateKey,
       puzzle: null,
       imageUrl: null,
+      imageDecodeReady: false,
       gameSessionId: get().gameSessionId + 1,
       pieceSize: 0,
       gridWidth: 0,
@@ -194,6 +210,7 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
       status: 'playing',
       puzzle,
       imageUrl,
+      imageDecodeReady: IS_TEST_MODE,
     });
 
     await persistIfPlaying(get());
@@ -201,6 +218,8 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
   },
 
   setElapsedSec: (elapsedSec) => set({ elapsedSec }),
+
+  setImageDecodeReady: (imageDecodeReady) => set({ imageDecodeReady }),
 
   setGridLayout: (layout) => {
     const current = get();
@@ -267,7 +286,7 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
         await removeKey(storageKeyForMode(state.mode));
         await refreshProgressFlags(set);
         const stats = useGridSnapStatsStore.getState();
-        await stats.recordResult(state.difficulty, true, get().elapsedSec);
+        await stats.recordResult(state.difficulty, state.mode, true, get().elapsedSec);
         if (state.mode === 'daily') {
           await stats.markDailyComplete();
         }
@@ -278,4 +297,48 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
       await refreshProgressFlags(set);
     })();
   },
+
+  handleTimeUp: () => {
+    const state = get();
+    if (state.status !== 'playing') {
+      return;
+    }
+
+    set({ status: 'lost' });
+    void finishLostGame(get, set, state.mode, state.difficulty);
+  },
+
+  persistSession: async () => {
+    await persistIfPlaying(get());
+  },
 }));
+
+async function finishLostGame(
+  get: () => GridSnapGameState,
+  set: (partial: Partial<GridSnapGameState>) => void,
+  mode: SnapMode,
+  difficulty: SnapDifficulty,
+): Promise<void> {
+  await removeKey(storageKeyForMode(mode));
+  await refreshProgressFlags(set);
+  const stats = useGridSnapStatsStore.getState();
+  await stats.recordResult(difficulty, mode, false, get().elapsedSec);
+  if (mode === 'daily') {
+    await stats.markDailyComplete();
+  }
+}
+
+function applyTimeExpiredIfNeeded(
+  get: () => GridSnapGameState,
+  set: (partial: Partial<GridSnapGameState>) => void,
+): void {
+  const state = get();
+  if (state.status !== 'playing') {
+    return;
+  }
+
+  if (state.elapsedSec >= timeLimitSecForDifficulty(state.difficulty)) {
+    set({ status: 'lost' });
+    void finishLostGame(get, set, state.mode, state.difficulty);
+  }
+}

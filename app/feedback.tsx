@@ -19,11 +19,13 @@ import { submitFeedback } from '../src/services/feedbackService';
 import type { FeedbackType } from '../src/platform/sync/types';
 import { HeaderBackButton } from '../src/shared/components/HeaderBackButton';
 import { presentAppMessage } from '../src/shared/components/presentAppMessage';
+import { useHardwareBack } from '../src/shared/hooks/useHardwareBack';
 import { useTheme } from '../src/shared/theme/useTheme';
 
 export default function FeedbackScreen() {
   const router = useRouter();
   const theme = useTheme();
+  useHardwareBack('/settings');
   const user = useAuthStore((state) => state.user);
   const [type, setType] = useState<FeedbackType>('feedback');
   const [message, setMessage] = useState('');

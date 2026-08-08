@@ -1,5 +1,5 @@
-import type { ColorFlowStatsByMode } from '../../shared/stats/colorFlowModeStats';
-import type { GridSnapStatsByMode } from '../../shared/stats/gridSnapModeStats';
+import type { ColorFlowStoredStats } from '../../shared/stats/colorFlowModeStats';
+import type { GridSnapStoredStats } from '../../shared/stats/gridSnapModeStats';
 import type { WordHuntStatsByMode } from '../../shared/stats/wordHuntModeStats';
 import type { FlowDifficulty } from '../../games/color-flow/core/types';
 import type { SnapDifficulty } from '../../games/grid-snap/core/types';
@@ -16,7 +16,8 @@ export interface WordHuntStatsCloud extends Timestamped {
 
 export interface GridSnapStatsCloud extends Timestamped {
   dailyCompletedDate: string | null;
-  statsByMode: GridSnapStatsByMode;
+  /** Full local stats payload (byMode + daily); stored in `stats_by_mode` jsonb. */
+  statsByMode: GridSnapStoredStats;
 }
 
 export interface WordHuntSettingsCloud extends Timestamped {
@@ -39,7 +40,8 @@ export interface AppSettingsCloud extends Timestamped {
 
 export interface ColorFlowStatsCloud extends Timestamped {
   dailyCompletedDate: string | null;
-  statsByMode: ColorFlowStatsByMode;
+  /** Full local stats payload (byMode + daily); stored in `stats_by_mode` jsonb. */
+  statsByMode: ColorFlowStoredStats;
 }
 
 export interface ColorFlowSettingsCloud extends Timestamped {

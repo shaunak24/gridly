@@ -1,11 +1,12 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FlowBoardView } from '../../../src/games/color-flow/components/FlowBoard';
 import { filledCellCount } from '../../../src/games/color-flow/core/flowEngine';
 import type { FlowMode } from '../../../src/games/color-flow/core/types';
+import { timeLimitSecForDifficulty } from '../../../src/games/color-flow/core/timeLimit';
 import { useColorFlowStatsStore } from '../../../src/games/color-flow/stores/colorFlowStatsStore';
 import { useColorFlowStore } from '../../../src/games/color-flow/stores/colorFlowStore';
 import { GameEndExperience } from '../../../src/shared/components/GameEndExperience';
@@ -13,7 +14,9 @@ import { HeaderHomeButton } from '../../../src/shared/components/HeaderHomeButto
 import { HeaderTimer } from '../../../src/shared/components/HeaderTimer';
 import { presentAppMessage } from '../../../src/shared/components/presentAppMessage';
 import type { GameEndMode, GameEndOutcome } from '../../../src/shared/gameEnd/gameEndConfig';
-import { useGameTimer } from '../../../src/shared/hooks/useGameTimer';
+import { useGameTimeLimit } from '../../../src/shared/hooks/useGameTimeLimit';
+import { useFlushGameSessionOnBlur } from '../../../src/shared/hooks/useFlushGameSessionOnBlur';
+import { useHardwareBack } from '../../../src/shared/hooks/useHardwareBack';
 import { useTheme } from '../../../src/shared/theme/useTheme';
 import { formatElapsedSeconds } from '../../../src/shared/utils/formatElapsed';
 import { success } from '../../../src/shared/utils/haptics';
@@ -33,6 +36,7 @@ function toEndMode(mode: FlowMode): GameEndMode {
 export default function ColorFlowPlayScreen() {
   const router = useRouter();
   const theme = useTheme();
+  useHardwareBack('/games/color-flow');
   const { mode: modeParam, continue: continueParam } = useLocalSearchParams<{
     mode?: string;
     continue?: string;
@@ -44,6 +48,7 @@ export default function ColorFlowPlayScreen() {
   // subscription would re-render the board on every tick.
   const status = useColorFlowStore((state) => state.status);
   const activeMode = useColorFlowStore((state) => state.mode);
+  const difficulty = useColorFlowStore((state) => state.difficulty);
   const gameSessionId = useColorFlowStore((state) => state.gameSessionId);
   const elapsedSec = useColorFlowStore((state) => state.elapsedSec);
   const board = useColorFlowStore((state) => state.board);
@@ -56,13 +61,19 @@ export default function ColorFlowPlayScreen() {
   const extendDrag = useColorFlowStore((state) => state.extendDrag);
   const commitDrag = useColorFlowStore((state) => state.commitDrag);
   const resetBoard = useColorFlowStore((state) => state.resetBoard);
+  const handleTimeUp = useColorFlowStore((state) => state.handleTimeUp);
+  const persistSession = useColorFlowStore((state) => state.persistSession);
+
+  const limitSec = useMemo(() => timeLimitSecForDifficulty(difficulty), [difficulty]);
 
   const getBaseElapsedSec = useCallback(() => useColorFlowStore.getState().elapsedSec, []);
-  const { display: timerDisplay } = useGameTimer({
+  const { remainingDisplay } = useGameTimeLimit({
     active: status === 'playing',
     resetKey: gameSessionId,
     getBaseElapsedSec,
     onTick: setElapsedSec,
+    limitSec,
+    onTimeUp: handleTimeUp,
   });
 
   useEffect(() => {
@@ -86,6 +97,8 @@ export default function ColorFlowPlayScreen() {
     void init();
   }, [mode, continueGame, resumeOrStartGame, startGame, router]);
 
+  useFlushGameSessionOnBlur(persistSession);
+
   useEffect(() => {
     if (status === 'won') {
       success();
@@ -93,8 +106,9 @@ export default function ColorFlowPlayScreen() {
   }, [status]);
 
   const goHome = useCallback(() => {
+    void persistSession();
     router.replace('/games/color-flow');
-  }, [router]);
+  }, [router, persistSession]);
 
   const handlePractice = useCallback(() => {
     void startGame('practice');
@@ -115,9 +129,17 @@ export default function ColorFlowPlayScreen() {
     });
   }, [resetBoard]);
 
-  const outcome: GameEndOutcome = status === 'won' ? 'won' : 'playing';
+  const outcome: GameEndOutcome =
+    status === 'won' ? 'won' : status === 'lost' ? 'lost' : 'playing';
   const headerLabel = mode === 'daily' ? 'Daily' : 'Practice';
   const canReset = status === 'playing' && Boolean(gameState) && filledCellCount(gameState!.paths) > 0;
+  const endMessage =
+    outcome === 'won' ? 'Flow complete!' : outcome === 'lost' ? "Time's up" : '';
+
+  const timerDisplay =
+    status === 'playing'
+      ? remainingDisplay
+      : formatElapsedSeconds(Math.min(elapsedSec, limitSec));
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -125,7 +147,8 @@ export default function ColorFlowPlayScreen() {
         <HeaderHomeButton onPress={goHome} />
         <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>{headerLabel}</Text>
         <HeaderTimer
-          display={status === 'playing' ? timerDisplay : formatElapsedSeconds(elapsedSec)}
+          display={timerDisplay}
+          variant={status === 'playing' ? 'countdown' : 'elapsed'}
         />
       </View>
 
@@ -162,7 +185,7 @@ export default function ColorFlowPlayScreen() {
       <GameEndExperience
         outcome={outcome}
         mode={toEndMode(mode)}
-        message="Flow complete!"
+        message={endMessage}
         onPlayAgain={handlePlayAgain}
         onPractice={handlePractice}
         endAreaStyle={styles.endArea}

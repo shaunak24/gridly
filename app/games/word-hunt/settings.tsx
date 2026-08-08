@@ -6,11 +6,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ReminderTimePicker } from '../../../src/games/word-hunt/components/ReminderTimePicker';
 import { useWordHuntSettingsStore } from '../../../src/games/word-hunt/stores/wordHuntSettingsStore';
 import { HeaderHomeButton } from '../../../src/shared/components/HeaderHomeButton';
+import { useHardwareBack } from '../../../src/shared/hooks/useHardwareBack';
 import { useTheme } from '../../../src/shared/theme/useTheme';
 
 export default function WordHuntSettingsScreen() {
   const router = useRouter();
   const theme = useTheme();
+  useHardwareBack('/games/word-hunt');
   const hardMode = useWordHuntSettingsStore((s) => s.hardMode);
   const notificationsEnabled = useWordHuntSettingsStore((s) => s.notificationsEnabled);
   const reminderHour = useWordHuntSettingsStore((s) => s.reminderHour);

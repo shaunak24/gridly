@@ -11,8 +11,14 @@ import type {
   WordHuntSettingsCloud,
   WordHuntStatsCloud,
 } from './types';
-import { emptyColorFlowStatsByMode } from '../../shared/stats/colorFlowModeStats';
-import { emptyGridSnapStatsByMode } from '../../shared/stats/gridSnapModeStats';
+import {
+  emptyColorFlowStoredStats,
+  normalizeColorFlowStoredStats,
+} from '../../shared/stats/colorFlowModeStats';
+import {
+  emptyGridSnapStoredStats,
+  normalizeGridSnapStoredStats,
+} from '../../shared/stats/gridSnapModeStats';
 import { emptyWordHuntStatsByMode } from '../../shared/stats/wordHuntModeStats';
 
 function mapWordHuntStats(row: Record<string, unknown>): WordHuntStatsCloud {
@@ -33,8 +39,8 @@ function mapGridSnapStats(row: Record<string, unknown>): GridSnapStatsCloud {
   const statsByModeRaw = row.stats_by_mode;
   const statsByMode =
     statsByModeRaw && typeof statsByModeRaw === 'object'
-      ? (statsByModeRaw as GridSnapStatsCloud['statsByMode'])
-      : emptyGridSnapStatsByMode();
+      ? normalizeGridSnapStoredStats(statsByModeRaw)
+      : emptyGridSnapStoredStats();
 
   return {
     statsByMode,
@@ -47,8 +53,8 @@ function mapColorFlowStats(row: Record<string, unknown>): ColorFlowStatsCloud {
   const statsByModeRaw = row.stats_by_mode;
   const statsByMode =
     statsByModeRaw && typeof statsByModeRaw === 'object'
-      ? (statsByModeRaw as ColorFlowStatsCloud['statsByMode'])
-      : emptyColorFlowStatsByMode();
+      ? normalizeColorFlowStoredStats(statsByModeRaw)
+      : emptyColorFlowStoredStats();
 
   return {
     statsByMode,

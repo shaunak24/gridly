@@ -84,7 +84,7 @@ Former v1.x home screen. Carries Word Hunt branding context.
 - **Back to Gridly** — returns to platform home.
 - **Game icon** — two rows of five letter tiles showing guess feedback (mixed guess above a solved row).
 - **Tagline** — “Guess the word in six tries.”
-- **Streak summary** — current streak and games played (when stats exist).
+- **Streak summary** — current daily streak and daily games played (when stats exist). Grid Snap and Color Flow use a dedicated daily bucket; practice does not affect streak.
 - **Play daily** / **Continue daily** — disabled when complete, with live countdown.
 - **Practice** / **Continue practice**
 - **Create puzzle** — custom word + share link.
@@ -222,15 +222,17 @@ Screen from home for sharing a custom word challenge.
 - Games played, win rate, current streak, max streak.
 - Guess distribution chart (1–6 and losses) on Word Hunt.
 - **Mode picker** — Word Hunt: Daily, Practice, Custom; Grid Snap and Color Flow: Easy, Medium, Hard. Summary cards and charts reflect the selected mode. Selected mode uses a coral highlight for contrast in dark and light themes.
+- **Daily challenge block** — Grid Snap and Color Flow stats show daily played, streak, and max streak above the difficulty picker.
 - **Time stats** — fastest, average, and slowest solve time for the selected mode (when the player has completed at least one game in that mode).
 - Data persists locally across app restarts; per-mode stats sync when signed in.
 
 ## In-game timer
 
-- Word Hunt and Grid Snap play screens show elapsed time (mm:ss) in a pill control (card background, border, accent bubble) at the top right, mirroring the Home button on the left.
-- Color Flow uses the same timer pattern on its play screen.
-- The timer stops on win or loss and shows the final elapsed time on the end screen.
-- Resuming a saved in-progress game continues the timer from the elapsed time stored with the session.
+- Word Hunt shows elapsed time (mm:ss) in the header timer pill.
+- Grid Snap and Color Flow show a **countdown** (time remaining) while playing once the puzzle image is ready (Grid Snap); on win or loss the pill shows elapsed time up to the limit.
+- The timer stops on win or loss (including time-up).
+- Leaving the play screen (home or back to the game hub) **pauses** the timer; time away does not count. Continue resumes from the saved elapsed time.
+- Resuming a saved in-progress game continues from stored elapsed time; if elapsed time already exceeds the limit, the game ends in a loss immediately.
 
 ## Daily completion (accounts)
 
@@ -268,7 +270,8 @@ Screen from home for sharing a custom word challenge.
 | Word Hunt play | Word Hunt hub | **Home** (header) |
 | Grid Snap play | Grid Snap hub | **Home** (header) |
 | Color Flow play | Color Flow hub | **Home** (header) |
-| Game hub | Platform home | **Gridly** back button |
+| Game hub | Platform home | **Gridly** back button or Android hardware back |
+| Android hardware back | Parent screen in app hierarchy | System back (not browser history); platform home consumes back |
 | Win / Loss modal | Board | Dismiss modal (✕) |
 | Board (after dismiss) | Practice | **Practice** (daily) or **Play again** (practice/custom) |
 | Tutorial complete | Practice | **Start practice** |
@@ -278,3 +281,4 @@ Screen from home for sharing a custom word challenge.
 - Minimum touch target 44×44 pt for buttons and keys.
 - Sufficient contrast in both light and dark themes.
 - Color feedback is paired with letter visibility.
+- When a definition is available from the online dictionary, Word Hunt shows it in a **definition card** (letter tiles, part-of-speech pill, quoted text) on the end bar and win/loss modal.

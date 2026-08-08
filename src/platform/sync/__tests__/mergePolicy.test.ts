@@ -67,20 +67,33 @@ describe('mergePolicy', () => {
   });
 
   it('merges guest grid snap stats into cloud on sign-in per mode', () => {
+    const emptyMode = {
+      gamesPlayed: 0,
+      gamesWon: 0,
+      currentStreak: 0,
+      maxStreak: 0,
+      time: { fastestSec: null, slowestSec: null, totalSec: 0, completedCount: 0 },
+    };
     const guest = toGridSnapStatsCloud(
       {
-        easy: { gamesPlayed: 1, gamesWon: 1, currentStreak: 1, maxStreak: 1, time: { fastestSec: 30, slowestSec: 30, totalSec: 30, completedCount: 1 } },
-        medium: { gamesPlayed: 0, gamesWon: 0, currentStreak: 0, maxStreak: 0, time: { fastestSec: null, slowestSec: null, totalSec: 0, completedCount: 0 } },
-        hard: { gamesPlayed: 0, gamesWon: 0, currentStreak: 0, maxStreak: 0, time: { fastestSec: null, slowestSec: null, totalSec: 0, completedCount: 0 } },
+        daily: { gamesPlayed: 1, gamesWon: 1, currentStreak: 1, maxStreak: 1 },
+        byMode: {
+          easy: { gamesPlayed: 1, gamesWon: 1, currentStreak: 1, maxStreak: 1, time: { fastestSec: 30, slowestSec: 30, totalSec: 30, completedCount: 1 } },
+          medium: { ...emptyMode },
+          hard: { ...emptyMode },
+        },
       },
       null,
       timestamp,
     );
     const cloud = toGridSnapStatsCloud(
       {
-        easy: { gamesPlayed: 2, gamesWon: 1, currentStreak: 0, maxStreak: 3, time: { fastestSec: 45, slowestSec: 90, totalSec: 135, completedCount: 2 } },
-        medium: { gamesPlayed: 0, gamesWon: 0, currentStreak: 0, maxStreak: 0, time: { fastestSec: null, slowestSec: null, totalSec: 0, completedCount: 0 } },
-        hard: { gamesPlayed: 0, gamesWon: 0, currentStreak: 0, maxStreak: 0, time: { fastestSec: null, slowestSec: null, totalSec: 0, completedCount: 0 } },
+        daily: { gamesPlayed: 2, gamesWon: 1, currentStreak: 0, maxStreak: 2 },
+        byMode: {
+          easy: { gamesPlayed: 2, gamesWon: 1, currentStreak: 0, maxStreak: 3, time: { fastestSec: 45, slowestSec: 90, totalSec: 135, completedCount: 2 } },
+          medium: { ...emptyMode },
+          hard: { ...emptyMode },
+        },
       },
       '2026-07-16',
       older,
@@ -88,11 +101,12 @@ describe('mergePolicy', () => {
 
     const merged = mergeGuestGridSnapStats(guest, cloud);
 
-    expect(merged.statsByMode.easy.gamesPlayed).toBe(3);
-    expect(merged.statsByMode.easy.gamesWon).toBe(2);
-    expect(merged.statsByMode.easy.maxStreak).toBe(3);
-    expect(merged.statsByMode.easy.time.fastestSec).toBe(30);
-    expect(merged.statsByMode.easy.time.totalSec).toBe(165);
+    expect(merged.statsByMode.byMode.easy.gamesPlayed).toBe(3);
+    expect(merged.statsByMode.byMode.easy.gamesWon).toBe(2);
+    expect(merged.statsByMode.daily.gamesPlayed).toBe(3);
+    expect(merged.statsByMode.daily.maxStreak).toBe(2);
+    expect(merged.statsByMode.byMode.easy.time.fastestSec).toBe(30);
+    expect(merged.statsByMode.byMode.easy.time.totalSec).toBe(165);
     expect(merged.dailyCompletedDate).toBe('2026-07-16');
   });
 

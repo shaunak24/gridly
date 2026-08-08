@@ -8,9 +8,8 @@ import { useGridSnapStatsStore } from '../../../src/games/grid-snap/stores/gridS
 import { HeaderHomeButton } from '../../../src/shared/components/HeaderHomeButton';
 import { ModePicker } from '../../../src/shared/components/ModePicker';
 import { SyncHint } from '../../../src/shared/components/SyncHint';
-import {
-  GRID_SNAP_STATS_MODES,
-} from '../../../src/shared/stats/gridSnapModeStats';
+import { useHardwareBack } from '../../../src/shared/hooks/useHardwareBack';
+import { GRID_SNAP_STATS_MODES } from '../../../src/shared/stats/gridSnapModeStats';
 import { averageElapsedSec } from '../../../src/shared/stats/timeAggregates';
 import { useTheme } from '../../../src/shared/theme/useTheme';
 import { formatElapsedOrDash } from '../../../src/shared/utils/formatElapsed';
@@ -24,10 +23,12 @@ const MODE_LABELS: Record<SnapDifficulty, string> = {
 export default function GridSnapStatsScreen() {
   const router = useRouter();
   const theme = useTheme();
+  useHardwareBack('/games/grid-snap');
   const [mode, setMode] = useState<SnapDifficulty>('easy');
   const stats = useGridSnapStatsStore((state) => state.getModeStats(mode));
+  const daily = useGridSnapStatsStore((state) => state.getDailyStats());
 
-  const { gamesPlayed, gamesWon, currentStreak, maxStreak, time } = stats;
+  const { gamesPlayed, gamesWon, time } = stats;
   const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
   const averageSec = averageElapsedSec(time);
 
@@ -41,6 +42,15 @@ export default function GridSnapStatsScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         <SyncHint />
+
+        <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Daily challenge</Text>
+        <View style={styles.row}>
+          <StatCard label="Played" value={String(daily.gamesPlayed)} theme={theme} />
+          <StatCard label="Streak" value={String(daily.currentStreak)} theme={theme} />
+          <StatCard label="Max" value={String(daily.maxStreak)} theme={theme} />
+        </View>
+
+        <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>By difficulty</Text>
         <ModePicker
           options={GRID_SNAP_STATS_MODES.map((value) => ({ value, label: MODE_LABELS[value] }))}
           value={mode}
@@ -50,10 +60,6 @@ export default function GridSnapStatsScreen() {
         <View style={styles.row}>
           <StatCard label="Played" value={String(gamesPlayed)} theme={theme} />
           <StatCard label="Win %" value={`${winRate}`} theme={theme} />
-        </View>
-        <View style={styles.row}>
-          <StatCard label="Streak" value={String(currentStreak)} theme={theme} />
-          <StatCard label="Max" value={String(maxStreak)} theme={theme} />
         </View>
 
         <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Solve time</Text>

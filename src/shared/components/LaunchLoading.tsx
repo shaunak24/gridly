@@ -1,8 +1,9 @@
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTheme } from '../theme/useTheme';
 import { GridLogo } from './GridLogo';
+import { LoadingIndicator } from './LoadingIndicator';
 import { Wordmark } from './Wordmark';
 
 export function LaunchLoading() {
@@ -13,7 +14,7 @@ export function LaunchLoading() {
       <View style={styles.content}>
         <GridLogo size={96} />
         <Wordmark />
-        <ActivityIndicator color={theme.coral} style={styles.spinner} />
+        <LoadingIndicator />
       </View>
     </SafeAreaView>
   );
@@ -28,5 +29,4 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 24,
   },
-  spinner: { marginTop: 8 },
 });

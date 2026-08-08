@@ -10,17 +10,10 @@ import {
 } from '../core/flowEngine';
 import { getDailyBoard, getPracticeBoard } from '../core/puzzleBank';
 import { getLocalDateKey, getPracticeSeed } from '../core/dailyPuzzle';
-import { shouldResumeSavedColorFlowGame } from '../core/sessionPolicy';
-import type {
-  FlowBoard,
-  FlowDifficulty,
-  FlowGameState,
-  FlowMode,
-  FlowStatus,
-  PersistedFlowGame,
-  Point,
-} from '../core/types';
+import { shouldResumeSavedColorFlowGame, isInMemoryColorFlowResumable } from '../core/sessionPolicy';
+import type { FlowBoard, FlowDifficulty, FlowGameState, FlowMode, FlowStatus, PersistedFlowGame, Point } from '../core/types';
 import { loadJson, removeKey, saveJson, storageKeys } from '../../../shared/services/storage';
+import { timeLimitSecForDifficulty } from '../core/timeLimit';
 import { useColorFlowSettingsStore } from './colorFlowSettingsStore';
 import { useColorFlowStatsStore } from './colorFlowStatsStore';
 
@@ -44,6 +37,8 @@ interface ColorFlowGameState {
   extendDrag: (colorId: string, from: Point | null, to: Point) => void;
   commitDrag: () => void;
   resetBoard: () => void;
+  handleTimeUp: () => void;
+  persistSession: () => Promise<void>;
 }
 
 function storageKeyForMode(mode: FlowMode): string {
@@ -107,6 +102,13 @@ export const useColorFlowStore = create<ColorFlowGameState>((set, get) => ({
     const selectedDifficulty = useColorFlowSettingsStore.getState().difficulty;
     const todayDateKey = getLocalDateKey();
 
+    const current = get();
+    if (isInMemoryColorFlowResumable(current, mode, selectedDifficulty, todayDateKey)) {
+      applyTimeExpiredIfNeeded(get, set);
+      await persistIfPlaying(current);
+      return true;
+    }
+
     if (mode === 'daily' && useColorFlowStatsStore.getState().isDailyCompleteToday()) {
       const saved = await loadJson<PersistedFlowGame>(storageKeys.colorFlowSavedDaily);
       if (!isValidSavedGame(saved) || saved.status !== 'playing') {
@@ -136,6 +138,7 @@ export const useColorFlowStore = create<ColorFlowGameState>((set, get) => ({
           gameSessionId: get().gameSessionId + 1,
           elapsedSec: saved.elapsedSec ?? 0,
         });
+        applyTimeExpiredIfNeeded(get, set);
         await refreshProgressFlags(set);
         return true;
       }
@@ -246,7 +249,52 @@ export const useColorFlowStore = create<ColorFlowGameState>((set, get) => ({
     set({ gameState: nextGameState, activeColorId: null });
     void persistIfPlaying({ ...get(), gameState: nextGameState });
   },
+
+  handleTimeUp: () => {
+    const state = get();
+    if (state.status !== 'playing') {
+      return;
+    }
+
+    set({ status: 'lost' });
+    void finishLostGame(get, set, state.mode, state.difficulty);
+  },
+
+  persistSession: async () => {
+    await persistIfPlaying(get());
+  },
 }));
+
+async function finishLostGame(
+  get: () => ColorFlowGameState,
+  set: (partial: Partial<ColorFlowGameState>) => void,
+  mode: FlowMode,
+  difficulty: FlowDifficulty,
+): Promise<void> {
+  await removeKey(storageKeyForMode(mode));
+  await refreshProgressFlags(set);
+  const stats = useColorFlowStatsStore.getState();
+  await stats.recordResult(difficulty, mode, false, get().elapsedSec);
+  if (mode === 'daily') {
+    await stats.markDailyComplete();
+  }
+}
+
+function applyTimeExpiredIfNeeded(
+  get: () => ColorFlowGameState,
+  set: (partial: Partial<ColorFlowGameState>) => void,
+): void {
+  const state = get();
+  if (state.status !== 'playing') {
+    return;
+  }
+
+  const limitSec = timeLimitSecForDifficulty(state.difficulty);
+  if (state.elapsedSec >= limitSec) {
+    set({ status: 'lost' });
+    void finishLostGame(get, set, state.mode, state.difficulty);
+  }
+}
 
 async function finishSolvedGame(
   get: () => ColorFlowGameState,
@@ -257,7 +305,7 @@ async function finishSolvedGame(
   await removeKey(storageKeyForMode(mode));
   await refreshProgressFlags(set);
   const stats = useColorFlowStatsStore.getState();
-  await stats.recordResult(difficulty, true, get().elapsedSec);
+  await stats.recordResult(difficulty, mode, true, get().elapsedSec);
   if (mode === 'daily') {
     await stats.markDailyComplete();
   }

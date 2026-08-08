@@ -12,6 +12,7 @@
     "ios": "expo start --ios",
     "test": "jest",
     "build:words": "node scripts/build-word-lists.mjs",
+    "lookup:definition": "node scripts/lookup-word-definition.mjs",
     "build:sounds": "node scripts/generate-game-end-sounds.mjs",
     "build:apk": "eas build --platform android --profile preview",
     "eas": "eas",

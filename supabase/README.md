@@ -142,6 +142,8 @@ supabase secrets set RESEND_API_KEY=re_xxx FEEDBACK_TO_EMAIL=you@example.com
 
 3. In Supabase dashboard, add a **Database Webhook** on `feedback` table INSERT → invoke `send-feedback-notification`
 
+Optional admin column (migration `007_feedback_implemented.sql`): `feedback.implemented` (boolean, default `false`) for tracking whether feedback was addressed. Edit in the Supabase table editor; the app does not read or write this field.
+
 ## 7. Test on device
 
 Rebuild the APK after auth changes:

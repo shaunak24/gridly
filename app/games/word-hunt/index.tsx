@@ -9,11 +9,13 @@ import { useStatsStore } from '../../../src/games/word-hunt/stores/statsStore';
 import { formatDailyCountdownTimer } from '../../../src/games/word-hunt/hooks/dailyCountdownUtil';
 import { HeaderBackButton } from '../../../src/shared/components/HeaderBackButton';
 import { HeaderIconButton } from '../../../src/shared/components/HeaderIconButton';
+import { useHardwareBack } from '../../../src/shared/hooks/useHardwareBack';
 import { useTheme } from '../../../src/shared/theme/useTheme';
 
 export default function WordHuntHubScreen() {
   const router = useRouter();
   const theme = useTheme();
+  useHardwareBack('/home');
   const dailyDone = useStatsStore((s) => s.isDailyCompleteToday());
   const dailyStats = useStatsStore((s) => s.getModeStats('daily'));
   const gamesPlayed = dailyStats.gamesPlayed;

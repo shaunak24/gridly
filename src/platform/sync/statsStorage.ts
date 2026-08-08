@@ -1,11 +1,12 @@
 import type { ColorFlowStoredStats } from '../../shared/stats/colorFlowModeStats';
 import {
   emptyColorFlowStatsByMode,
+  emptyColorFlowStoredStats,
   normalizeColorFlowStoredStats,
 } from '../../shared/stats/colorFlowModeStats';
-import type { GridSnapStoredStats } from '../../shared/stats/gridSnapModeStats';
 import {
   emptyGridSnapStatsByMode,
+  emptyGridSnapStoredStats,
   normalizeGridSnapStoredStats,
 } from '../../shared/stats/gridSnapModeStats';
 import type { WordHuntStoredStats } from '../../shared/stats/wordHuntModeStats';
@@ -239,8 +240,8 @@ export async function resetGuestStats(): Promise<void> {
   await migrateLegacyStatsKeys();
   await Promise.all([
     saveJson(guestKey('word-hunt'), { byMode: emptyWordHuntStatsByMode() }),
-    saveJson(guestKey('grid-snap'), { byMode: emptyGridSnapStatsByMode() }),
-    saveJson(guestKey('color-flow'), { byMode: emptyColorFlowStatsByMode() }),
+    saveJson(guestKey('grid-snap'), emptyGridSnapStoredStats()),
+    saveJson(guestKey('color-flow'), emptyColorFlowStoredStats()),
   ]);
 }
 
@@ -265,7 +266,7 @@ export async function hasGuestStatsProgress(): Promise<boolean> {
 }
 
 export {
-  emptyColorFlowStatsByMode as emptyColorFlowStats,
-  emptyGridSnapStatsByMode as emptyGridSnapStats,
+  emptyColorFlowStoredStats as emptyColorFlowStats,
+  emptyGridSnapStoredStats as emptyGridSnapStats,
   emptyWordHuntStatsByMode as emptyWordHuntStats,
 };

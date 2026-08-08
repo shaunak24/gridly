@@ -15,6 +15,7 @@ import {
 } from '../../../src/games/word-hunt/core/tutorialScript';
 import type { GuessRow, TileState } from '../../../src/games/word-hunt/core/types';
 import { MAX_GUESSES, WORD_LENGTH } from '../../../src/games/word-hunt/core/types';
+import { useHardwareBack } from '../../../src/shared/hooks/useHardwareBack';
 import { useTheme } from '../../../src/shared/theme/useTheme';
 
 function emptyRow(): GuessRow {
@@ -31,6 +32,7 @@ function createEmptyBoard(): GuessRow[] {
 export default function WordHuntHowToPlayScreen() {
   const router = useRouter();
   const theme = useTheme();
+  useHardwareBack('/games/word-hunt');
   const [stepIndex, setStepIndex] = useState(0);
   const [guesses, setGuesses] = useState<GuessRow[]>(createEmptyBoard);
   const [currentGuess, setCurrentGuess] = useState('');

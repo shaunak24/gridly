@@ -6,6 +6,26 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v4.3
+
+**Status:** Complete — see [v4.3.md](./v4.3.md).
+
+#### Player-facing
+
+- **Daily-only streak** for Grid Snap and Color Flow (practice does not affect streak; hub matches Word Hunt)
+- **Time limits** on Grid Snap and Color Flow with countdown timer, time-up loss modal, and meaningful win %
+- **Timer pauses** when leaving play (home to game hub); Continue resumes from saved elapsed time
+- **Grid Snap** shows a loading indicator while the puzzle image decodes
+- **Word Hunt** may show a short word definition on win/loss when the dictionary API returns one
+- **Android back** follows app screen hierarchy via `useHardwareBack`
+
+#### Engineering
+
+- `daily` stats block in Grid Snap / Color Flow JSON; `useGameTimeLimit`, `LoadingIndicator`, `useImageReady`, `fetchWordDefinition`
+- Supabase migration `007_feedback_implemented.sql` (`implemented` column, admin-only)
+
+---
+
 ### v4.2
 
 **Status:** Complete — see [v4.2.md](./v4.2.md).

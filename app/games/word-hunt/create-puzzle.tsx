@@ -21,11 +21,13 @@ import { createInvite } from '../../../src/platform/invites/inviteService';
 import { shareContent } from '../../../src/services/shareSheet';
 import { HeaderHomeButton } from '../../../src/shared/components/HeaderHomeButton';
 import { presentAppMessage } from '../../../src/shared/components/presentAppMessage';
+import { useHardwareBack } from '../../../src/shared/hooks/useHardwareBack';
 import { useTheme } from '../../../src/shared/theme/useTheme';
 
 export default function CreatePuzzleScreen() {
   const router = useRouter();
   const theme = useTheme();
+  useHardwareBack('/games/word-hunt');
   const [word, setWord] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);

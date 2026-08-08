@@ -8,11 +8,13 @@ import { useColorFlowSettingsStore } from '../../../src/games/color-flow/stores/
 import { useColorFlowStore } from '../../../src/games/color-flow/stores/colorFlowStore';
 import { ReminderTimePicker } from '../../../src/games/word-hunt/components/ReminderTimePicker';
 import { HeaderHomeButton } from '../../../src/shared/components/HeaderHomeButton';
+import { useHardwareBack } from '../../../src/shared/hooks/useHardwareBack';
 import { useTheme } from '../../../src/shared/theme/useTheme';
 
 export default function ColorFlowSettingsScreen() {
   const router = useRouter();
   const theme = useTheme();
+  useHardwareBack('/games/color-flow');
   const difficulty = useColorFlowSettingsStore((s) => s.difficulty);
   const notificationsEnabled = useColorFlowSettingsStore((s) => s.notificationsEnabled);
   const reminderHour = useColorFlowSettingsStore((s) => s.reminderHour);

@@ -1,10 +1,12 @@
-import { useCallback, useMemo } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo } from 'react';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 
 import { DraggablePiece } from './DraggablePiece';
 import { gridSizeForDifficulty } from '../core/puzzleEngine';
 import { useGridSnapStore } from '../stores/gridSnapStore';
+import { LoadingIndicator } from '../../../shared/components/LoadingIndicator';
+import { useImageReady } from '../../../shared/hooks/useImageReady';
 import { useTheme } from '../../../shared/theme/useTheme';
 
 const HINT_HEIGHT = 32;
@@ -25,7 +27,14 @@ export function PuzzleCanvas() {
     difficulty,
     setGridLayout,
     commitDrag,
+    setImageDecodeReady,
   } = useGridSnapStore();
+
+  const { ready: imageReady, onLoad, onError, skipPreload } = useImageReady(imageUrl);
+
+  useEffect(() => {
+    setImageDecodeReady(imageReady);
+  }, [imageReady, setImageDecodeReady]);
 
   const onBoardLayout = useCallback(
     (width: number, height: number) => {
@@ -93,6 +102,8 @@ export function PuzzleCanvas() {
 
   const isFetching = status === 'loading' || !imageUrl;
   const isComplete = status === 'won';
+  const interactionDisabled = status === 'won' || status === 'lost';
+  const showBoard = !isFetching && puzzle && imageReady;
 
   return (
     <View style={styles.container}>
@@ -104,11 +115,24 @@ export function PuzzleCanvas() {
         }}
       >
         {isFetching || !puzzle ? (
-          <View style={styles.loading}>
-            <ActivityIndicator color={theme.coral} />
-            <Text style={{ color: theme.textSecondary }}>Loading puzzle…</Text>
-          </View>
-        ) : (
+          <LoadingIndicator label="Loading puzzle…" />
+        ) : !imageReady ? (
+          <>
+            <LoadingIndicator label="Loading image…" />
+            {!skipPreload && imageUrl ? (
+              <Image
+                source={{ uri: imageUrl }}
+                style={styles.preload}
+                onLoad={onLoad}
+                onError={onError}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+              />
+            ) : null}
+          </>
+        ) : null}
+
+        {showBoard ? (
           <View
             style={[
               styles.gridBoard,
@@ -139,11 +163,11 @@ export function PuzzleCanvas() {
                 dragX={dragX}
                 dragY={dragY}
                 onDragEnd={commitDrag}
-                disabled={isComplete}
+                disabled={interactionDisabled}
               />
             ))}
           </View>
-        )}
+        ) : null}
       </View>
 
       <View style={styles.hintBar}>
@@ -166,6 +190,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  preload: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    opacity: 0,
+  },
   gridBoard: {
     position: 'relative',
     overflow: 'hidden',
@@ -184,12 +214,6 @@ const styles = StyleSheet.create({
     left: 0,
     height: StyleSheet.hairlineWidth,
     opacity: 0.65,
-  },
-  loading: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
   },
   hintBar: {
     height: HINT_HEIGHT,

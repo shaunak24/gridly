@@ -11,29 +11,46 @@ import {
 } from '../../../platform/sync/dailyCompletion';
 import { pushIfSignedIn } from '../../../platform/sync/pushIfSignedIn';
 import { getLocalDateKey } from '../core/dailyPuzzle';
-import type { FlowDifficulty } from '../core/types';
+import type { FlowDifficulty, FlowMode } from '../core/types';
+import {
+  emptyDailyChallengeStats,
+  type DailyChallengeStats,
+} from '../../../shared/stats/dailyChallengeStats';
 import {
   emptyColorFlowModeStats,
   emptyColorFlowStatsByMode,
-  recordColorFlowModeResult,
+  emptyColorFlowStoredStats,
+  recordColorFlowGameResult,
   type ColorFlowModeStats,
   type ColorFlowStatsByMode,
   type ColorFlowStoredStats,
 } from '../../../shared/stats/colorFlowModeStats';
 
 interface ColorFlowStatsState {
+  daily: DailyChallengeStats;
   byMode: ColorFlowStatsByMode;
   dailyCompletedDate: string | null;
   hydrated: boolean;
   hydrate: () => Promise<void>;
   persist: () => Promise<void>;
   getModeStats: (difficulty: FlowDifficulty) => ColorFlowModeStats;
-  recordResult: (difficulty: FlowDifficulty, won: boolean, elapsedSec: number) => Promise<void>;
+  getDailyStats: () => DailyChallengeStats;
+  recordResult: (
+    difficulty: FlowDifficulty,
+    mode: FlowMode,
+    won: boolean,
+    elapsedSec: number,
+  ) => Promise<void>;
   markDailyComplete: () => Promise<void>;
   isDailyCompleteToday: () => boolean;
 }
 
+function toPayload(state: Pick<ColorFlowStatsState, 'daily' | 'byMode'>): ColorFlowStoredStats {
+  return { daily: state.daily, byMode: state.byMode };
+}
+
 export const useColorFlowStatsStore = create<ColorFlowStatsState>((set, get) => ({
+  daily: emptyDailyChallengeStats(),
   byMode: emptyColorFlowStatsByMode(),
   dailyCompletedDate: null,
   hydrated: false,
@@ -44,8 +61,10 @@ export const useColorFlowStatsStore = create<ColorFlowStatsState>((set, get) => 
       loadDailyCompletedDate('color-flow'),
     ]);
 
+    const stored = stats ?? emptyColorFlowStoredStats();
     set({
-      byMode: stats?.byMode ?? emptyColorFlowStatsByMode(),
+      daily: stored.daily,
+      byMode: stored.byMode,
       dailyCompletedDate: dailyCompleted,
       hydrated: true,
     });
@@ -58,8 +77,7 @@ export const useColorFlowStatsStore = create<ColorFlowStatsState>((set, get) => 
       return;
     }
 
-    const payload: ColorFlowStoredStats = { byMode: state.byMode };
-    await saveColorFlowStats(payload);
+    await saveColorFlowStats(toPayload(state));
 
     if (state.dailyCompletedDate) {
       await saveDailyCompletedDate('color-flow', state.dailyCompletedDate);
@@ -68,16 +86,17 @@ export const useColorFlowStatsStore = create<ColorFlowStatsState>((set, get) => 
 
   getModeStats: (difficulty) => get().byMode[difficulty] ?? emptyColorFlowModeStats(),
 
-  recordResult: async (difficulty, won, elapsedSec) => {
-    const state = get();
-    const nextMode = recordColorFlowModeResult(state.byMode[difficulty], won, elapsedSec);
-    const byMode = { ...state.byMode, [difficulty]: nextMode };
+  getDailyStats: () => get().daily,
 
-    set({ byMode });
+  recordResult: async (difficulty, mode, won, elapsedSec) => {
+    const state = get();
+    const next = recordColorFlowGameResult(toPayload(state), difficulty, mode, won, elapsedSec);
+
+    set({ daily: next.daily, byMode: next.byMode });
     if (getActiveStatsUserId()) {
       await pushIfSignedIn();
     } else {
-      await saveColorFlowStats({ byMode });
+      await saveColorFlowStats(next);
     }
   },
 
