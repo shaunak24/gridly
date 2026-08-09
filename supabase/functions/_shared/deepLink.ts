@@ -14,8 +14,17 @@ export function buildAndroidIntentUrl(
   browserFallbackUrl: string,
 ): string {
   const deepLink = buildAppDeepLink(gameId, inviteId);
-  const pathAndQuery = deepLink.replace(/^gridly:\/\//, '');
+  const pathAndQuery = deepLink.replace(/^gridly:(\/\/)?/i, '');
   const encodedFallback = encodeURIComponent(browserFallbackUrl);
 
-  return `intent://${pathAndQuery}#Intent;scheme=gridly;package=${ANDROID_PACKAGE};S.browser_fallback_url=${encodedFallback};end`;
+  return (
+    `intent://${pathAndQuery}#Intent;` +
+    `scheme=gridly;` +
+    `package=${ANDROID_PACKAGE};` +
+    `action=android.intent.action.VIEW;` +
+    `category=android.intent.category.BROWSABLE;` +
+    `category=android.intent.category.DEFAULT;` +
+    `S.browser_fallback_url=${encodedFallback};` +
+    `end`
+  );
 }

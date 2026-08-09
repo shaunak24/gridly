@@ -201,7 +201,10 @@ release fixes only reproduces on a real link tap, so run the whole list on devic
 - [ ] `curl -s "<invite url>"` → no `&amp;` anywhere between `<script>` and `</script>`
 - [ ] `data-intent` carries `S.browser_fallback_url` = the canonical `https://…/functions/v1/resolve-invite/<id>?fallback=1` (not `http://`, not missing `/functions/v1`)
 - [ ] `curl -s "<invite url>?fallback=1"` → `data-autoredirect="0"` and the not-installed panel is not `hidden`
-- [ ] `curl -sI "<invite url>"` → `200`, `Cache-Control: no-store`
+- [ ] `curl -sI "<invite url>"` → `200`, `Cache-Control: no-store`, `Content-Type: text/html; charset=utf-8`
+- [ ] `curl -s -A "Mozilla/5.0 (Linux; Android 14) Chrome/120.0.0.0 Mobile" -o /dev/null -w "%{http_code} %{redirect_url}" "<invite url>"` → `302` with `intent://` Location (v4.3.1)
+- [ ] `curl -s -A "Mozilla/5.0 (Linux; Android 14) Chrome/120.0.0.0 Mobile" "<invite url>?fallback=1"` → `200` HTML with `data-autoredirect="0"`
+- [ ] `curl -s -A "WhatsApp/2.23.20.0" "<invite url>"` → `200` HTML with `og:title` (preview crawler)
 - [ ] `curl -s "<invite url>x"` (bad id) → branded "Puzzle not found"
 
 ### Android, Gridly installed

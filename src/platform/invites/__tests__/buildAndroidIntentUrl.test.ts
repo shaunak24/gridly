@@ -35,6 +35,9 @@ describe('buildAndroidIntentUrl', () => {
     expect(intentUrl).toContain('intent://games/word-hunt/play?mode=custom&invite=abc123');
     expect(intentUrl).toContain('scheme=gridly');
     expect(intentUrl).toContain('package=com.gridly.app');
+    expect(intentUrl).toContain('action=android.intent.action.VIEW');
+    expect(intentUrl).toContain('category=android.intent.category.BROWSABLE');
+    expect(intentUrl).toContain('category=android.intent.category.DEFAULT');
     expect(intentUrl).toContain(
       'S.browser_fallback_url=' +
         encodeURIComponent(

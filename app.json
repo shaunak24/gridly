@@ -29,6 +29,15 @@
           "autoVerify": false,
           "data": [
             {
+              "scheme": "gridly",
+              "host": "games",
+              "pathPrefix": "/"
+            },
+            {
+              "scheme": "gridly",
+              "host": "game"
+            },
+            {
               "scheme": "gridly"
             }
           ],

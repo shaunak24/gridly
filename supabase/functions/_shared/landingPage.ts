@@ -37,11 +37,19 @@ export interface StoreLinks {
   android?: string | null;
 }
 
+export type LandingClientPlatform = 'android' | 'ios' | 'unknown';
+
 export interface LandingPageOptions {
   inviteId: string;
   gameId: string;
   /** Canonical https URL for this invite, from _shared/inviteLink.ts. */
   canonicalUrl: string;
+  /**
+   * Derived from the request User-Agent on the edge function. When `android`, the
+   * primary button href is the intent URL in static HTML so a tap works even if
+   * JavaScript is disabled or blocked.
+   */
+  clientPlatform?: LandingClientPlatform;
   /**
    * True when the browser bounced back here from a failed Android intent.
    * Suppresses the auto-redirect so we do not loop intent -> fallback -> intent.
@@ -161,7 +169,8 @@ function renderStyles(): string {
         word-break: break-all;
         user-select: all;
       }
-      [hidden] { display: none !important; }`;
+      [hidden] { display: none !important; }
+      .noscript-hint { margin-top: 16px; font-size: 0.9rem; }`;
 }
 
 function renderShell(options: {
@@ -199,7 +208,7 @@ function renderShell(options: {
     <meta name="theme-color" content="${COLORS.background}" />
     <meta name="description" content="${escapeHtml(description)}" />
     ${meta}
-    <title>${escapeHtml(title)} · Gridly</title>
+    <title>${escapeHtml(title)} - Gridly</title>
     <style>${renderStyles()}
     </style>
   </head>
@@ -211,11 +220,19 @@ ${script ?? ''}
 }
 
 export function renderLandingPage(options: LandingPageOptions): string {
-  const { inviteId, gameId, canonicalUrl, showFallbackState = false, ogImageUrl, storeLinks } =
-    options;
+  const {
+    inviteId,
+    gameId,
+    canonicalUrl,
+    clientPlatform = 'unknown',
+    showFallbackState = false,
+    ogImageUrl,
+    storeLinks,
+  } = options;
 
   const deepLink = buildAppDeepLink(gameId, inviteId);
   const intentUrl = buildAndroidIntentUrl(gameId, inviteId, buildFallbackUrl(canonicalUrl));
+  const openHref = clientPlatform === 'android' ? intentUrl : deepLink;
   const title = inviteTitle(gameId);
   const description = inviteDescription(gameId);
 
@@ -240,9 +257,12 @@ export function renderLandingPage(options: LandingPageOptions): string {
       ${renderLogo()}
       <p class="wordmark">GRIDLY</p>
       <h1>${escapeHtml(title)}</h1>
-      <p id="status">${showFallbackState ? escapeHtml('Gridly did not open on this device.') : escapeHtml('Opening Gridly…')}</p>
+      <p id="status">${showFallbackState ? escapeHtml('Gridly did not open on this device.') : escapeHtml('Opening Gridly...')}</p>
 
-      <a class="button" id="open-gridly" href="${escapeHtml(deepLink)}">Open in Gridly</a>
+      <a class="button" id="open-gridly" href="${escapeHtml(openHref)}">Open in Gridly</a>
+      <noscript>
+        <p class="noscript-hint">If Gridly did not open, tap <strong>Open in Gridly</strong> above.</p>
+      </noscript>
 
       <div class="panel" id="not-installed"${showFallbackState ? '' : ' hidden'}>
         <h2>Don't have Gridly yet?</h2>
@@ -254,7 +274,7 @@ export function renderLandingPage(options: LandingPageOptions): string {
 
       <div class="panel" id="in-app-browser" hidden>
         <h2>Open this in your browser</h2>
-        <p>This chat app can't hand the link to Gridly. Tap the menu (⋯) and choose <strong>Open in browser</strong>, or copy the link below.</p>
+        <p>This chat app can't hand the link to Gridly. Tap the menu (...) and choose <strong>Open in browser</strong>, or copy the link below.</p>
         <button class="button secondary" id="copy-link-webview" type="button">Copy puzzle link</button>
         <div class="link-box">${escapeHtml(canonicalUrl)}</div>
       </div>

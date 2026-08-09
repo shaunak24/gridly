@@ -33,6 +33,19 @@ function attribute(html: string, name: string): string {
     .replaceAll('&amp;', '&');
 }
 
+function openGridlyHref(html: string): string {
+  const match = html.match(/id="open-gridly" href="([^"]*)"/);
+  if (!match) {
+    throw new Error('open-gridly href not found');
+  }
+  return match[1]
+    .replaceAll('&quot;', '"')
+    .replaceAll('&#39;', "'")
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&amp;', '&');
+}
+
 describe('renderLandingPage', () => {
   it('never emits an html-escaped ampersand inside a script block', () => {
     // Regression guard: entities are NOT decoded inside <script>, so an escaped URL
@@ -60,15 +73,21 @@ describe('renderLandingPage', () => {
       true,
     );
     expect(intent).toContain('package=com.gridly.app');
+    expect(intent).toContain('action=android.intent.action.VIEW');
     expect(intent).toContain(
       `S.browser_fallback_url=${encodeURIComponent(`${CANONICAL}?fallback=1`)}`,
     );
   });
 
-  it('matches the visible button href to the deep link', () => {
+  it('matches the visible button href to the deep link by default', () => {
     const html = render();
     expect(html).toContain(`<a class="button" id="open-gridly" href="`);
-    expect(attribute(html, 'href')).toBe(attribute(html, 'data-deeplink'));
+    expect(openGridlyHref(html)).toBe(attribute(html, 'data-deeplink'));
+  });
+
+  it('points the visible button at the Android intent url when clientPlatform is android', () => {
+    const html = render({ clientPlatform: 'android' });
+    expect(openGridlyHref(html)).toBe(attribute(html, 'data-intent'));
   });
 
   it('auto-redirects by default and not in the fallback state', () => {

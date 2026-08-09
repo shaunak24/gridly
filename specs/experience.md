@@ -261,7 +261,7 @@ Screen from home for sharing a custom word challenge.
 | Color Flow hub | Play | Daily / Practice |
 | Deep link | Custom puzzle (invite) | `gridly://games/word-hunt/play?mode=custom&invite=…` |
 | Deep link | Custom puzzle (legacy) | `gridly://games/word-hunt/play?mode=custom&code=g1:…` |
-| HTTPS invite | Custom puzzle | `{SUPABASE_URL}/functions/v1/resolve-invite/{id}` → app (Android intent URL when needed) |
+| HTTPS invite | Custom puzzle | `{SUPABASE_URL}/functions/v1/resolve-invite/{id}` → branded landing page; on Android the **Open in Gridly** button uses an `intent://` URL in the initial HTML (from User-Agent), then auto-redirect; opens `gridly://games/word-hunt/play?mode=custom&invite=…` in the APK |
 | Legacy deep link | Custom puzzle | `gridly://game?…` redirects |
 | Word Hunt hub | Stats | **Stats** |
 | Word Hunt hub | How to play | **How to play** |

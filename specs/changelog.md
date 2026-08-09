@@ -6,6 +6,20 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v4.3.1
+
+**Status:** Complete — see [v4.3.1.md](./v4.3.1.md).
+
+#### Player-facing
+
+- **Word Hunt HTTPS invites open on Android** — branded landing page; **Open in Gridly** uses a proper `intent://` link in the initial HTML on Android so Chrome can hand off to the installed APK with the invite id
+
+#### Engineering
+
+- Android intent URLs include `VIEW` + `BROWSABLE`/`DEFAULT`; `resolve-invite` **302-redirects** Android/iOS phone browsers to the app (HTML only for chat previews and `?fallback=1`); explicit `gridly://games` intent filters in `app.json`; `app/+native-intent.tsx` repairs legacy `amp;invite` query strings
+
+---
+
 ### v4.3
 
 **Status:** Complete — see [v4.3.md](./v4.3.md).
