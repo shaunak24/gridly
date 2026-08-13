@@ -11,8 +11,26 @@
       }
     },
     "production": {
+      "distribution": "store",
+      "channel": "production",
+      "autoIncrement": true,
+      "environment": "production",
       "android": {
         "buildType": "app-bundle"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "track": "alpha",
+        "releaseStatus": "completed"
+      }
+    },
+    "production-internal": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "completed"
       }
     }
   }

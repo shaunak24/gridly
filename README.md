@@ -13,6 +13,8 @@ Maintainer shortcuts (dashboards only — no secrets):
 | **Supabase** | [Project dashboard](https://supabase.com/dashboard/project/dtdctaztwlfvbjnl) |
 | **Google Cloud** | [OAuth clients](https://console.cloud.google.com/auth/clients?project=gridly-502816) (project `gridly-502816`) |
 | **Expo** | [expo.dev](https://expo.dev) → project builds |
+| **Privacy policy** | [shaunakstudios-gridly](https://sites.google.com/view/shaunakstudios-gridly/home) |
+| **Play Store release** | [specs/release/google-play.md](specs/release/google-play.md) |
 | **Cloud setup** | [supabase/README.md](supabase/README.md) — migration, auth, feedback |
 
 ## Features
@@ -112,6 +114,32 @@ npm run build:apk          # ~10–20 min; download link when done
 Open the build URL on your phone, download the `.apk`, and install. This standalone app supports daily reminders (unlike Expo Go).
 
 Project ID is configured in `app.json` under `extra.eas.projectId`.
+
+## Releasing to Google Play
+
+Package: `com.gridlygames.app`. Full runbook: [specs/release/google-play.md](specs/release/google-play.md).
+
+```mermaid
+flowchart TD
+  subgraph dev [Development]
+    PR[Pull request] --> GHA_Test[GitHub Actions: npm test]
+    Merge[Merge to main] --> GHA_Test2[GitHub Actions: npm test]
+  end
+
+  subgraph ota [Fast updates - no store review]
+    GHA_Test2 --> EAS_Update[EAS Update publish]
+    EAS_Update --> UsersOTA[Installed production builds]
+  end
+
+  subgraph store [Store releases - native changes]
+    Tag["Git tag v4.3.x or manual dispatch"] --> EAS_Build[EAS Build production AAB]
+    EAS_Build --> EAS_Submit[EAS Submit to Play track]
+    EAS_Submit --> PlayConsole[Google Play Console]
+    PlayConsole --> UsersStore[New installs + upgrades]
+  end
+```
+
+CI/CD and `expo-updates` are configured in Phase 2–3 of the release plan (see [specs/release/index.md](specs/release/index.md) for current phase status).
 
 ## Word lists
 

@@ -72,7 +72,7 @@ describe('renderLandingPage', () => {
     expect(intent.startsWith('intent://games/word-hunt/play?mode=custom&invite=C4F1VhCHJGdQ')).toBe(
       true,
     );
-    expect(intent).toContain('package=com.gridly.app');
+    expect(intent).toContain('package=com.gridlygames.app');
     expect(intent).toContain('action=android.intent.action.VIEW');
     expect(intent).toContain(
       `S.browser_fallback_url=${encodeURIComponent(`${CANONICAL}?fallback=1`)}`,

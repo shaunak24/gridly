@@ -40,6 +40,16 @@ Gridly is a cross-platform **grid-based games** app. These documents are the aut
 | [Changelog](./changelog.md) | Version history and planned features |
 | [Test Plan](./test-plan.md) | Testing strategy, coverage targets, manual checks |
 
+## Release
+
+| Document | Description |
+|----------|-------------|
+| [Release index](./release/index.md) | Play Store pipeline, phase status, architecture diagram |
+| [Google Play](./release/google-play.md) | Store runbook, credentials, CI/CD phases |
+| [Versioning](./release/versioning.md) | Unified semver across app, tags, and Play Store |
+| [Store listing (copy)](../docs/store/play-store-listing.md) | Short/full descriptions and Play Console answers |
+| [Privacy policy (source)](../docs/legal/privacy-policy.md) | [Live policy](https://sites.google.com/view/shaunakstudios-gridly/home) |
+
 ## Conventions
 
 - Specs describe **current intended behavior**, not implementation history (except [changelog.md](./changelog.md)).
@@ -59,3 +69,4 @@ Gridly is a cross-platform **grid-based games** app. These documents are the aut
 | Code layout | [architecture.md](./architecture.md) |
 | Run locally | `npm install --legacy-peer-deps`, `npm start` or `npm run start:tunnel` |
 | Tests | `npm test` |
+| Play Store release | [release/google-play.md](./release/google-play.md), [release/index.md](./release/index.md) |

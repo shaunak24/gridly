@@ -3,7 +3,7 @@
     "name": "Gridly",
     "slug": "gridly",
     "scheme": "gridly",
-    "version": "1.0.0",
+    "version": "4.3.1",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
@@ -15,14 +15,15 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.gridly.app"
+      "bundleIdentifier": "com.gridlygames.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1E1B2E"
       },
-      "package": "com.gridly.app",
+      "package": "com.gridlygames.app",
+      "versionCode": 1,
       "intentFilters": [
         {
           "action": "VIEW",
@@ -58,6 +59,12 @@
       "expo-secure-store",
       "expo-web-browser"
     ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/2bb4bcf9-2add-4f58-b3bf-df1a18f33351"
+    },
     "extra": {
       "eas": {
         "projectId": "2bb4bcf9-2add-4f58-b3bf-df1a18f33351"

@@ -129,7 +129,7 @@ describe('landing page script', () => {
   it('only shows the store button for the current platform', () => {
     const storeLinks = {
       ios: 'https://apps.apple.com/app/id1',
-      android: 'https://play.google.com/store/apps/details?id=com.gridly.app',
+      android: 'https://play.google.com/store/apps/details?id=com.gridlygames.app',
     };
 
     loadPage(ANDROID_UA, { showFallbackState: true, storeLinks });

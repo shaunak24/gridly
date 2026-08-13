@@ -130,6 +130,8 @@ Two rules that page depends on — both were real bugs before v4.2:
 The Android `browser_fallback_url` points at `…/{invite-id}?fallback=1`; that flag
 suppresses the auto-redirect so a missing app cannot loop back into the intent.
 
+**Play Store package:** Android intent URLs use `com.gridlygames.app` (`_shared/deepLink.ts`). Redeploy invite functions after changing the package name. Set `INVITE_STORE_URL_ANDROID` when the Play listing is live (see [specs/release/google-play.md](../specs/release/google-play.md)).
+
 ## 6. Feedback email (optional)
 
 1. Create a [Resend](https://resend.com) account

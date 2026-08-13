@@ -1,4 +1,4 @@
-const ANDROID_PACKAGE = 'com.gridly.app';
+const ANDROID_PACKAGE = 'com.gridlygames.app';
 
 export function buildAppDeepLink(gameId: string, inviteId: string): string {
   if (gameId === 'word-hunt') {
