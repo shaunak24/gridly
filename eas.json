@@ -24,12 +24,18 @@
     "production": {
       "android": {
         "track": "alpha",
-        "releaseStatus": "completed"
+        "releaseStatus": "draft"
       }
     },
     "production-internal": {
       "android": {
         "track": "internal",
+        "releaseStatus": "draft"
+      }
+    },
+    "production-promote": {
+      "android": {
+        "track": "alpha",
         "releaseStatus": "completed"
       }
     }

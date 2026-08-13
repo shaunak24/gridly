@@ -12,7 +12,7 @@ Maintainer shortcuts (dashboards only — no secrets):
 |---------|------|
 | **Supabase** | [Project dashboard](https://supabase.com/dashboard/project/dtdctaztwlfvbjnl) |
 | **Google Cloud** | [OAuth clients](https://console.cloud.google.com/auth/clients?project=gridly-502816) (project `gridly-502816`) |
-| **Expo** | [expo.dev](https://expo.dev) → project builds |
+| **Expo** | [expo.dev](https://expo.dev) → [@shaunak-team/gridly](https://expo.dev/accounts/shaunak-team/projects/gridly) |
 | **Privacy policy** | [shaunakstudios-gridly](https://sites.google.com/view/shaunakstudios-gridly/home) |
 | **Play Store release** | [specs/release/google-play.md](specs/release/google-play.md) |
 | **Cloud setup** | [supabase/README.md](supabase/README.md) — migration, auth, feedback |

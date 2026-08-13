@@ -23,7 +23,6 @@
         "backgroundColor": "#1E1B2E"
       },
       "package": "com.gridlygames.app",
-      "versionCode": 1,
       "intentFilters": [
         {
           "action": "VIEW",

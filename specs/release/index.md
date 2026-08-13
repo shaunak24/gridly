@@ -48,14 +48,15 @@ flowchart TD
 
 | Phase | Status | Notes |
 |-------|--------|-------|
-| 0 — Play Console prep | **Complete** | Store listing live in Console |
-| 1 — EAS credentials | **Next (manual)** | Google Service Account, production env vars on expo.dev |
-| 2 — Repo config | **Complete** | v4.3.1, `eas.json`, `expo-updates`, npm scripts |
-| 3 — CI/CD | **Complete** | Workflows added; needs `EXPO_TOKEN` secret on GitHub |
-| 4 — Closed testing | **Next** | `npm run build:production:submit` after Phase 1 |
+| 0 — Play Console prep | **Complete** | Store listing live |
+| 1 — EAS credentials | **Complete** | Service account + production env vars |
+| 2 — Repo config | **Complete** | v4.3.1, `eas.json`, `expo-updates` |
+| 3 — CI/CD | **Complete** | Workflows added; `EXPO_TOKEN` optional |
+| 4 — Closed testing | **In progress** | Submitted + in review; need opt-in URL and 12 testers |
+| 4b — Production access | **Blocked** | Requires 12 testers × 14 days closed test |
 | 5 — Steady state | Not started | OTA + tagged store releases |
 
-**Current milestone:** Phase 1 credentials, then first production AAB to closed testing (`alpha` track).
+**Current milestone:** Wait for closed testing approval → share opt-in URL → recruit 12 testers → run 14-day closed test → apply for production.
 
 ## Quick commands (when configured)
 
