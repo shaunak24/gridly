@@ -97,7 +97,10 @@ npm run start:tunnel
 | `npm run build:words` | Regenerate word lists from dictionary source |
 | `npm run lookup:definition -- <word>` | Look up a word on the Free Dictionary API (dev) |
 | `npm run eas login` | Log in to Expo (local CLI) |
-| `npm run build:apk` | Cloud-build an Android APK (EAS) |
+| `npm run build:apk` | Cloud-build an Android APK (EAS, internal testing) |
+| `npm run build:production` | Cloud-build production AAB (Play Store) |
+| `npm run build:production:submit` | Build AAB + submit to Play (local fallback) |
+| `npm run update:production` | Publish EAS Update OTA to production channel |
 
 `npm run android` and `npm run ios` require a local Android SDK or Xcode — not needed if you use Expo Go or EAS.
 
@@ -117,7 +120,37 @@ Project ID is configured in `app.json` under `extra.eas.projectId`.
 
 ## Releasing to Google Play
 
-Package: `com.gridlygames.app`. Full runbook: [specs/release/google-play.md](specs/release/google-play.md).
+Package: `com.gridlygames.app`. Full runbook: [specs/release/google-play.md](specs/release/google-play.md). Versioning and tags: [specs/release/versioning.md](specs/release/versioning.md).
+
+### Store release (native / version bump)
+
+**Primary — Git tag → GitHub Actions → EAS:**
+
+1. Bump `expo.version` in `app.json` and `version` in `package.json`.
+2. Add `specs/versions/vX.Y.Z.md` and update [specs/changelog.md](specs/changelog.md).
+3. Commit and push to `main`.
+4. Tag and push the tag:
+
+```bash
+git tag v4.3.2
+git push origin v4.3.2
+```
+
+GitHub Actions runs tests, then `eas build --platform android --profile production --auto-submit` to the closed testing (`alpha`) track. Requires `EXPO_TOKEN` in repo secrets (see [google-play.md](specs/release/google-play.md)).
+
+**Fallback — local EAS:**
+
+```bash
+npm run build:production:submit
+```
+
+Uses your local `eas login` session. After submit, roll out the draft release in Play Console.
+
+### OTA update (JS-only, no store review)
+
+```bash
+npm run update:production
+```
 
 ```mermaid
 flowchart TD
@@ -177,9 +210,9 @@ Behavior, architecture, and roadmap are documented in [`specs/`](specs/):
 |-----|---------|
 | [specs/index.md](specs/index.md) | Index and new-session orientation |
 | [specs/experience.md](specs/experience.md) | Screens and UX |
-| [specs/game-rules.md](specs/game-rules.md) | Scoring and word lists |
-| [specs/v1.2.md](specs/v1.2.md) | Current release scope |
+| [specs/versions/](specs/versions/index.md) | Per-release scope (`v4.3.2`, etc.) |
 | [specs/changelog.md](specs/changelog.md) | Version history and planned work |
+| [specs/release/](specs/release/index.md) | Play Store pipeline and versioning |
 | [specs/tech-stack.md](specs/tech-stack.md) | Dependencies and troubleshooting |
 
 ## Testing

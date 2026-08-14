@@ -8,7 +8,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v4.3.2
 
-**Status:** Complete — see [v4.3.2.md](./v4.3.2.md).
+**Status:** Complete — see [v4.3.2.md](./versions/v4.3.2.md).
 
 #### Player-facing
 
@@ -24,7 +24,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v4.3.1
 
-**Status:** Complete — see [v4.3.1.md](./v4.3.1.md).
+**Status:** Complete — see [v4.3.1.md](./versions/v4.3.1.md).
 
 #### Player-facing
 
@@ -38,7 +38,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v4.3
 
-**Status:** Complete — see [v4.3.md](./v4.3.md).
+**Status:** Complete — see [v4.3.md](./versions/v4.3.md).
 
 #### Player-facing
 
@@ -58,7 +58,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v4.2
 
-**Status:** Complete — see [v4.2.md](./v4.2.md).
+**Status:** Complete — see [v4.2.md](./versions/v4.2.md).
 
 #### Player-facing
 
@@ -83,7 +83,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v4.1
 
-**Status:** Complete — see [v4.1.md](./v4.1.md).
+**Status:** Complete — see [v4.1.md](./versions/v4.1.md).
 
 #### Player-facing
 
@@ -106,7 +106,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v4.0.1
 
-**Status:** Complete — see [v4.0.1.md](./v4.0.1.md).
+**Status:** Complete — see [v4.0.1.md](./versions/v4.0.1.md).
 
 #### Player-facing
 
@@ -121,7 +121,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v4.0
 
-**Status:** In development — see [v4.0.md](./v4.0.md).
+**Status:** In development — see [v4.0.md](./versions/v4.0.md).
 
 #### Player-facing
 
@@ -137,7 +137,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v3.3.1
 
-**Status:** Complete — see [v3.3.1.md](./v3.3.1.md).
+**Status:** Complete — see [v3.3.1.md](./versions/v3.3.1.md).
 
 #### Player-facing
 
@@ -152,7 +152,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v3.3
 
-**Status:** Complete — see [v3.3.md](./v3.3.md).
+**Status:** Complete — see [v3.3.md](./versions/v3.3.md).
 
 #### Player-facing
 
@@ -169,7 +169,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v3.2.3
 
-**Status:** Complete — see [v3.2.3.md](./v3.2.3.md).
+**Status:** Complete — see [v3.2.3.md](./versions/v3.2.3.md).
 
 #### Player-facing
 
@@ -184,7 +184,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v3.2.2
 
-**Status:** Complete — see [v3.2.2.md](./v3.2.2.md).
+**Status:** Complete — see [v3.2.2.md](./versions/v3.2.2.md).
 
 #### Player-facing
 
@@ -200,7 +200,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v3.2.1
 
-**Status:** Complete — see [v3.2.1.md](./v3.2.1.md).
+**Status:** Complete — see [v3.2.1.md](./versions/v3.2.1.md).
 
 #### Player-facing
 
@@ -217,7 +217,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v3.2
 
-**Status:** Complete — see [v3.2.md](./v3.2.md).
+**Status:** Complete — see [v3.2.md](./versions/v3.2.md).
 
 #### Player-facing
 
@@ -237,7 +237,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v3.1
 
-**Status:** Complete — see [v3.1.md](./v3.1.md).
+**Status:** Complete — see [v3.1.md](./versions/v3.1.md).
 
 #### Player-facing
 
@@ -254,7 +254,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v3.0.4
 
-**Status:** Complete — see [v3.0.4.md](./v3.0.4.md).
+**Status:** Complete — see [v3.0.4.md](./versions/v3.0.4.md).
 
 #### Player-facing
 
@@ -268,7 +268,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v3.0.3
 
-**Status:** Complete — see [v3.0.3.md](./v3.0.3.md).
+**Status:** Complete — see [v3.0.3.md](./versions/v3.0.3.md).
 
 #### Player-facing
 
@@ -284,7 +284,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v3.0.2
 
-**Status:** Complete — see [v3.0.2.md](./v3.0.2.md).
+**Status:** Complete — see [v3.0.2.md](./versions/v3.0.2.md).
 
 #### Player-facing
 
@@ -298,7 +298,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v3.0.1
 
-**Status:** Complete — see [v3.0.1.md](./v3.0.1.md).
+**Status:** Complete — see [v3.0.1.md](./versions/v3.0.1.md).
 
 #### Player-facing
 
@@ -318,7 +318,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v3.0
 
-**Status:** Complete — see [v3.0.md](./v3.0.md). Follow-up device fixes shipped in [v3.0.1](./v3.0.1.md).
+**Status:** Complete — see [v3.0.md](./versions/v3.0.md). Follow-up device fixes shipped in [v3.0.1](./versions/v3.0.1.md).
 
 #### Player-facing
 
@@ -341,7 +341,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v2.1
 
-**Status:** Complete — see [v2.1.md](./v2.1.md).
+**Status:** Complete — see [v2.1.md](./versions/v2.1.md).
 
 #### Player-facing
 
@@ -359,7 +359,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v2.0
 
-**Status:** Complete — see [v2.0.md](./v2.0.md).
+**Status:** Complete — see [v2.0.md](./versions/v2.0.md).
 
 #### Player-facing
 
@@ -391,7 +391,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v1.2
 
-**Status:** Complete — see [v1.2.md](./v1.2.md).
+**Status:** Complete — see [v1.2.md](./versions/v1.2.md).
 
 #### Player-facing
 
@@ -418,7 +418,7 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ### v1.1
 
-**Status:** Complete — validated on device via Expo Go (SDK 54). See [v1.1.md](./v1.1.md).
+**Status:** Complete — validated on device via Expo Go (SDK 54). See [v1.1.md](./versions/v1.1.md).
 
 #### Player-facing
 
@@ -458,7 +458,7 @@ See [backlog.md](./backlog.md) for planned future work.
 
 Backlog items are not tied to a version number until they are actively scoped. To promote an item from [backlog.md](./backlog.md) into development:
 
-1. **Pick a target version** — create or open a version spec (e.g. [v2.2.md](./v2.2.md)) and move the item there with acceptance criteria.
+1. **Pick a target version** — create or open a version spec (e.g. [v2.2.md](./versions/v2.2.md)) and move the item there with acceptance criteria.
 2. **Specify behavior** — update [experience.md](./experience.md) and/or game rules specs.
 3. **Update engineering docs** — [architecture.md](./architecture.md) and [test-plan.md](./test-plan.md) as needed.
 4. **Remove from backlog** — delete or strike the item in [backlog.md](./backlog.md) once it is fully captured in the version spec.

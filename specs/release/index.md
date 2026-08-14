@@ -1,17 +1,17 @@
 # Release and deployment
 
-Authoritative docs for shipping Gridly to app stores and maintaining releases. Product behavior specs remain in the parent `specs/` directory.
+Authoritative docs for shipping Gridly to app stores and maintaining releases. Product behavior specs live in the parent [specs/](../index.md) tree; per-version scopes in [versions/](../versions/index.md).
 
-**Current Play Store effort:** v4.3.1 first public Android release (`com.gridlygames.app`).
+**Current Play Store effort:** v4.3.2 on closed testing (`alpha`), package `com.gridlygames.app`.
 
 ## Documents
 
 | Document | Description |
 |----------|-------------|
-| [google-play.md](./google-play.md) | Play Store runbook, phase checklist, credentials, CI/CD |
+| [google-play.md](./google-play.md) | Play Store runbook, phase checklist, credentials, closed testing log |
 | [versioning.md](./versioning.md) | Unified semver across app, specs, tags, and Play Store |
 | [../../docs/store/play-store-listing.md](../../docs/store/play-store-listing.md) | Copy-paste store listing text and Play Console answers |
-| [../../docs/legal/privacy-policy.md](../../docs/legal/privacy-policy.md) | Privacy policy source (canonical hosted copy linked below) |
+| [../../docs/legal/privacy-policy.md](../../docs/legal/privacy-policy.md) | Privacy policy source |
 | [../../docs/legal/delete-account.md](../../docs/legal/delete-account.md) | Delete-account page source for Play Console |
 
 ## Published URLs
@@ -44,25 +44,27 @@ flowchart TD
   end
 ```
 
-## Phase status (Play Store v4.3.1)
+## Phase status (Play Store)
 
 | Phase | Status | Notes |
 |-------|--------|-------|
 | 0 — Play Console prep | **Complete** | Store listing live |
 | 1 — EAS credentials | **Complete** | Service account + production env vars |
-| 2 — Repo config | **Complete** | v4.3.1, `eas.json`, `expo-updates` |
-| 3 — CI/CD | **Complete** | Workflows added; `EXPO_TOKEN` optional |
-| 4 — Closed testing | **In progress** | Submitted + in review; need opt-in URL and 12 testers |
-| 4b — Production access | **Blocked** | Requires 12 testers × 14 days closed test |
+| 2 — Repo config | **Complete** | v4.3.2, `eas.json`, `expo-updates`, manifest plugins |
+| 3 — CI/CD | **Complete** | Workflows + `EXPO_TOKEN` in GitHub Actions |
+| 4 — Closed testing | **In progress** | v4.3.1 live; v4.3.2 submitted; 15+ testers opted in |
+| 4b — Production access | **Blocked** | Requires 12 testers × 14 consecutive days |
 | 5 — Steady state | Not started | OTA + tagged store releases |
 
-**Current milestone:** Wait for closed testing approval → share opt-in URL → recruit 12 testers → run 14-day closed test → apply for production.
+**Current milestone:** v4.3.2 rollout on closed testing → continue 14-day window → apply for production access.
 
-## Quick commands (when configured)
+## Quick commands
 
 ```bash
-npm run build:production          # after Phase 2
-npm run build:production:submit   # build + submit to Play
-npm run update:production         # EAS Update OTA (after expo-updates)
+npm run build:production          # EAS production AAB (no submit)
+npm run build:production:submit   # build + submit to Play (local fallback)
+npm run update:production         # EAS Update OTA (JS-only changes)
 npm run supabase:deploy-invites   # redeploy after deepLink package changes
 ```
+
+Tag-triggered CI (primary): see [google-play.md — Release a store build](./google-play.md#release-a-store-build).

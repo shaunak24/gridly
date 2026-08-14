@@ -1,22 +1,24 @@
 # Versioning
 
-Gridly uses a **single semver** across the repo, Play Store, and git tags. Internal spec files (`specs/v*.md`) use the same version number.
+Gridly uses a **single semver** across the repo, Play Store, and git tags. Per-release scope specs live in [`specs/versions/`](../versions/index.md).
 
-## First public Play Store release
+## Current release
 
-**4.3.1** — aligns with the current product spec [v4.3.1.md](../v4.3.1.md).
+**4.3.2** — see [v4.3.2.md](../versions/v4.3.2.md) and [changelog.md](../changelog.md).
+
+First public Play Store release was **4.3.1** ([v4.3.1.md](../versions/v4.3.1.md)).
 
 ## What to keep in sync
 
 | Location | Example | When to bump |
 |----------|---------|--------------|
-| `app.json` → `expo.version` | `4.3.1` | Every user-visible store release |
-| `package.json` → `version` | `4.3.1` | Same as `app.json` |
-| `specs/vX.Y.Z.md` | `v4.3.1.md` | New spec per shipped release |
-| `specs/changelog.md` | v4.3.1 entry | Each ship |
-| Git tag | `v4.3.1` | Triggers production build in CI |
-| Play Store `versionName` | `4.3.1` | From `expo.version` on build |
-| EAS Update `runtimeVersion` | `4.3.1` | Follows `appVersion` policy |
+| `app.json` → `expo.version` | `4.3.2` | Every user-visible store release |
+| `package.json` → `version` | `4.3.2` | Same as `app.json` |
+| `specs/versions/vX.Y.Z.md` | `v4.3.2.md` | New spec per shipped release |
+| `specs/changelog.md` | v4.3.2 entry | Each ship |
+| Git tag | `v4.3.2` | Triggers production build in CI |
+| Play Store `versionName` | `4.3.2` | From `expo.version` on build |
+| EAS Update `runtimeVersion` | `4.3.2` | Follows `appVersion` policy |
 
 ## What stays separate
 
@@ -30,9 +32,21 @@ Gridly uses a **single semver** across the repo, Play Store, and git tags. Inter
 - **Minor** (4.3.x → 4.4.0): new features; usually new store build.
 - **Native changes** (new Expo module, `app.json` plugin, permission change): always new store build + submit.
 
-## Git tags
+## Git tags and store releases
 
-Production Android releases use tags matching semver:
+Production Android releases use tags matching semver. Pushing a tag triggers [`.github/workflows/release-android.yml`](../../.github/workflows/release-android.yml) (EAS build + submit to closed testing).
+
+```bash
+# After version bump is committed and pushed to main:
+git tag v4.3.2
+git push origin v4.3.2
+```
+
+**Fallback** (no CI): `npm run build:production:submit` using local `eas login`.
+
+After EAS submit, roll out the draft release in Play Console. Full runbook: [google-play.md](./google-play.md).
+
+Example tags:
 
 ```
 v4.3.1
@@ -40,12 +54,10 @@ v4.3.2
 v4.4.0
 ```
 
-CI release workflow triggers on `v[0-9]+.[0-9]+.[0-9]+`.
-
 ## Commit messages
 
 Every commit message uses the format `vx.y.z: <description>` (strict). A `commit-msg` git hook enforces this; `npm install` configures `.githooks` via `core.hooksPath`.
 
 ```
-v4.3.1: Fix Play draft submit and document closed testing roadmap.
+v4.3.2: Fix Play Console manifest issues and document EAS release workflow.
 ```

@@ -48,7 +48,7 @@ Ship a playable Gridly puzzle on iOS and Android via Expo Go, with branded home 
 
 ## Out of scope
 
-v1.1 and later features are defined in [v1.1.md](./v1.1.md) and [changelog.md](./changelog.md). MVP explicitly excluded:
+v1.1 and later features are defined in [v1.1.md](./versions/v1.1.md) and [changelog.md](./changelog.md). MVP explicitly excluded:
 
 - Daily puzzle mode
 - Stats, streaks, guess distribution

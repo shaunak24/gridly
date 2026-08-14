@@ -57,31 +57,29 @@ Google requires a **closed test** before **Apply for access to production**. Cri
 
 | Requirement | Status |
 |-------------|--------|
-| Publish a closed testing release | Done (v4.3.1 submitted via EAS) |
-| At least **12 testers opted-in** | **0** — recruit testers |
-| Closed test running **≥ 14 days** with those testers | Starts when release is live and testers opt in |
+| Publish a closed testing release | Done (v4.3.1 live; v4.3.2 submitted Aug 14, 2026) |
+| At least **12 testers opted-in** | **15** opted in (Aug 2026) |
+| Closed test running **≥ 14 days** with those testers | In progress (~day 2 as of Aug 14, 2026) |
 
-### Now — waiting for Google (closed testing review)
+### Closed testing active
 
-You sent the closed testing release for review. Typical wait: **a few hours to a few days**.
+Closed testing is live with an opt-in URL. Testers install from Play Store (not Expo Go or sideload APK).
 
-When approved, Play Console → **Testing** → **Closed testing** shows an **opt-in URL** (and email list management under **Testers**).
+**QA checklist** (Play-installed build):
 
-### As soon as the closed test is live (do within 1–2 days)
+- Guest play, all three games
+- Email + Google sign-in
+- Daily reminders
+- Word Hunt invite from browser
+- Feedback submit
 
-1. **Copy the opt-in link** — Play Console → Testing → Closed testing → **How testers join** / **Copy link**.
-2. **Add testers** — email list or Google Group (need **12+** who will actually opt in and install).
-3. **Install on your phone** via that link (not the old sideload APK) and run QA:
-   - Guest play, all three games
-   - Email + Google sign-in
-   - Daily reminders
-   - Word Hunt invite from browser
-   - Feedback submit
-4. **Google OAuth fix** — Play Console → **App integrity** → App signing key SHA-1 → add to [Google Cloud OAuth](https://console.cloud.google.com/auth/clients?project=gridly-502816) for `com.gridlygames.app`.
-5. **Invite store button** (optional until public listing):
-   ```bash
-   npm run supabase secrets set INVITE_STORE_URL_ANDROID=https://play.google.com/store/apps/details?id=com.gridlygames.app
-   ```
+**Remaining setup:**
+
+- [ ] Play App Signing SHA-1 → [Google Cloud OAuth](https://console.cloud.google.com/auth/clients?project=gridly-502816) for `com.gridlygames.app`
+- [ ] Supabase `INVITE_STORE_URL_ANDROID` secret (optional until public listing):
+  ```bash
+  npm run supabase secrets set INVITE_STORE_URL_ANDROID=https://play.google.com/store/apps/details?id=com.gridlygames.app
+  ```
 
 ### During closed testing (14+ days)
 
@@ -121,7 +119,7 @@ Record each build pushed to the closed testing (`alpha`) track. Use this when an
 | Version | versionCode | Track | Date | Play Console issues | Resolution |
 |---------|-------------|-------|------|---------------------|------------|
 | 4.3.1 | 2 | alpha | Aug 13, 2026 | Initial closed test | First Play submission |
-| 4.3.2 | 3 (expected) | alpha | TBD | (1) BOOT_COMPLETED + restricted FGS — **needs attention**; (2) deprecated edge-to-edge APIs — informational; (3) portrait orientation — UX recommendation | (1) `withDisableNotificationsBootActions` plugin; (2) upstream advisory, revisit on Expo SDK upgrade; (3) `withAndroidGameCategory` plugin, portrait lock retained |
+| 4.3.2 | 3 | alpha | Aug 14, 2026 | (1) BOOT_COMPLETED + restricted FGS; (2) edge-to-edge deprecated APIs; (3) portrait orientation | (1) `withDisableNotificationsBootActions`; (2) upstream advisory; (3) `withAndroidGameCategory` — see [v4.3.2.md](../versions/v4.3.2.md) |
 
 ### Production access questionnaire prep
 
@@ -178,7 +176,7 @@ npm run supabase secrets set INVITE_STORE_URL_ANDROID=https://play.google.com/st
 - [x] `.github/workflows/ci.yml` — tests on PR/push
 - [x] `.github/workflows/release-android.yml` — tag `v4.3.x` → EAS build + submit to closed testing
 - [x] `.github/workflows/eas-update.yml` — manual OTA publish
-- [ ] GitHub secret `EXPO_TOKEN` — see below
+- [x] GitHub secret `EXPO_TOKEN` — configured Aug 14, 2026
 
 ### GitHub secret: `EXPO_TOKEN`
 
@@ -216,11 +214,10 @@ Native `android/` and `ios/` folders are generated on EAS during the build (Cont
 ## Phase 4 — Closed testing
 
 - [x] Production AAB built (v4.3.1, versionCode 2)
-- [x] Submitted to closed testing (`alpha`) as draft — [submission](https://expo.dev/accounts/shaunak-team/projects/gridly/submissions/f73ed3c7-e3b2-4b90-b09d-a709c7abfe77)
-- [x] Release sent for Google review (Aug 13, 2026)
-- [ ] Closed testing approved and live — share opt-in URL
-- [ ] Device QA on Play-installed build
-- [ ] 12+ testers opted in
+- [x] Submitted to closed testing (`alpha`) — [submission](https://expo.dev/accounts/shaunak-team/projects/gridly/submissions/f73ed3c7-e3b2-4b90-b09d-a709c7abfe77)
+- [x] Closed testing live — opt-in URL shared
+- [x] v4.3.2 submitted via tag + GitHub Actions (Aug 14, 2026)
+- [x] 12+ testers opted in (15 as of Aug 2026)
 - [ ] 14-day closed test period complete
 - [ ] Apply for production access
 
