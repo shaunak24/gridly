@@ -112,6 +112,25 @@ When approved, Play Console → **Testing** → **Closed testing** shows an **op
 | JS / UI only | `npm run update:production` |
 | Native / version bump | `npm run build:production:submit` (still `releaseStatus: draft` until first production ship) |
 
+**Uploading a new version to the same closed testing track does not reset the 14-day tester clock.** The clock tracks continuous opt-in of 12+ testers, not the AAB version.
+
+## Closed testing release log
+
+Record each build pushed to the closed testing (`alpha`) track. Use this when answering Google's production-access questionnaire.
+
+| Version | versionCode | Track | Date | Play Console issues | Resolution |
+|---------|-------------|-------|------|---------------------|------------|
+| 4.3.1 | 2 | alpha | Aug 13, 2026 | Initial closed test | First Play submission |
+| 4.3.2 | 3 (expected) | alpha | TBD | (1) BOOT_COMPLETED + restricted FGS — **needs attention**; (2) deprecated edge-to-edge APIs — informational; (3) portrait orientation — UX recommendation | (1) `withDisableNotificationsBootActions` plugin; (2) upstream advisory, revisit on Expo SDK upgrade; (3) `withAndroidGameCategory` plugin, portrait lock retained |
+
+### Production access questionnaire prep
+
+When applying for production access (~14 days after 12+ testers opt in), Google asks what you tested and fixed. Draft answers:
+
+- **What was tested:** Guest play (Word Hunt, Grid Snap, Color Flow), email + Google sign-in, daily reminders, Word Hunt invite from browser, feedback submit
+- **Issues found:** Play Console pre-release report flagged Android 15 BOOT_COMPLETED vs foreground-service conflict, edge-to-edge deprecated APIs (upstream), portrait lock on large screens
+- **Fixes shipped:** v4.3.2 manifest plugins for notifications boot receiver and game category; edge-to-edge noted as dependency-stack advisory with no user impact
+
 ## Phase 0 — Play Console (manual)
 
 ### Done
@@ -149,7 +168,7 @@ npm run supabase secrets set INVITE_STORE_URL_ANDROID=https://play.google.com/st
 
 - [x] `app.json` package `com.gridlygames.app`
 - [x] `deepLink.ts` Android package aligned
-- [x] `app.json` / `package.json` version `4.3.1`
+- [x] `app.json` / `package.json` version `4.3.2`
 - [x] `eas.json` submit profiles (`alpha` = closed testing) and production channel
 - [x] `expo-updates` installed and configured
 - [x] npm scripts: `build:production`, `build:production:submit`, `update:production`
@@ -157,9 +176,42 @@ npm run supabase secrets set INVITE_STORE_URL_ANDROID=https://play.google.com/st
 ## Phase 3 — CI/CD
 
 - [x] `.github/workflows/ci.yml` — tests on PR/push
-- [x] `.github/workflows/release-android.yml` — tag `v4.3.x` → build + submit
+- [x] `.github/workflows/release-android.yml` — tag `v4.3.x` → EAS build + submit to closed testing
 - [x] `.github/workflows/eas-update.yml` — manual OTA publish
-- [ ] GitHub secret `EXPO_TOKEN` (add in repo settings before using workflows)
+- [ ] GitHub secret `EXPO_TOKEN` — see below
+
+### GitHub secret: `EXPO_TOKEN`
+
+Required for tag-triggered releases (`.github/workflows/release-android.yml`). Local fallback does not need this secret.
+
+1. Sign in at [expo.dev](https://expo.dev) as `shaunakt24` (or the account that owns `@shaunak-team/gridly`).
+2. **Account settings** → **Access tokens** → **Create token** (name e.g. `gridly-github-actions`; scope: enough to run EAS builds for the project).
+3. GitHub → repo **gridly** → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**.
+4. Name: `EXPO_TOKEN`. Value: paste the token. Save.
+5. Smoke-test: push a tag (see **Release a store build** below) or run the **Release Android** workflow manually (**Actions** → **Release Android** → **Run workflow**).
+
+### Release a store build
+
+**Primary (CI):** bump version in `app.json` / `package.json`, commit, push, then tag:
+
+```bash
+git tag v4.3.2
+git push origin v4.3.2
+```
+
+GitHub Actions runs tests, then `eas build --platform android --profile production --auto-submit` (closed testing / `alpha` track, draft release).
+
+**Fallback (local):** same version bump committed, then:
+
+```bash
+npm run build:production:submit
+```
+
+Uses your local `eas login` session; no `EXPO_TOKEN` required.
+
+After either path, finish rollout in Play Console (draft → review → start rollout). See **Closed testing release log** above.
+
+Native `android/` and `ios/` folders are generated on EAS during the build (Continuous Native Generation). They are gitignored and not part of day-to-day dev (`npm run start:tunnel`, Expo Go, or a dev client).
 
 ## Phase 4 — Closed testing
 

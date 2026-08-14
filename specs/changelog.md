@@ -6,6 +6,22 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v4.3.2
+
+**Status:** Complete — see [v4.3.2.md](./v4.3.2.md).
+
+#### Player-facing
+
+- No visible feature changes — closed-testing build addresses Google Play Console pre-release quality feedback from v4.3.1
+
+#### Engineering
+
+- Config plugin removes `BOOT_COMPLETED` from `expo-notifications` receiver (Android 15 / `expo-audio` Play static-analysis conflict)
+- `android:appCategory="game"` manifest declaration for large-screen orientation advisory
+- Edge-to-edge deprecation notice documented as upstream (RN / `react-native-screens`); no app code change
+
+---
+
 ### v4.3.1
 
 **Status:** Complete — see [v4.3.1.md](./v4.3.1.md).

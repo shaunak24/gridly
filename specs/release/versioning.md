@@ -41,3 +41,11 @@ v4.4.0
 ```
 
 CI release workflow triggers on `v[0-9]+.[0-9]+.[0-9]+`.
+
+## Commit messages
+
+Every commit message uses the format `vx.y.z: <description>` (strict). A `commit-msg` git hook enforces this; `npm install` configures `.githooks` via `core.hooksPath`.
+
+```
+v4.3.1: Fix Play draft submit and document closed testing roadmap.
+```

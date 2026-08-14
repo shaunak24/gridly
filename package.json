@@ -1,8 +1,9 @@
 {
   "name": "gridly",
-  "version": "4.3.1",
+  "version": "4.3.2",
   "main": "index.js",
   "scripts": {
+    "prepare": "git config --local core.hooksPath .githooks 2>/dev/null || true",
     "start": "expo start",
     "start:tunnel": "expo start --tunnel",
     "start:lan": "expo start --lan",

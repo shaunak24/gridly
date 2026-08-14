@@ -3,7 +3,7 @@
     "name": "Gridly",
     "slug": "gridly",
     "scheme": "gridly",
-    "version": "4.3.1",
+    "version": "4.3.2",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
@@ -55,6 +55,8 @@
         }
       ],
       "expo-audio",
+      "./plugins/withDisableNotificationsBootActions",
+      "./plugins/withAndroidGameCategory",
       "expo-secure-store",
       "expo-web-browser"
     ],
