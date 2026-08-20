@@ -34,6 +34,7 @@ export interface PersistedSnapGame {
   imageSeed: string;
   status: SnapStatus;
   elapsedSec: number;
+  peekUsed?: boolean;
 }
 
 export interface GridLayout {

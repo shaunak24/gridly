@@ -1,9 +1,11 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ImagePeekOverlay } from '../../../src/games/grid-snap/components/ImagePeekOverlay';
 import { PuzzleCanvas } from '../../../src/games/grid-snap/components/PuzzleCanvas';
+import { IS_TEST_MODE } from '../../../src/games/grid-snap/core/testMode';
 import { timeLimitSecForDifficulty } from '../../../src/games/grid-snap/core/timeLimit';
 import type { SnapMode } from '../../../src/games/grid-snap/core/types';
 import { useGridSnapStatsStore } from '../../../src/games/grid-snap/stores/gridSnapStatsStore';
@@ -51,8 +53,13 @@ export default function GridSnapPlayScreen() {
     startGame,
     handleTimeUp,
     imageDecodeReady,
+    imageUrl,
+    puzzle,
+    peekUsed,
+    markPeekUsed,
     persistSession,
   } = useGridSnapStore();
+  const [peekVisible, setPeekVisible] = useState(false);
 
   const limitSec = useMemo(() => timeLimitSecForDifficulty(difficulty), [difficulty]);
   const timerActive = status === 'playing' && imageDecodeReady;
@@ -103,6 +110,27 @@ export default function GridSnapPlayScreen() {
     void startGame(activeMode);
   }, [startGame, activeMode]);
 
+  const handlePeekImage = useCallback(() => {
+    if (peekUsed) {
+      return;
+    }
+
+    if (IS_TEST_MODE) {
+      if (!puzzle) {
+        return;
+      }
+    } else if (!imageUrl) {
+      return;
+    }
+
+    markPeekUsed();
+    setPeekVisible(true);
+  }, [imageUrl, markPeekUsed, peekUsed, puzzle]);
+
+  const dismissPeek = useCallback(() => {
+    setPeekVisible(false);
+  }, []);
+
   const outcome: GameEndOutcome =
     status === 'won' ? 'won' : status === 'lost' ? 'lost' : 'playing';
   const headerLabel = mode === 'daily' ? 'Daily' : 'Practice';
@@ -112,6 +140,11 @@ export default function GridSnapPlayScreen() {
   const timerDisplay = timerActive
     ? remainingDisplay
     : formatElapsedSeconds(Math.min(elapsedSec, limitSec));
+  const canPeekImage =
+    status === 'playing' &&
+    imageDecodeReady &&
+    !peekUsed &&
+    (IS_TEST_MODE ? Boolean(puzzle) : Boolean(imageUrl));
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -124,9 +157,34 @@ export default function GridSnapPlayScreen() {
         />
       </View>
 
+      {canPeekImage ? (
+        <Pressable
+          style={({ pressed }) => [
+            styles.peekButton,
+            { backgroundColor: theme.card, borderColor: theme.border },
+            pressed && styles.pressed,
+          ]}
+          onPress={handlePeekImage}
+          accessibilityRole="button"
+          accessibilityLabel="Peek image"
+        >
+          <Text style={[styles.peekText, { color: theme.textPrimary }]}>Peek image</Text>
+        </Pressable>
+      ) : null}
+
       <View style={styles.boardArea}>
         <PuzzleCanvas key={gameSessionId} />
       </View>
+
+      {IS_TEST_MODE && puzzle ? (
+        <ImagePeekOverlay
+          visible={peekVisible}
+          testGrid={{ rows: puzzle.rows, cols: puzzle.cols }}
+          onDismiss={dismissPeek}
+        />
+      ) : imageUrl ? (
+        <ImagePeekOverlay visible={peekVisible} imageUrl={imageUrl} onDismiss={dismissPeek} />
+      ) : null}
 
       <GameEndExperience
         outcome={outcome}
@@ -160,6 +218,18 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 0,
   },
+  peekButton: {
+    alignSelf: 'center',
+    marginBottom: 8,
+    paddingHorizontal: 20,
+    minHeight: 40,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  peekText: { fontSize: 14, fontWeight: '600' },
+  pressed: { opacity: 0.85 },
   endArea: {
     flex: 0,
     justifyContent: 'flex-start',

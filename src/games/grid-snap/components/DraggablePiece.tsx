@@ -8,11 +8,9 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { getPieceXY } from '../core/puzzleEngine';
-import { IS_TEST_MODE, tileNumber } from '../core/testMode';
+import { IS_TEST_MODE, testTileColorForNumber, tileNumber } from '../core/testMode';
 import type { Piece } from '../core/types';
 import { useTheme } from '../../../shared/theme/useTheme';
-
-const TEST_TILE_COLORS = ['#0EA5E9', '#22C55E', '#F97316', '#A855F7', '#EF4444', '#14B8A6'];
 
 interface DraggablePieceProps {
   piece: Piece;
@@ -106,7 +104,7 @@ export function DraggablePiece({
             <View
               style={[
                 styles.testTile,
-                { backgroundColor: TEST_TILE_COLORS[(number - 1) % TEST_TILE_COLORS.length] },
+                { backgroundColor: testTileColorForNumber(number) },
               ]}
             >
               <Text style={[styles.testNumber, { fontSize: Math.max(14, pieceSize * 0.32) }]}>

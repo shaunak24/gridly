@@ -4,7 +4,7 @@ Gridly uses a **single semver** across the repo, Play Store, and git tags. Per-r
 
 ## Current release
 
-**4.3.2** — see [v4.3.2.md](../versions/v4.3.2.md) and [changelog.md](../changelog.md).
+**4.4.0** — see [v4.4.0.md](../versions/v4.4.0.md) and [changelog.md](../changelog.md).
 
 First public Play Store release was **4.3.1** ([v4.3.1.md](../versions/v4.3.1.md)).
 

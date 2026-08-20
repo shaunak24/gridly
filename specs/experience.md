@@ -148,11 +148,12 @@ Mirrors Grid Snap hub structure for the path-drawing puzzle.
 - Dragging a tile to another cell **swaps** the two tiles (e.g. cell 1 ↔ cell 4).
 - Two tiles snap into a group only when they are **image neighbors placed in the correct relative position** (the piece to the right of another is the piece that truly sits to its right). Groups are recomputed after every move: they grow when correct neighbors line up and split again when a tile is dragged away.
 - Dragging a tile in a snapped group moves the whole group when there is room; otherwise the dragged tile swaps with the target cell.
+- **Peek image** — above the board while playing, shows the complete photo once per puzzle in a full-screen overlay for four seconds (tap **Got it** or outside to close sooner). The countdown timer keeps running. Resuming a saved game remembers whether peek was already used.
 - Win when every tile is in its correct cell. The grid **remains in the same on-screen position** as during play (it does not jump to the top or leave the viewport). Tile dragging is disabled. Grid lines and tile borders disappear so the completed image appears seamless. A **GameModal** celebration (matching Word Hunt) appears after a short delay, with a **GameEndBar** below the board for Play again / Practice.
 
 ### Test mode
 
-Setting `EXPO_PUBLIC_GRID_SNAP_TEST=1` (via `npm run start:test` or `npm run start:test:tunnel`) renders each tile as a numbered colored cell instead of an image slice and skips the image download. Tiles are numbered by their correct position (row-major, 1-based), so a solved grid reads `1, 2, 3, …` left-to-right, top-to-bottom. Use this to verify swap and snap behavior without solving a photo.
+Setting `EXPO_PUBLIC_GRID_SNAP_TEST=1` (via `npm run start:test` or `npm run start:test:tunnel`) renders each tile as a numbered colored cell instead of an image slice and skips the image download. Tiles are numbered by their correct position (row-major, 1-based), so a solved grid reads `1, 2, 3, …` left-to-right, top-to-bottom. **Peek image** shows that solved numbered layout in the overlay. Use this to verify swap and snap behavior without solving a photo.
 
 ## Word Hunt — legacy sections below
 

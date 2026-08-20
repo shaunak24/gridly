@@ -2,7 +2,7 @@
 
 Gridly is a cross-platform **grid-based games** app. These documents are the authoritative reference for product behavior, architecture, and quality standards.
 
-**Current release:** v4.3.2 — see [changelog.md](./changelog.md) and [versions/v4.3.2.md](./versions/v4.3.2.md).
+**Current release:** v4.4.0 — see [changelog.md](./changelog.md) and [versions/v4.4.0.md](./versions/v4.4.0.md).
 
 ## New session checklist
 

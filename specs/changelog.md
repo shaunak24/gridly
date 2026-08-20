@@ -6,6 +6,20 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v4.4.0
+
+**Status:** In progress — see [v4.4.0.md](./versions/v4.4.0.md).
+
+#### Player-facing
+
+- **Grid Snap peek image** — one **Peek image** hint per puzzle shows the complete photo for four seconds; timer keeps running
+
+#### Engineering
+
+- `peekUsed` persisted on saved Grid Snap sessions; `ImagePeekOverlay` component
+
+---
+
 ### v4.3.2
 
 **Status:** Complete — see [v4.3.2.md](./versions/v4.3.2.md).

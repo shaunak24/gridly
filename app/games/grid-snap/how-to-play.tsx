@@ -10,6 +10,7 @@ const STEPS = [
   'Drag a tile or connected group to move it.',
   'When two tiles that belong together are placed side by side, they snap together with a glow.',
   'Connected groups move as one. Keep connecting until the full image is assembled in the dashed frame.',
+  'Tap Peek image once per puzzle to study the complete photo for a few seconds. The timer keeps running.',
 ];
 
 export default function GridSnapHowToPlayScreen() {

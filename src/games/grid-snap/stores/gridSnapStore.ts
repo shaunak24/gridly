@@ -35,11 +35,13 @@ interface GridSnapGameState {
   practiceInProgress: boolean;
   elapsedSec: number;
   imageDecodeReady: boolean;
+  peekUsed: boolean;
   hydrateProgress: () => Promise<void>;
   resumeOrStartGame: (mode: SnapMode) => Promise<boolean>;
   startGame: (mode: SnapMode) => Promise<void>;
   setElapsedSec: (elapsedSec: number) => void;
   setImageDecodeReady: (ready: boolean) => void;
+  markPeekUsed: () => void;
   setGridLayout: (layout: GridLayout) => void;
   commitDrag: (pieceId: string, dx: number, dy: number) => void;
   handleTimeUp: () => void;
@@ -89,6 +91,7 @@ async function persistIfPlaying(state: GridSnapGameState): Promise<void> {
     imageSeed: state.puzzle.imageSeed,
     status: state.status,
     elapsedSec: state.elapsedSec,
+    peekUsed: state.peekUsed,
   };
 
   await saveJson(storageKeyForMode(state.mode), snapshot);
@@ -111,6 +114,7 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
   practiceInProgress: false,
   elapsedSec: 0,
   imageDecodeReady: false,
+  peekUsed: false,
 
   hydrateProgress: async () => {
     await refreshProgressFlags(set);
@@ -161,6 +165,7 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
           imageUrl,
           imageDecodeReady: IS_TEST_MODE,
           elapsedSec: saved.elapsedSec ?? 0,
+          peekUsed: saved.peekUsed ?? false,
         });
         applyTimeExpiredIfNeeded(get, set);
         await refreshProgressFlags(set);
@@ -201,6 +206,7 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
       gridWidth: 0,
       gridHeight: 0,
       elapsedSec: 0,
+      peekUsed: false,
     });
 
     const imageUrl = await resolveImageUrl(imageSeed);
@@ -220,6 +226,16 @@ export const useGridSnapStore = create<GridSnapGameState>((set, get) => ({
   setElapsedSec: (elapsedSec) => set({ elapsedSec }),
 
   setImageDecodeReady: (imageDecodeReady) => set({ imageDecodeReady }),
+
+  markPeekUsed: () => {
+    const state = get();
+    if (state.peekUsed || state.status !== 'playing') {
+      return;
+    }
+
+    set({ peekUsed: true });
+    void persistIfPlaying({ ...get(), peekUsed: true });
+  },
 
   setGridLayout: (layout) => {
     const current = get();
