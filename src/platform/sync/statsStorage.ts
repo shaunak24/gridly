@@ -259,7 +259,10 @@ export async function hasGuestStatsProgress(): Promise<boolean> {
     ? Object.values(gridSnap.byMode).some((mode) => mode.gamesPlayed > 0)
     : false;
   const colorFlowPlayed = colorFlow
-    ? Object.values(colorFlow.byMode).some((mode) => mode.gamesPlayed > 0)
+    ? Object.values(colorFlow.byMode).some((mode) => mode.gamesPlayed > 0) ||
+      Object.values(colorFlow.campaign?.seasons ?? {}).some(
+        (season) => season.completedLevels.length > 0 || season.highestUnlocked > 1,
+      )
     : false;
 
   return wordHuntPlayed || gridSnapPlayed || colorFlowPlayed;

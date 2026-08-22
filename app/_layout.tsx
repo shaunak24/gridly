@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useAuthStore } from '../src/platform/auth/authStore';
 import { useWelcomeStore } from '../src/platform/auth/welcomeStore';
 import { useColorFlowSettingsStore } from '../src/games/color-flow/stores/colorFlowSettingsStore';
+import { useColorFlowCampaignStore } from '../src/games/color-flow/stores/colorFlowCampaignStore';
 import { useColorFlowStatsStore } from '../src/games/color-flow/stores/colorFlowStatsStore';
 import { useColorFlowStore } from '../src/games/color-flow/stores/colorFlowStore';
 import { useGridSnapStatsStore } from '../src/games/grid-snap/stores/gridSnapStatsStore';
@@ -32,6 +33,7 @@ export default function RootLayout() {
   const hydrateGridSnapStats = useGridSnapStatsStore((s) => s.hydrate);
   const hydrateColorFlowSettings = useColorFlowSettingsStore((s) => s.hydrate);
   const hydrateColorFlowStats = useColorFlowStatsStore((s) => s.hydrate);
+  const hydrateColorFlowCampaign = useColorFlowCampaignStore((s) => s.hydrate);
   const hydrateColorFlowProgress = useColorFlowStore((s) => s.hydrateProgress);
   const hydrateGridSnapProgress = useGridSnapStore((s) => s.hydrateProgress);
   const isDark = useIsDarkTheme();
@@ -47,7 +49,7 @@ export default function RootLayout() {
     void hydrateGridSnapStats();
     void hydrateGridSnapProgress();
     void hydrateColorFlowSettings();
-    void hydrateColorFlowStats();
+    void hydrateColorFlowStats().then(() => hydrateColorFlowCampaign());
     void hydrateColorFlowProgress();
   }, [
     initAuth,
@@ -61,6 +63,7 @@ export default function RootLayout() {
     hydrateGridSnapProgress,
     hydrateColorFlowSettings,
     hydrateColorFlowStats,
+    hydrateColorFlowCampaign,
     hydrateColorFlowProgress,
   ]);
 

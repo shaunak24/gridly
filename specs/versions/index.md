@@ -1,11 +1,12 @@
 # Version specifications
 
-Shipped release scopes for Gridly. Each file is the authoritative acceptance criteria for that semver. **Current release:** [v4.6.0](./v4.6.0.md). History summary: [changelog.md](../changelog.md).
+Shipped release scopes for Gridly. Each file is the authoritative acceptance criteria for that semver. **Current release:** [v4.6.1](./v4.6.1.md). History summary: [changelog.md](../changelog.md).
 
 ## v4.x — Color Flow, invites, Play Store
 
 | Version | Summary |
 |---------|---------|
+| [v4.6.1](./v4.6.1.md) | Color Flow campaign progress persistence fix |
 | [v4.6.0](./v4.6.0.md) | Ambient background music and timer urgency |
 | [v4.5.0](./v4.5.0.md) | Color Flow Flow Path — 100-level campaign |
 | [v4.4.0](./v4.4.0.md) | Grid Snap peek image hint |

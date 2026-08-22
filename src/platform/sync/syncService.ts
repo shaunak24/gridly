@@ -1,4 +1,5 @@
 import { useColorFlowSettingsStore } from '../../games/color-flow/stores/colorFlowSettingsStore';
+import { useColorFlowCampaignStore } from '../../games/color-flow/stores/colorFlowCampaignStore';
 import { useColorFlowStatsStore } from '../../games/color-flow/stores/colorFlowStatsStore';
 import { useGridSnapSettingsStore } from '../../games/grid-snap/stores/gridSnapSettingsStore';
 import { useGridSnapStatsStore } from '../../games/grid-snap/stores/gridSnapStatsStore';
@@ -169,7 +170,11 @@ async function loadUserStatsSnapshot(
       : null,
     colorFlow: colorFlowStats
       ? toColorFlowStatsCloud(
-          { daily: colorFlowStats.daily, byMode: colorFlowStats.byMode },
+          {
+            daily: colorFlowStats.daily,
+            byMode: colorFlowStats.byMode,
+            campaign: colorFlowStats.campaign,
+          },
           null,
           colorFlowStats.updatedAt,
         )
@@ -221,6 +226,11 @@ async function applySnapshot(snapshot: UserCloudSnapshot): Promise<void> {
     byMode: colorFlowStats.statsByMode.byMode,
     campaign: colorFlowStats.statsByMode.campaign ?? emptyColorFlowStoredStats().campaign!,
     dailyCompletedDate: colorFlowStats.dailyCompletedDate,
+    hydrated: true,
+  });
+
+  useColorFlowCampaignStore.setState({
+    progress: useColorFlowStatsStore.getState().getCampaignProgress(),
     hydrated: true,
   });
 
@@ -399,6 +409,8 @@ export async function pushSnapshotWithTimeout(
 }
 
 export async function rehydrateLocalStores(): Promise<void> {
+  const { useColorFlowCampaignStore } = await import('../../games/color-flow/stores/colorFlowCampaignStore');
+
   await Promise.all([
     useAppSettingsStore.getState().hydrate(),
     useWordHuntSettingsStore.getState().hydrate(),
@@ -408,6 +420,11 @@ export async function rehydrateLocalStores(): Promise<void> {
     useGridSnapStatsStore.getState().hydrate(),
     useColorFlowStatsStore.getState().hydrate(),
   ]);
+
+  useColorFlowCampaignStore.setState({
+    progress: useColorFlowStatsStore.getState().getCampaignProgress(),
+    hydrated: true,
+  });
 }
 
 let lastPostSignInUserId: string | null = null;

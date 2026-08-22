@@ -78,15 +78,14 @@ export const useColorFlowStatsStore = create<ColorFlowStatsState>((set, get) => 
 
   persist: async () => {
     const state = get();
-    if (getActiveStatsUserId()) {
-      await pushIfSignedIn();
-      return;
-    }
-
     await saveColorFlowStats(toPayload(state));
 
     if (state.dailyCompletedDate) {
       await saveDailyCompletedDate('color-flow', state.dailyCompletedDate);
+    }
+
+    if (getActiveStatsUserId()) {
+      await pushIfSignedIn();
     }
   },
 
@@ -99,10 +98,9 @@ export const useColorFlowStatsStore = create<ColorFlowStatsState>((set, get) => 
   setCampaignProgress: async (campaign) => {
     set({ campaign });
     const state = get();
+    await saveColorFlowStats(toPayload(state));
     if (getActiveStatsUserId()) {
       await pushIfSignedIn();
-    } else {
-      await saveColorFlowStats(toPayload(state));
     }
   },
 
@@ -111,10 +109,9 @@ export const useColorFlowStatsStore = create<ColorFlowStatsState>((set, get) => 
     const next = recordColorFlowGameResult(toPayload(state), difficulty, mode, won, elapsedSec);
 
     set({ daily: next.daily, byMode: next.byMode, campaign: next.campaign ?? state.campaign });
+    await saveColorFlowStats(toPayload(get()));
     if (getActiveStatsUserId()) {
       await pushIfSignedIn();
-    } else {
-      await saveColorFlowStats(next);
     }
   },
 

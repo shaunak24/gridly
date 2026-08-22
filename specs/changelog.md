@@ -6,6 +6,20 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v4.6.1
+
+**Status:** Complete — see [v4.6.1.md](./versions/v4.6.1.md).
+
+#### Player-facing
+
+- **Color Flow Flow Path** — level progress persists across app restart and sign-out; Continue loads the in-progress level reliably
+
+#### Engineering
+
+- Local-first campaign stats save; fix `loadUserStatsSnapshot` dropping `campaign`; reconcile stale campaign sessions
+
+---
+
 ### v4.6.0
 
 **Status:** Complete — see [v4.6.0.md](./versions/v4.6.0.md).

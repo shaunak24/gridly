@@ -91,7 +91,28 @@ function difficultyForLevelSpec(spec: LevelSpec): FlowDifficulty {
   return 'hard';
 }
 
+async function reconcileStaleCampaignSave(): Promise<void> {
+  const saved = await loadJson<PersistedFlowGame>(storageKeys.colorFlowSavedCampaign);
+  if (!isValidSavedGame(saved) || saved.mode !== 'campaign' || saved.status !== 'playing') {
+    return;
+  }
+
+  if (!saved.seasonId || !saved.level) {
+    await removeKey(storageKeys.colorFlowSavedCampaign);
+    return;
+  }
+
+  await useColorFlowCampaignStore.getState().hydrate();
+  const playable = useColorFlowCampaignStore
+    .getState()
+    .isLevelPlayable(saved.seasonId, saved.level);
+  if (!playable) {
+    await removeKey(storageKeys.colorFlowSavedCampaign);
+  }
+}
+
 async function refreshProgressFlags(set: (partial: Partial<ColorFlowGameState>) => void): Promise<void> {
+  await reconcileStaleCampaignSave();
   const [dailyInProgress, practiceInProgress, campaignInProgress] = await Promise.all([
     loadJson<PersistedFlowGame>(storageKeys.colorFlowSavedDaily).then(
       (game) => isValidSavedGame(game) && game.status === 'playing',

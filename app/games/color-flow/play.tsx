@@ -131,15 +131,20 @@ export default function ColorFlowPlayScreen() {
         if (!campaignStore.hydrated) {
           await campaignStore.hydrate();
         }
-        const playable = campaignStore.isLevelPlayable(seasonId, level);
-        if (!playable) {
-          router.replace('/games/color-flow/journey');
-          return;
+        if (!continueGame) {
+          const playable = campaignStore.isLevelPlayable(seasonId, level);
+          if (!playable) {
+            router.replace('/games/color-flow/journey');
+            return;
+          }
         }
       }
 
       if (continueGame) {
-        await resumeOrStartGame(mode, campaignParams);
+        const started = await resumeOrStartGame(mode, campaignParams);
+        if (!started && mode === 'campaign') {
+          await startGame(mode, campaignParams);
+        }
         return;
       }
 
