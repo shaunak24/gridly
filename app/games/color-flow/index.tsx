@@ -1,10 +1,13 @@
 import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { formatDailyCountdownTimer } from '../../../src/games/word-hunt/hooks/dailyCountdownUtil';
 import { useDailyCountdown } from '../../../src/games/word-hunt/hooks/useDailyCountdown';
 import { ColorFlowIcon } from '../../../src/games/color-flow/components/ColorFlowIcon';
+import { SEASON_1_ID } from '../../../src/games/color-flow/core/seasons';
+import { useColorFlowCampaignStore } from '../../../src/games/color-flow/stores/colorFlowCampaignStore';
 import { useColorFlowStatsStore } from '../../../src/games/color-flow/stores/colorFlowStatsStore';
 import { useColorFlowStore } from '../../../src/games/color-flow/stores/colorFlowStore';
 import { HeaderBackButton } from '../../../src/shared/components/HeaderBackButton';
@@ -16,13 +19,30 @@ export default function ColorFlowHubScreen() {
   const router = useRouter();
   const theme = useTheme();
   useHardwareBack('/home');
+
+  const hydrateCampaign = useColorFlowCampaignStore((s) => s.hydrate);
+  const campaignProgress = useColorFlowCampaignStore((s) => s.progress);
+  const getCurrentLevel = useColorFlowCampaignStore((s) => s.getCurrentLevel);
+
   const dailyDone = useColorFlowStatsStore((s) => s.isDailyCompleteToday());
   const dailyStats = useColorFlowStatsStore((s) => s.getDailyStats());
   const gamesPlayed = dailyStats.gamesPlayed;
   const currentStreak = dailyStats.currentStreak;
   const dailyInProgress = useColorFlowStore((s) => s.dailyInProgress);
   const practiceInProgress = useColorFlowStore((s) => s.practiceInProgress);
+  const campaignInProgress = useColorFlowStore((s) => s.campaignInProgress);
   const remainingMs = useDailyCountdown(dailyDone);
+
+  const seasonId = campaignProgress.activeSeasonId || SEASON_1_ID;
+  const seasonStats = campaignProgress.seasons[seasonId];
+  const completedCount = seasonStats?.completedLevels.length ?? 0;
+  const currentLevel = getCurrentLevel(seasonId);
+
+  useEffect(() => {
+    void hydrateCampaign();
+  }, [hydrateCampaign]);
+
+  const journeyLabel = campaignInProgress ? `Continue Level ${currentLevel}` : `Play Level ${currentLevel}`;
 
   const dailyLabel = dailyDone
     ? "Today's puzzle complete"
@@ -47,10 +67,17 @@ export default function ColorFlowHubScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.content}>
           <ColorFlowIcon size={96} />
-          <Text style={[styles.tagline, { color: theme.textSecondary }]}>Connect the dots. Fill the grid.</Text>
+          <Text style={[styles.tagline, { color: theme.textSecondary }]}>
+            Connect the dots. Fill the grid.
+          </Text>
+          {completedCount > 0 ? (
+            <Text style={[styles.progressChip, { color: theme.coral }]}>
+              Season 1 · {completedCount} / 100 complete
+            </Text>
+          ) : null}
           {gamesPlayed > 0 ? (
-            <Text style={[styles.streak, { color: theme.coral }]}>
-              Streak: {currentStreak} · Played: {gamesPlayed}
+            <Text style={[styles.streak, { color: theme.textSecondary }]}>
+              Daily streak: {currentStreak} · Played: {gamesPlayed}
             </Text>
           ) : null}
         </View>
@@ -60,7 +87,18 @@ export default function ColorFlowHubScreen() {
             style={({ pressed }) => [
               styles.primaryButton,
               { backgroundColor: theme.coral },
-              dailyDone && styles.primaryButtonDone,
+              pressed && styles.pressed,
+            ]}
+            onPress={() => router.replace('/games/color-flow/journey')}
+          >
+            <Text style={[styles.primaryText, { color: theme.textPrimary }]}>{journeyLabel}</Text>
+            <Text style={[styles.primarySubtext, { color: theme.textPrimary }]}>Flow Path</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.secondaryButton,
+              { backgroundColor: theme.card, borderColor: theme.border },
               dailyDone && styles.disabledButton,
               pressed && !dailyDone && styles.pressed,
             ]}
@@ -75,9 +113,9 @@ export default function ColorFlowHubScreen() {
             }
             disabled={dailyDone}
           >
-            <Text style={[styles.primaryText, { color: theme.textPrimary }]}>{dailyLabel}</Text>
+            <Text style={[styles.secondaryText, { color: theme.textPrimary }]}>{dailyLabel}</Text>
             {dailyDone ? (
-              <Text style={[styles.countdownText, { color: theme.textPrimary }]}>
+              <Text style={[styles.countdownText, { color: theme.textSecondary }]}>
                 {formatDailyCountdownTimer(remainingMs)}
               </Text>
             ) : null}
@@ -138,39 +176,38 @@ const styles = StyleSheet.create({
   },
   content: { alignItems: 'center', gap: 12 },
   tagline: { fontSize: 16, textAlign: 'center' },
+  progressChip: { fontSize: 14, fontWeight: '700' },
   streak: { fontSize: 14, fontWeight: '600' },
   actions: { gap: 10, marginTop: 32 },
   primaryButton: {
     borderRadius: 10,
-    minHeight: 52,
+    minHeight: 56,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  primaryButtonDone: {
-    position: 'relative',
-    minHeight: 56,
     paddingHorizontal: 16,
-    paddingBottom: 10,
+    paddingVertical: 10,
   },
-  disabledButton: { opacity: 0.55 },
   primaryText: { fontSize: 18, fontWeight: '700' },
-  countdownText: {
-    position: 'absolute',
-    right: 12,
-    bottom: 6,
-    fontSize: 13,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
-    opacity: 0.9,
-  },
+  primarySubtext: { fontSize: 13, fontWeight: '600', opacity: 0.85, marginTop: 2 },
+  disabledButton: { opacity: 0.55 },
   secondaryButton: {
     borderRadius: 10,
     minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
+    position: 'relative',
+    paddingHorizontal: 16,
   },
   secondaryText: { fontSize: 16, fontWeight: '600' },
+  countdownText: {
+    position: 'absolute',
+    right: 12,
+    bottom: 6,
+    fontSize: 12,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+  },
   linkButton: { minHeight: 40, alignItems: 'center', justifyContent: 'center' },
   linkText: { fontSize: 16, fontWeight: '600' },
   pressed: { opacity: 0.85 },

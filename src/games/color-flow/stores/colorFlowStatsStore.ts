@@ -21,6 +21,7 @@ import {
   emptyColorFlowStatsByMode,
   emptyColorFlowStoredStats,
   recordColorFlowGameResult,
+  type ColorFlowCampaignProgress,
   type ColorFlowModeStats,
   type ColorFlowStatsByMode,
   type ColorFlowStoredStats,
@@ -29,12 +30,15 @@ import {
 interface ColorFlowStatsState {
   daily: DailyChallengeStats;
   byMode: ColorFlowStatsByMode;
+  campaign: ColorFlowCampaignProgress;
   dailyCompletedDate: string | null;
   hydrated: boolean;
   hydrate: () => Promise<void>;
   persist: () => Promise<void>;
   getModeStats: (difficulty: FlowDifficulty) => ColorFlowModeStats;
   getDailyStats: () => DailyChallengeStats;
+  getCampaignProgress: () => ColorFlowCampaignProgress;
+  setCampaignProgress: (campaign: ColorFlowCampaignProgress) => Promise<void>;
   recordResult: (
     difficulty: FlowDifficulty,
     mode: FlowMode,
@@ -45,13 +49,14 @@ interface ColorFlowStatsState {
   isDailyCompleteToday: () => boolean;
 }
 
-function toPayload(state: Pick<ColorFlowStatsState, 'daily' | 'byMode'>): ColorFlowStoredStats {
-  return { daily: state.daily, byMode: state.byMode };
+function toPayload(state: Pick<ColorFlowStatsState, 'daily' | 'byMode' | 'campaign'>): ColorFlowStoredStats {
+  return { daily: state.daily, byMode: state.byMode, campaign: state.campaign };
 }
 
 export const useColorFlowStatsStore = create<ColorFlowStatsState>((set, get) => ({
   daily: emptyDailyChallengeStats(),
   byMode: emptyColorFlowStatsByMode(),
+  campaign: emptyColorFlowStoredStats().campaign!,
   dailyCompletedDate: null,
   hydrated: false,
 
@@ -65,6 +70,7 @@ export const useColorFlowStatsStore = create<ColorFlowStatsState>((set, get) => 
     set({
       daily: stored.daily,
       byMode: stored.byMode,
+      campaign: stored.campaign ?? emptyColorFlowStoredStats().campaign!,
       dailyCompletedDate: dailyCompleted,
       hydrated: true,
     });
@@ -88,11 +94,23 @@ export const useColorFlowStatsStore = create<ColorFlowStatsState>((set, get) => 
 
   getDailyStats: () => get().daily,
 
+  getCampaignProgress: () => get().campaign,
+
+  setCampaignProgress: async (campaign) => {
+    set({ campaign });
+    const state = get();
+    if (getActiveStatsUserId()) {
+      await pushIfSignedIn();
+    } else {
+      await saveColorFlowStats(toPayload(state));
+    }
+  },
+
   recordResult: async (difficulty, mode, won, elapsedSec) => {
     const state = get();
     const next = recordColorFlowGameResult(toPayload(state), difficulty, mode, won, elapsedSec);
 
-    set({ daily: next.daily, byMode: next.byMode });
+    set({ daily: next.daily, byMode: next.byMode, campaign: next.campaign ?? state.campaign });
     if (getActiveStatsUserId()) {
       await pushIfSignedIn();
     } else {

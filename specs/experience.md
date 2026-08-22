@@ -114,22 +114,33 @@ Mirrors Word Hunt hub structure for the image jigsaw game.
 
 ## Color Flow hub
 
-Mirrors Grid Snap hub structure for the path-drawing puzzle.
+Primary mode is the **Flow Path** level campaign; Daily and Practice remain as secondary modes.
 
 ### Layout
 
 - **Back to Gridly**
 - **Game icon** — mini grid with coral and teal flow paths connecting endpoint dots
 - **Tagline** — "Connect the dots. Fill the grid."
-- **Streak summary** when stats exist
-- **Play daily** / **Continue daily** — countdown when complete
+- **Season progress** when campaign stats exist (e.g. `Season 1 · 23 / 100 complete`)
+- **Daily streak summary** when daily stats exist (practice and campaign do not affect streak)
+- **Primary CTA** — **Play Level N** / **Continue Level N** → Flow Path journey map
+- **Play daily** / **Continue daily** — countdown when complete; fixed medium-tier puzzle (6×6, 4 pairs)
 - **Practice** / **Continue practice**
 - **Stats** · **How to play**
-- **Settings** (gear) — default difficulty picker; daily reminder toggle and time picker (default on at 9:00 AM)
+- **Settings** (gear) — practice difficulty picker; daily reminder toggle and time picker (default on at 9:00 AM)
+
+## Color Flow Flow Path (journey map)
+
+- Route: `/games/color-flow/journey`
+- **Season header** — title, completed count, progress bar
+- **Scrollable path map** — levels as rounded-square nodes on a winding orthogonal path; completed nodes show a check and path tint; current node pulses coral; locked nodes are dim and not tappable
+- **Reach labels** every 20 levels (Still Waters, Crosswinds, Rapids, Deep Run, The Source)
+- Tap any unlocked level to play or replay
+- Sticky **Play Level N** / **Continue Level N** at the bottom
 
 ## Color Flow play
 
-- Square grid with colored endpoint dots and orthogonal path drawing
+- Header shows **Daily**, **Practice**, or **Level N** depending on mode
 - Status pill shows connected flows and filled cells (`Cells: 47/64`)
 - Touching down picks the color: a dot starts that flow over, a drawn cell picks up that flow and trims to it, an empty cell does nothing. The color stays locked for the rest of the drag
 - Dragging over another color's path cuts that path **before** the crossed cell; dragging backward erases the active tail
@@ -259,7 +270,9 @@ Screen from home for sharing a custom word challenge.
 | Platform home | Color Flow | Game card |
 | Word Hunt hub | Play | Daily / Practice / Custom |
 | Grid Snap hub | Play | Daily / Practice |
-| Color Flow hub | Play | Daily / Practice |
+| Color Flow hub | Play | Flow Path / Daily / Practice |
+| Color Flow hub | Flow Path | Journey map |
+| Color Flow journey | Play level | Campaign play |
 | Deep link | Custom puzzle (invite) | `gridly://games/word-hunt/play?mode=custom&invite=…` |
 | Deep link | Custom puzzle (legacy) | `gridly://games/word-hunt/play?mode=custom&code=g1:…` |
 | HTTPS invite | Custom puzzle | `{SUPABASE_URL}/functions/v1/resolve-invite/{id}` → branded landing page; on Android the **Open in Gridly** button uses an `intent://` URL in the initial HTML (from User-Agent), then auto-redirect; opens `gridly://games/word-hunt/play?mode=custom&invite=…` in the APK |
@@ -270,7 +283,8 @@ Screen from home for sharing a custom word challenge.
 | Platform home | App settings | Gear icon |
 | Word Hunt play | Word Hunt hub | **Home** (header) |
 | Grid Snap play | Grid Snap hub | **Home** (header) |
-| Color Flow play | Color Flow hub | **Home** (header) |
+| Color Flow play (daily/practice) | Color Flow hub | **Home** (header) |
+| Color Flow play (campaign) | Flow Path map | **Home** (header) |
 | Game hub | Platform home | **Gridly** back button or Android hardware back |
 | Android hardware back | Parent screen in app hierarchy | System back (not browser history); platform home consumes back |
 | Win / Loss modal | Board | Dismiss modal (✕) |

@@ -5,8 +5,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FlowBoardView } from '../../../src/games/color-flow/components/FlowBoard';
 import { filledCellCount } from '../../../src/games/color-flow/core/flowEngine';
+import { getSeasonById, SEASON_1_ID } from '../../../src/games/color-flow/core/seasons';
 import type { FlowMode } from '../../../src/games/color-flow/core/types';
-import { timeLimitSecForDifficulty } from '../../../src/games/color-flow/core/timeLimit';
+import { useColorFlowCampaignStore } from '../../../src/games/color-flow/stores/colorFlowCampaignStore';
 import { useColorFlowStatsStore } from '../../../src/games/color-flow/stores/colorFlowStatsStore';
 import { useColorFlowStore } from '../../../src/games/color-flow/stores/colorFlowStore';
 import { GameEndExperience } from '../../../src/shared/components/GameEndExperience';
@@ -22,7 +23,13 @@ import { formatElapsedSeconds } from '../../../src/shared/utils/formatElapsed';
 import { success } from '../../../src/shared/utils/haptics';
 
 function resolveMode(modeParam?: string): FlowMode {
-  return modeParam === 'daily' ? 'daily' : 'practice';
+  if (modeParam === 'daily') {
+    return 'daily';
+  }
+  if (modeParam === 'campaign') {
+    return 'campaign';
+  }
+  return 'practice';
 }
 
 function shouldContinue(continueParam?: string): boolean {
@@ -30,25 +37,40 @@ function shouldContinue(continueParam?: string): boolean {
 }
 
 function toEndMode(mode: FlowMode): GameEndMode {
+  if (mode === 'campaign') {
+    return 'campaign';
+  }
   return mode;
 }
 
 export default function ColorFlowPlayScreen() {
   const router = useRouter();
   const theme = useTheme();
-  useHardwareBack('/games/color-flow');
-  const { mode: modeParam, continue: continueParam } = useLocalSearchParams<{
+  const {
+    mode: modeParam,
+    continue: continueParam,
+    season: seasonParam,
+    level: levelParam,
+  } = useLocalSearchParams<{
     mode?: string;
     continue?: string;
+    season?: string;
+    level?: string;
   }>();
   const mode = resolveMode(modeParam);
   const continueGame = shouldContinue(continueParam);
+  const seasonId = seasonParam ?? SEASON_1_ID;
+  const level = Math.max(1, Number.parseInt(levelParam ?? '1', 10) || 1);
+  const backParent = mode === 'campaign' ? '/games/color-flow/journey' : '/games/color-flow';
+  useHardwareBack(backParent);
+  const season = getSeasonById(seasonId);
+  const levelCount = season?.levelCount ?? 100;
 
-  // Per-field selectors: the timer ticks once a second, and a whole-store
-  // subscription would re-render the board on every tick.
   const status = useColorFlowStore((state) => state.status);
   const activeMode = useColorFlowStore((state) => state.mode);
-  const difficulty = useColorFlowStore((state) => state.difficulty);
+  const activeSeasonId = useColorFlowStore((state) => state.seasonId);
+  const activeLevel = useColorFlowStore((state) => state.level);
+  const timeLimitSec = useColorFlowStore((state) => state.timeLimitSec);
   const gameSessionId = useColorFlowStore((state) => state.gameSessionId);
   const elapsedSec = useColorFlowStore((state) => state.elapsedSec);
   const board = useColorFlowStore((state) => state.board);
@@ -64,7 +86,10 @@ export default function ColorFlowPlayScreen() {
   const handleTimeUp = useColorFlowStore((state) => state.handleTimeUp);
   const persistSession = useColorFlowStore((state) => state.persistSession);
 
-  const limitSec = useMemo(() => timeLimitSecForDifficulty(difficulty), [difficulty]);
+  const campaignParams = useMemo(
+    () => (mode === 'campaign' ? { seasonId, level } : undefined),
+    [mode, seasonId, level],
+  );
 
   const getBaseElapsedSec = useCallback(() => useColorFlowStore.getState().elapsedSec, []);
   const { remainingDisplay } = useGameTimeLimit({
@@ -72,12 +97,24 @@ export default function ColorFlowPlayScreen() {
     resetKey: gameSessionId,
     getBaseElapsedSec,
     onTick: setElapsedSec,
-    limitSec,
+    limitSec: timeLimitSec,
     onTimeUp: handleTimeUp,
   });
 
   useEffect(() => {
     const init = async () => {
+      const store = useColorFlowStore.getState();
+      if (
+        mode === 'campaign' &&
+        !continueGame &&
+        store.mode === 'campaign' &&
+        store.seasonId === seasonId &&
+        store.level === level &&
+        store.status === 'playing'
+      ) {
+        return;
+      }
+
       if (mode === 'daily' && useColorFlowStatsStore.getState().isDailyCompleteToday()) {
         const started = await resumeOrStartGame('daily');
         if (!started) {
@@ -86,16 +123,28 @@ export default function ColorFlowPlayScreen() {
         return;
       }
 
+      if (mode === 'campaign') {
+        const campaignStore = useColorFlowCampaignStore.getState();
+        if (!campaignStore.hydrated) {
+          await campaignStore.hydrate();
+        }
+        const playable = campaignStore.isLevelPlayable(seasonId, level);
+        if (!playable) {
+          router.replace('/games/color-flow/journey');
+          return;
+        }
+      }
+
       if (continueGame) {
-        await resumeOrStartGame(mode);
+        await resumeOrStartGame(mode, campaignParams);
         return;
       }
 
-      await startGame(mode);
+      await startGame(mode, campaignParams);
     };
 
     void init();
-  }, [mode, continueGame, resumeOrStartGame, startGame, router]);
+  }, [mode, continueGame, seasonId, level, campaignParams, resumeOrStartGame, startGame, router]);
 
   useFlushGameSessionOnBlur(persistSession);
 
@@ -107,16 +156,37 @@ export default function ColorFlowPlayScreen() {
 
   const goHome = useCallback(() => {
     void persistSession();
+    if (mode === 'campaign') {
+      router.replace('/games/color-flow/journey');
+      return;
+    }
     router.replace('/games/color-flow');
-  }, [router, persistSession]);
+  }, [router, persistSession, mode]);
 
   const handlePractice = useCallback(() => {
-    void startGame('practice');
-  }, [startGame]);
+    router.replace({ pathname: '/games/color-flow/play', params: { mode: 'practice' } });
+  }, [router]);
 
   const handlePlayAgain = useCallback(() => {
+    if (activeMode === 'campaign') {
+      void startGame('campaign', { seasonId: activeSeasonId, level: activeLevel });
+      return;
+    }
     void startGame(activeMode);
-  }, [startGame, activeMode]);
+  }, [startGame, activeMode, activeSeasonId, activeLevel]);
+
+  const handleNextLevel = useCallback(() => {
+    const nextLevel = activeLevel + 1;
+    if (nextLevel > levelCount) {
+      router.replace('/games/color-flow/journey');
+      return;
+    }
+    void startGame('campaign', { seasonId: activeSeasonId, level: nextLevel });
+  }, [activeLevel, activeSeasonId, levelCount, router, startGame]);
+
+  const handleBackToMap = useCallback(() => {
+    router.replace('/games/color-flow/journey');
+  }, [router]);
 
   const handleReset = useCallback(() => {
     presentAppMessage({
@@ -131,7 +201,10 @@ export default function ColorFlowPlayScreen() {
 
   const outcome: GameEndOutcome =
     status === 'won' ? 'won' : status === 'lost' ? 'lost' : 'playing';
-  const headerLabel = mode === 'daily' ? 'Daily' : 'Practice';
+
+  const headerLabel =
+    mode === 'daily' ? 'Daily' : mode === 'campaign' ? `Level ${activeLevel || level}` : 'Practice';
+
   const canReset = status === 'playing' && Boolean(gameState) && filledCellCount(gameState!.paths) > 0;
   const endMessage =
     outcome === 'won' ? 'Flow complete!' : outcome === 'lost' ? "Time's up" : '';
@@ -139,7 +212,22 @@ export default function ColorFlowPlayScreen() {
   const timerDisplay =
     status === 'playing'
       ? remainingDisplay
-      : formatElapsedSeconds(Math.min(elapsedSec, limitSec));
+      : formatElapsedSeconds(Math.min(elapsedSec, timeLimitSec));
+
+  const campaignWin = mode === 'campaign' && outcome === 'won';
+  const hasNextLevel = activeLevel < levelCount;
+  const endPrimaryAction = campaignWin && hasNextLevel ? handleNextLevel : handlePlayAgain;
+  const endPrimaryLabel = campaignWin && hasNextLevel ? 'Next level' : 'Try again';
+
+  const endFooter =
+    mode === 'campaign' && outcome !== 'playing' ? (
+      <Pressable
+        style={({ pressed }) => [styles.mapLink, pressed && styles.pressed]}
+        onPress={handleBackToMap}
+      >
+        <Text style={[styles.mapLinkText, { color: theme.textSecondary }]}>Back to map</Text>
+      </Pressable>
+    ) : undefined;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -186,8 +274,11 @@ export default function ColorFlowPlayScreen() {
         outcome={outcome}
         mode={toEndMode(mode)}
         message={endMessage}
-        onPlayAgain={handlePlayAgain}
-        onPractice={handlePractice}
+        onPlayAgain={endPrimaryAction}
+        playAgainLabel={endPrimaryLabel}
+        onPractice={mode === 'daily' ? handlePractice : undefined}
+        endFooter={endFooter}
+        modalFooter={endFooter}
         endAreaStyle={styles.endArea}
       />
     </SafeAreaView>
@@ -221,6 +312,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   resetText: { fontSize: 14, fontWeight: '600' },
+  mapLink: {
+    minHeight: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  mapLinkText: { fontSize: 15, fontWeight: '600' },
   pressed: { opacity: 0.85 },
   endArea: {
     flex: 0,

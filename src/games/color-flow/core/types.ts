@@ -1,6 +1,12 @@
 export type FlowDifficulty = 'easy' | 'medium' | 'hard';
-export type FlowMode = 'daily' | 'practice';
+export type FlowMode = 'daily' | 'practice' | 'campaign';
 export type FlowStatus = 'idle' | 'loading' | 'playing' | 'won' | 'lost';
+
+export interface LevelSpec {
+  gridSize: number;
+  pairCount: number;
+  timeLimitSec: number;
+}
 
 export const GRID_SIZE_BY_DIFFICULTY: Record<FlowDifficulty, number> = {
   easy: 4,
@@ -50,4 +56,8 @@ export interface PersistedFlowGame {
   status: FlowStatus;
   elapsedSec: number;
   activeColorId: string | null;
+  seasonId?: string;
+  level?: number;
+  levelSpec?: LevelSpec;
+  timeLimitSec?: number;
 }

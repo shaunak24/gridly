@@ -35,6 +35,7 @@ const KEYS = {
   colorFlowDailyCompletedUserPrefix: '@gridly/color-flow/dailyCompleted/user/',
   colorFlowSavedDaily: '@gridly/color-flow/savedDaily',
   colorFlowSavedPractice: '@gridly/color-flow/savedPractice',
+  colorFlowSavedCampaign: '@gridly/color-flow/savedCampaign',
   colorFlowDifficulty: '@gridly/color-flow/difficulty',
   colorFlowNotifications: '@gridly/color-flow/notifications',
   colorFlowReminderHour: '@gridly/color-flow/reminderHour',

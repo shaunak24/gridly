@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { SEASON_1_ID } from '../../../src/games/color-flow/core/seasons';
 import type { FlowDifficulty } from '../../../src/games/color-flow/core/types';
 import { useColorFlowStatsStore } from '../../../src/games/color-flow/stores/colorFlowStatsStore';
 import { HeaderHomeButton } from '../../../src/shared/components/HeaderHomeButton';
@@ -27,6 +28,11 @@ export default function ColorFlowStatsScreen() {
   const [mode, setMode] = useState<FlowDifficulty>('easy');
   const stats = useColorFlowStatsStore((state) => state.getModeStats(mode));
   const daily = useColorFlowStatsStore((state) => state.getDailyStats());
+  const campaign = useColorFlowStatsStore((state) => state.getCampaignProgress());
+  const seasonId = campaign.activeSeasonId || SEASON_1_ID;
+  const seasonProgress = campaign.seasons[seasonId];
+  const completedCount = seasonProgress?.completedLevels.length ?? 0;
+  const currentLevel = seasonProgress?.highestUnlocked ?? 1;
 
   const { gamesPlayed, gamesWon, time } = stats;
   const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
@@ -43,6 +49,13 @@ export default function ColorFlowStatsScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <SyncHint />
 
+        <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Flow Path</Text>
+        <View style={styles.row}>
+          <StatCard label="Completed" value={String(completedCount)} theme={theme} />
+          <StatCard label="Current" value={String(currentLevel)} theme={theme} />
+          <StatCard label="Progress" value={`${Math.round((completedCount / 100) * 100)}%`} theme={theme} />
+        </View>
+
         <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Daily challenge</Text>
         <View style={styles.row}>
           <StatCard label="Played" value={String(daily.gamesPlayed)} theme={theme} />
@@ -50,7 +63,7 @@ export default function ColorFlowStatsScreen() {
           <StatCard label="Max" value={String(daily.maxStreak)} theme={theme} />
         </View>
 
-        <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>By difficulty</Text>
+        <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Practice by difficulty</Text>
         <ModePicker
           options={COLOR_FLOW_STATS_MODES.map((value) => ({ value, label: MODE_LABELS[value] }))}
           value={mode}

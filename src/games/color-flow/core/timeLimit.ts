@@ -1,4 +1,4 @@
-import type { FlowDifficulty } from './types';
+import type { FlowDifficulty, LevelSpec } from './types';
 
 const LIMIT_SEC_BY_DIFFICULTY: Record<FlowDifficulty, number> = {
   easy: 300,
@@ -8,4 +8,8 @@ const LIMIT_SEC_BY_DIFFICULTY: Record<FlowDifficulty, number> = {
 
 export function timeLimitSecForDifficulty(difficulty: FlowDifficulty): number {
   return LIMIT_SEC_BY_DIFFICULTY[difficulty];
+}
+
+export function timeLimitSecForLevelSpec(spec: LevelSpec): number {
+  return spec.timeLimitSec;
 }

@@ -257,13 +257,17 @@ No iOS build exists (`eas.json` is Android-only). When one does:
 
 ### v4.3 — streaks, timers, back, definitions
 
-- [ ] Grid Snap / Color Flow hub streak increases only on **daily** wins; practice does not change it
+- [ ] Color Flow Flow Path: Level 1 playable; win unlocks Level 2; map shows progress
+- [ ] Color Flow Flow Path: replay completed level; loss does not block unlock
+- [ ] Color Flow daily uses fixed medium puzzle regardless of practice difficulty setting
+- [ ] Grid Snap / Color Flow hub streak increases only on **daily** wins; practice and campaign do not change it
 - [ ] Daily loss (time-up or abandon after time-up) resets streak and locks daily until midnight
 - [ ] Grid Snap / Color Flow header shows countdown; time-up shows loss modal like Word Hunt
 - [ ] Grid Snap / Color Flow: note elapsed time, tap Home, wait ~10s, Continue — timer resumes near the same value (does not reset)
 - [ ] Per-difficulty win % drops after a time-up loss
 - [ ] Grid Snap shows loading indicator before image tiles appear (try slow network)
 - [ ] Word Hunt win/loss may show definition when online (e.g. CRANE, SLATE)
+- [ ] Color Flow Flow Path: after several **Next level** wins, hardware back from map goes to hub (not through each play screen)
 - [ ] Android: stats → hardware back → game hub → hardware back → platform home
 - [ ] Apply `007_feedback_implemented.sql` on Supabase; toggle `implemented` in dashboard (app unchanged)
 

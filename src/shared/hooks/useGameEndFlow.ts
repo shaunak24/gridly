@@ -16,6 +16,7 @@ export interface UseGameEndFlowOptions {
   message: string;
   onPlayAgain: () => void;
   onPractice?: () => void;
+  playAgainLabel?: string;
   onShare?: () => void;
   shareLabel?: string;
   modalDelayMs?: number;
@@ -56,6 +57,7 @@ export function useGameEndFlow({
   message,
   onPlayAgain,
   onPractice,
+  playAgainLabel: playAgainLabelOverride,
   onShare,
   shareLabel = 'Share',
   modalDelayMs = GAME_END_MODAL_DELAY_MS,
@@ -110,8 +112,9 @@ export function useGameEndFlow({
 
   const barAction =
     isDailyFinished && onPractice ? wrapAction(onPractice) : wrapAction(onPlayAgain);
-  const playAgainLabel = isDailyFinished ? 'Practice' : 'Play again';
-  const modalPrimaryAction = showModalPrimary ? wrapAction(onPlayAgain) : undefined;
+  const playAgainLabel =
+    playAgainLabelOverride ?? (isDailyFinished ? 'Practice' : 'Play again');
+  const modalPrimaryLabel = showModalPrimary ? playAgainLabel : undefined;
 
   const endBarProps: GameEndBarProps = {
     message,
@@ -133,16 +136,16 @@ export function useGameEndFlow({
     winModalProps: {
       ...GAME_END_WIN_COPY,
       message,
-      primaryLabel: showModalPrimary ? 'Play again' : undefined,
-      onPrimary: modalPrimaryAction,
+      primaryLabel: modalPrimaryLabel,
+      onPrimary: showModalPrimary ? wrapAction(onPlayAgain) : undefined,
       onDismiss: dismissModal,
       footer: modalFooter ?? endFooter,
     },
     lossModalProps: {
       ...GAME_END_LOSS_COPY,
       message,
-      primaryLabel: showModalPrimary ? 'Play again' : undefined,
-      onPrimary: modalPrimaryAction,
+      primaryLabel: modalPrimaryLabel,
+      onPrimary: showModalPrimary ? wrapAction(onPlayAgain) : undefined,
       onDismiss: dismissModal,
       footer: modalFooter ?? endFooter,
     },

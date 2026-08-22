@@ -4,6 +4,7 @@ import type {
   FlowBoard,
   FlowDifficulty,
   FlowGameState,
+  LevelSpec,
   PathState,
   Point,
 } from './types';
@@ -154,10 +155,10 @@ function splitHamiltonianPath(path: Point[], pairCount: number): Point[][] {
   return segments.every((segment) => segment.length >= minSegment) ? segments : [];
 }
 
-export function generateBoard(difficulty: FlowDifficulty, seed: string): FlowBoard {
-  const rows = GRID_SIZE_BY_DIFFICULTY[difficulty];
-  const cols = rows;
-  const pairCount = PAIR_COUNT_BY_DIFFICULTY[difficulty];
+export function generateBoardFromSpec(spec: LevelSpec, seed: string): FlowBoard {
+  const rows = spec.gridSize;
+  const cols = spec.gridSize;
+  const pairCount = spec.pairCount;
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const rng = createRng(`${seed}:${attempt}`);
@@ -177,18 +178,24 @@ export function generateBoard(difficulty: FlowDifficulty, seed: string): FlowBoa
     return { rows, cols, pairs };
   }
 
-  return getCuratedFallbackBoard(difficulty);
+  return getCuratedFallbackBoardFromSpec(spec);
 }
 
-function getCuratedFallbackBoard(difficulty: FlowDifficulty): FlowBoard {
+export function generateBoard(difficulty: FlowDifficulty, seed: string): FlowBoard {
   const rows = GRID_SIZE_BY_DIFFICULTY[difficulty];
   const pairCount = PAIR_COUNT_BY_DIFFICULTY[difficulty];
+  return generateBoardFromSpec({ gridSize: rows, pairCount, timeLimitSec: 0 }, seed);
+}
+
+function getCuratedFallbackBoardFromSpec(spec: LevelSpec): FlowBoard {
+  const rows = spec.gridSize;
+  const pairCount = spec.pairCount;
   const pairs: ColorPair[] = [];
 
   for (let index = 0; index < pairCount; index += 1) {
-    const startRow = index;
+    const startRow = index % rows;
     const startCol = 0;
-    const endRow = rows - 1 - index;
+    const endRow = rows - 1 - (index % rows);
     const endCol = rows - 1;
     pairs.push({
       id: `color-${index}`,

@@ -1,5 +1,6 @@
 import type { FlowDifficulty } from '../../games/color-flow/core/types';
 import type { FlowMode } from '../../games/color-flow/core/types';
+import { SEASON_1_ID } from '../../games/color-flow/core/seasons';
 import {
   deriveDailyFromModeStreaks,
   emptyDailyChallengeStats,
@@ -24,9 +25,30 @@ export interface ColorFlowModeStats {
 
 export type ColorFlowStatsByMode = Record<ColorFlowStatsMode, ColorFlowModeStats>;
 
+export interface ColorFlowCampaignSeasonProgress {
+  highestUnlocked: number;
+  completedLevels: number[];
+}
+
+export interface ColorFlowCampaignProgress {
+  activeSeasonId: string;
+  seasons: Record<string, ColorFlowCampaignSeasonProgress>;
+}
+
+export interface ColorFlowCampaignSeasonStats {
+  highestUnlocked: number;
+  completedCount: number;
+}
+
+export interface ColorFlowCampaignStats {
+  activeSeasonId: string;
+  seasons: Record<string, ColorFlowCampaignSeasonStats>;
+}
+
 export interface ColorFlowStoredStats {
   daily: DailyChallengeStats;
   byMode: ColorFlowStatsByMode;
+  campaign?: ColorFlowCampaignProgress;
 }
 
 export function emptyColorFlowModeStats(): ColorFlowModeStats {
@@ -51,7 +73,70 @@ export function emptyColorFlowStoredStats(): ColorFlowStoredStats {
   return {
     daily: emptyDailyChallengeStats(),
     byMode: emptyColorFlowStatsByMode(),
+    campaign: emptyColorFlowCampaignProgress(),
   };
+}
+
+export function emptyColorFlowCampaignSeasonProgress(): ColorFlowCampaignSeasonProgress {
+  return { highestUnlocked: 1, completedLevels: [] };
+}
+
+export function emptyColorFlowCampaignProgress(): ColorFlowCampaignProgress {
+  return {
+    activeSeasonId: SEASON_1_ID,
+    seasons: {
+      [SEASON_1_ID]: emptyColorFlowCampaignSeasonProgress(),
+    },
+  };
+}
+
+export function campaignStatsFromProgress(progress: ColorFlowCampaignProgress): ColorFlowCampaignStats {
+  const seasons: Record<string, ColorFlowCampaignSeasonStats> = {};
+  for (const [seasonId, season] of Object.entries(progress.seasons)) {
+    seasons[seasonId] = {
+      highestUnlocked: season.highestUnlocked,
+      completedCount: season.completedLevels.length,
+    };
+  }
+  return { activeSeasonId: progress.activeSeasonId, seasons };
+}
+
+export function completeCampaignLevel(
+  progress: ColorFlowCampaignProgress,
+  seasonId: string,
+  level: number,
+  levelCount: number,
+): ColorFlowCampaignProgress {
+  const seasons = { ...progress.seasons };
+  const current = seasons[seasonId] ?? emptyColorFlowCampaignSeasonProgress();
+  const completedSet = new Set(current.completedLevels);
+  completedSet.add(level);
+  const completedLevels = [...completedSet].sort((a, b) => a - b);
+  const highestUnlocked = Math.max(current.highestUnlocked, Math.min(level + 1, levelCount));
+
+  seasons[seasonId] = { highestUnlocked, completedLevels };
+  return { activeSeasonId: progress.activeSeasonId, seasons };
+}
+
+export function isCampaignLevelPlayable(
+  progress: ColorFlowCampaignProgress,
+  seasonId: string,
+  level: number,
+): boolean {
+  const season = progress.seasons[seasonId];
+  if (!season) {
+    return level === 1;
+  }
+  return level <= season.highestUnlocked;
+}
+
+export function isCampaignLevelCompleted(
+  progress: ColorFlowCampaignProgress,
+  seasonId: string,
+  level: number,
+): boolean {
+  const season = progress.seasons[seasonId];
+  return season?.completedLevels.includes(level) ?? false;
 }
 
 export function recordColorFlowModeResult(
@@ -77,6 +162,10 @@ export function recordColorFlowGameResult(
   won: boolean,
   elapsedSec: number,
 ): ColorFlowStoredStats {
+  if (mode === 'campaign') {
+    return stored;
+  }
+
   const byMode = {
     ...stored.byMode,
     [difficulty]: recordColorFlowModeResult(stored.byMode[difficulty], won, elapsedSec),
@@ -87,7 +176,7 @@ export function recordColorFlowGameResult(
       ? recordDailyChallengeResult(stored.daily, won)
       : stored.daily;
 
-  return { daily, byMode };
+  return { daily, byMode, campaign: stored.campaign };
 }
 
 export function mergeColorFlowModeStats(a: ColorFlowModeStats, b: ColorFlowModeStats): ColorFlowModeStats {
@@ -111,13 +200,47 @@ export function mergeColorFlowStatsByMode(
   };
 }
 
+export function mergeColorFlowCampaignSeasonProgress(
+  a: ColorFlowCampaignSeasonProgress,
+  b: ColorFlowCampaignSeasonProgress,
+): ColorFlowCampaignSeasonProgress {
+  const completedSet = new Set([...a.completedLevels, ...b.completedLevels]);
+  return {
+    highestUnlocked: Math.max(a.highestUnlocked, b.highestUnlocked),
+    completedLevels: [...completedSet].sort((left, right) => left - right),
+  };
+}
+
+export function mergeColorFlowCampaignProgress(
+  local: ColorFlowCampaignProgress,
+  cloud: ColorFlowCampaignProgress,
+): ColorFlowCampaignProgress {
+  const seasonIds = new Set([...Object.keys(local.seasons), ...Object.keys(cloud.seasons)]);
+  const seasons: Record<string, ColorFlowCampaignSeasonProgress> = {};
+  for (const seasonId of seasonIds) {
+    const left = local.seasons[seasonId] ?? emptyColorFlowCampaignSeasonProgress();
+    const right = cloud.seasons[seasonId] ?? emptyColorFlowCampaignSeasonProgress();
+    seasons[seasonId] = mergeColorFlowCampaignSeasonProgress(left, right);
+  }
+  return {
+    activeSeasonId: local.activeSeasonId || cloud.activeSeasonId,
+    seasons,
+  };
+}
+
 export function mergeColorFlowStoredStats(
   local: ColorFlowStoredStats,
   cloud: ColorFlowStoredStats,
 ): ColorFlowStoredStats {
+  const campaign =
+    local.campaign && cloud.campaign
+      ? mergeColorFlowCampaignProgress(local.campaign, cloud.campaign)
+      : local.campaign ?? cloud.campaign ?? emptyColorFlowCampaignProgress();
+
   return {
     daily: mergeDailyChallengeStats(local.daily, cloud.daily),
     byMode: mergeColorFlowStatsByMode(local.byMode, cloud.byMode),
+    campaign,
   };
 }
 
@@ -148,7 +271,12 @@ export function normalizeColorFlowStoredStats(value: unknown): ColorFlowStoredSt
         ? { ...emptyDailyChallengeStats(), ...raw.daily }
         : deriveDailyFromModeStreaks(Object.values(normalizedByMode));
 
-    return { daily, byMode: normalizedByMode };
+    const campaign =
+      raw.campaign && typeof raw.campaign === 'object'
+        ? normalizeColorFlowCampaignProgress(raw.campaign)
+        : emptyColorFlowCampaignProgress();
+
+    return { daily, byMode: normalizedByMode, campaign };
   }
 
   if (isColorFlowStatsByModeOnly(value)) {
@@ -162,8 +290,39 @@ export function normalizeColorFlowStoredStats(value: unknown): ColorFlowStoredSt
     return {
       byMode: normalizedByMode,
       daily: deriveDailyFromModeStreaks(Object.values(normalizedByMode)),
+      campaign: emptyColorFlowCampaignProgress(),
     };
   }
 
   return emptyColorFlowStoredStats();
+}
+
+function normalizeColorFlowCampaignProgress(value: unknown): ColorFlowCampaignProgress {
+  const empty = emptyColorFlowCampaignProgress();
+  if (!value || typeof value !== 'object') {
+    return empty;
+  }
+
+  const raw = value as ColorFlowCampaignProgress;
+  const seasons: Record<string, ColorFlowCampaignSeasonProgress> = { ...empty.seasons };
+
+  if (raw.seasons && typeof raw.seasons === 'object') {
+    for (const [seasonId, seasonRaw] of Object.entries(raw.seasons)) {
+      if (!seasonRaw || typeof seasonRaw !== 'object') {
+        continue;
+      }
+      const completedLevels = Array.isArray(seasonRaw.completedLevels)
+        ? seasonRaw.completedLevels.filter((level) => Number.isInteger(level) && level > 0)
+        : [];
+      seasons[seasonId] = {
+        highestUnlocked: Math.max(1, Number(seasonRaw.highestUnlocked) || 1),
+        completedLevels: [...new Set(completedLevels)].sort((a, b) => a - b),
+      };
+    }
+  }
+
+  return {
+    activeSeasonId: typeof raw.activeSeasonId === 'string' ? raw.activeSeasonId : empty.activeSeasonId,
+    seasons,
+  };
 }

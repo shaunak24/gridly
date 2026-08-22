@@ -4,5 +4,6 @@ export async function clearSavedColorFlowGames(): Promise<void> {
   await Promise.all([
     removeKey(storageKeys.colorFlowSavedDaily),
     removeKey(storageKeys.colorFlowSavedPractice),
+    removeKey(storageKeys.colorFlowSavedCampaign),
   ]);
 }

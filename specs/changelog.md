@@ -6,9 +6,26 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v4.5.0
+
+**Status:** Complete — see [v4.5.0.md](./versions/v4.5.0.md).
+
+#### Player-facing
+
+- **Color Flow Flow Path** — 100-level Season 1 campaign with scrollable path map and gradually harder puzzles
+- **Daily** and **Practice** remain; daily uses fixed medium tier; practice difficulty is settings-only
+- **Android hardware back** — always returns to the parent screen in app hierarchy (fixes stacked play history after next level or play again)
+
+#### Engineering
+
+- `levelCurve`, `levelBank`, `seasons`, `colorFlowCampaignStore`, `FlowPathMap` (virtualized), campaign sync in stats jsonb
+- Campaign levels pre-start before navigation; next level advances in-place without route stacking
+
+---
+
 ### v4.4.0
 
-**Status:** In progress — see [v4.4.0.md](./versions/v4.4.0.md).
+**Status:** Complete — see [v4.4.0.md](./versions/v4.4.0.md).
 
 #### Player-facing
 

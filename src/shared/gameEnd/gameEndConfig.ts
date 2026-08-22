@@ -4,7 +4,7 @@ import { playGameEndSound } from '../services/gameEndSound';
 export const GAME_END_MODAL_DELAY_MS = 1100;
 
 export type GameEndOutcome = 'playing' | 'won' | 'lost';
-export type GameEndMode = 'daily' | 'practice' | 'custom';
+export type GameEndMode = 'daily' | 'practice' | 'custom' | 'campaign';
 
 export const GAME_END_WIN_COPY = {
   emoji: '🎉',

@@ -1,11 +1,12 @@
 # Version specifications
 
-Shipped release scopes for Gridly. Each file is the authoritative acceptance criteria for that semver. **Current release:** [v4.4.0](./v4.4.0.md). History summary: [changelog.md](../changelog.md).
+Shipped release scopes for Gridly. Each file is the authoritative acceptance criteria for that semver. **Current release:** [v4.5.0](./v4.5.0.md). History summary: [changelog.md](../changelog.md).
 
 ## v4.x — Color Flow, invites, Play Store
 
 | Version | Summary |
 |---------|---------|
+| [v4.5.0](./v4.5.0.md) | Color Flow Flow Path — 100-level campaign |
 | [v4.4.0](./v4.4.0.md) | Grid Snap peek image hint |
 | [v4.3.2](./v4.3.2.md) | Google Play pre-release quality (Android manifest plugins) |
 | [v4.3.1](./v4.3.1.md) | Word Hunt invite open from browser on Android |

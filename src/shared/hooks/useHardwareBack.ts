@@ -3,8 +3,9 @@ import { useCallback } from 'react';
 import { BackHandler } from 'react-native';
 
 /**
- * Android hardware back follows app hierarchy. Uses stack pop when possible so the
- * transition matches forward navigation; falls back to replace when there is no history.
+ * Android hardware back follows app hierarchy (parent screen), not browser-style
+ * history. Using router.back() stacks poorly when play screens are opened repeatedly
+ * (e.g. campaign next level, practice play again).
  */
 export function useHardwareBack(parent: Href) {
   const router = useRouter();
@@ -12,11 +13,7 @@ export function useHardwareBack(parent: Href) {
   useFocusEffect(
     useCallback(() => {
       const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-        if (router.canGoBack()) {
-          router.back();
-        } else {
-          router.replace(parent);
-        }
+        router.replace(parent);
         return true;
       });
       return () => subscription.remove();

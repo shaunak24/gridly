@@ -1,6 +1,9 @@
 import { generateBoard } from './flowEngine';
 import type { FlowBoard, FlowDifficulty } from './types';
 
+/** Fixed tier for daily puzzles — independent of practice difficulty settings. */
+export const DAILY_FLOW_DIFFICULTY: FlowDifficulty = 'medium';
+
 const CURATED_SEEDS: Record<FlowDifficulty, string[]> = {
   easy: ['cf-easy-0', 'cf-easy-1', 'cf-easy-2', 'cf-easy-3', 'cf-easy-4'],
   medium: ['cf-medium-0', 'cf-medium-1', 'cf-medium-2', 'cf-medium-3', 'cf-medium-4'],
@@ -37,8 +40,8 @@ export function getDailyPuzzleIndex(dateKey: string, difficulty: FlowDifficulty)
   return mixHash(`gridly-color-flow-daily-v1:${dateKey}:${difficulty}`) % CURATED_SEEDS[difficulty].length;
 }
 
-export function getDailyBoard(dateKey: string, difficulty: FlowDifficulty): FlowBoard {
-  return getCuratedPuzzle(difficulty, getDailyPuzzleIndex(dateKey, difficulty));
+export function getDailyBoard(dateKey: string): FlowBoard {
+  return getCuratedPuzzle(DAILY_FLOW_DIFFICULTY, getDailyPuzzleIndex(dateKey, DAILY_FLOW_DIFFICULTY));
 }
 
 export function getPracticeBoard(seed: string, difficulty: FlowDifficulty): FlowBoard {

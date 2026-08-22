@@ -21,7 +21,7 @@ interface ColorFlowDifficultyPickerProps {
 export function ColorFlowDifficultyPicker({
   difficulty,
   onChange,
-  hint = 'Used when starting a new puzzle',
+  hint = 'Used for Practice mode only',
 }: ColorFlowDifficultyPickerProps) {
   const theme = useTheme();
   const [visible, setVisible] = useState(false);
@@ -40,10 +40,10 @@ export function ColorFlowDifficultyPicker({
         style={styles.row}
         onPress={() => setVisible(true)}
         accessibilityRole="button"
-        accessibilityLabel={`Default difficulty, ${DIFFICULTY_LABELS[difficulty]}`}
+        accessibilityLabel={`Practice difficulty, ${DIFFICULTY_LABELS[difficulty]}`}
       >
         <View style={styles.copy}>
-          <Text style={[styles.label, { color: theme.textPrimary }]}>Default difficulty</Text>
+          <Text style={[styles.label, { color: theme.textPrimary }]}>Practice difficulty</Text>
           <Text style={[styles.hint, { color: theme.textSecondary }]}>{hint}</Text>
         </View>
         <Text style={[styles.value, { color: theme.coral }]}>{DIFFICULTY_LABELS[difficulty]}</Text>
@@ -55,7 +55,7 @@ export function ColorFlowDifficultyPicker({
             style={[styles.sheet, { backgroundColor: theme.card, borderColor: theme.border }]}
             onPress={(event) => event.stopPropagation()}
           >
-            <Text style={[styles.title, { color: theme.textPrimary }]}>Default difficulty</Text>
+            <Text style={[styles.title, { color: theme.textPrimary }]}>Practice difficulty</Text>
 
             {DIFFICULTIES.map((option) => {
               const selected = option === difficulty;

@@ -124,13 +124,19 @@ supabase/
 | Module | Responsibility |
 |--------|----------------|
 | `app/games/color-flow/index.tsx` | Game hub |
+| `app/games/color-flow/journey.tsx` | Flow Path journey map |
 | `app/games/color-flow/play.tsx` | Flow board, path drawing, reset, end states |
 | `src/games/color-flow/components/FlowBoard.tsx` | Grid rendering and the pan gesture (begin / extend / commit) |
+| `src/games/color-flow/components/FlowPathMap.tsx` | Scrollable campaign path map |
 | `src/games/color-flow/core/flowEngine.ts` | Path rules, coverage, win, drag interpolation, hit-testing, saved-path repair |
+| `src/games/color-flow/core/levelCurve.ts` | Per-level grid, pair count, and time limit |
+| `src/games/color-flow/core/levelBank.ts` | Deterministic campaign puzzle seeds |
+| `src/games/color-flow/core/seasons.ts` | Season definitions and reach labels |
 | `src/games/color-flow/core/puzzleBank.ts` | Curated daily and practice puzzles |
 | `src/games/color-flow/stores/colorFlowStore.ts` | Session state |
-| `src/games/color-flow/stores/colorFlowSettingsStore.ts` | Difficulty, reminders |
-| `src/games/color-flow/stores/colorFlowStatsStore.ts` | Per-difficulty stats |
+| `src/games/color-flow/stores/colorFlowCampaignStore.ts` | Campaign unlock and completion |
+| `src/games/color-flow/stores/colorFlowSettingsStore.ts` | Practice difficulty, reminders |
+| `src/games/color-flow/stores/colorFlowStatsStore.ts` | Daily, practice, and campaign stats |
 
 ### Shared
 

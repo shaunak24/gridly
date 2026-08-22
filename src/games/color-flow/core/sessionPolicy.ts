@@ -1,4 +1,4 @@
-import type { FlowDifficulty, FlowMode, FlowStatus, PersistedFlowGame, FlowBoard } from './types';
+import type { FlowDifficulty, FlowMode, FlowStatus, LevelSpec, PersistedFlowGame, FlowBoard } from './types';
 import { GRID_SIZE_BY_DIFFICULTY } from './types';
 
 function gridSizeForDifficulty(difficulty: FlowDifficulty): number {
@@ -10,11 +10,24 @@ export function shouldResumeSavedColorFlowGame(params: {
   mode: FlowMode;
   selectedDifficulty: FlowDifficulty;
   todayDateKey: string;
+  campaignSeasonId?: string;
+  campaignLevel?: number;
 }): boolean {
-  const { saved, mode, selectedDifficulty, todayDateKey } = params;
+  const { saved, mode, selectedDifficulty, todayDateKey, campaignSeasonId, campaignLevel } = params;
 
   if (saved.status !== 'playing') {
     return false;
+  }
+
+  if (mode === 'campaign') {
+    if (
+      saved.mode !== 'campaign' ||
+      saved.seasonId !== campaignSeasonId ||
+      saved.level !== campaignLevel
+    ) {
+      return false;
+    }
+    return true;
   }
 
   if (mode === 'daily' && saved.dateKey !== todayDateKey) {
@@ -36,14 +49,23 @@ export function isInMemoryColorFlowResumable(
     dateKey: string;
     board: FlowBoard | null;
     difficulty: FlowDifficulty;
+    seasonId?: string;
+    level?: number;
   },
   mode: FlowMode,
   selectedDifficulty: FlowDifficulty,
   todayDateKey: string,
+  campaignSeasonId?: string,
+  campaignLevel?: number,
 ): boolean {
   if (state.status !== 'playing' || state.mode !== mode || !state.board) {
     return false;
   }
+
+  if (mode === 'campaign') {
+    return state.seasonId === campaignSeasonId && state.level === campaignLevel;
+  }
+
   if (mode === 'daily' && state.dateKey !== todayDateKey) {
     return false;
   }
@@ -52,4 +74,15 @@ export function isInMemoryColorFlowResumable(
     return false;
   }
   return true;
+}
+
+export function savedLevelSpecMatches(saved: PersistedFlowGame, spec: LevelSpec): boolean {
+  if (!saved.levelSpec) {
+    return saved.board.rows === spec.gridSize && saved.board.pairs.length === spec.pairCount;
+  }
+  return (
+    saved.levelSpec.gridSize === spec.gridSize &&
+    saved.levelSpec.pairCount === spec.pairCount &&
+    saved.levelSpec.timeLimitSec === spec.timeLimitSec
+  );
 }

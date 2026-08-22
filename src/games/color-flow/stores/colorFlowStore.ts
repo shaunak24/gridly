@@ -8,30 +8,56 @@ import {
   resetBoard as resetBoardPaths,
   sanitizeSavedPaths,
 } from '../core/flowEngine';
+import { getLevelBoard } from '../core/levelBank';
+import { levelSpecForSeason } from '../core/levelCurve';
 import { getDailyBoard, getPracticeBoard } from '../core/puzzleBank';
 import { getLocalDateKey, getPracticeSeed } from '../core/dailyPuzzle';
-import { shouldResumeSavedColorFlowGame, isInMemoryColorFlowResumable } from '../core/sessionPolicy';
-import type { FlowBoard, FlowDifficulty, FlowGameState, FlowMode, FlowStatus, PersistedFlowGame, Point } from '../core/types';
+import {
+  savedLevelSpecMatches,
+  shouldResumeSavedColorFlowGame,
+  isInMemoryColorFlowResumable,
+} from '../core/sessionPolicy';
+import type {
+  FlowBoard,
+  FlowDifficulty,
+  FlowGameState,
+  FlowMode,
+  FlowStatus,
+  LevelSpec,
+  PersistedFlowGame,
+  Point,
+} from '../core/types';
 import { loadJson, removeKey, saveJson, storageKeys } from '../../../shared/services/storage';
-import { timeLimitSecForDifficulty } from '../core/timeLimit';
+import { timeLimitSecForDifficulty, timeLimitSecForLevelSpec } from '../core/timeLimit';
+import { useColorFlowCampaignStore } from './colorFlowCampaignStore';
 import { useColorFlowSettingsStore } from './colorFlowSettingsStore';
 import { useColorFlowStatsStore } from './colorFlowStatsStore';
+
+export interface CampaignStartParams {
+  seasonId: string;
+  level: number;
+}
 
 interface ColorFlowGameState {
   status: FlowStatus;
   mode: FlowMode;
   difficulty: FlowDifficulty;
   dateKey: string;
+  seasonId: string;
+  level: number;
+  levelSpec: LevelSpec | null;
+  timeLimitSec: number;
   board: FlowBoard | null;
   gameState: FlowGameState | null;
   activeColorId: string | null;
   gameSessionId: number;
   dailyInProgress: boolean;
   practiceInProgress: boolean;
+  campaignInProgress: boolean;
   elapsedSec: number;
   hydrateProgress: () => Promise<void>;
-  resumeOrStartGame: (mode: FlowMode) => Promise<boolean>;
-  startGame: (mode: FlowMode) => Promise<void>;
+  resumeOrStartGame: (mode: FlowMode, campaign?: CampaignStartParams) => Promise<boolean>;
+  startGame: (mode: FlowMode, campaign?: CampaignStartParams) => Promise<void>;
   setElapsedSec: (elapsedSec: number) => void;
   beginDrag: (point: Point) => string | null;
   extendDrag: (colorId: string, from: Point | null, to: Point) => void;
@@ -42,23 +68,46 @@ interface ColorFlowGameState {
 }
 
 function storageKeyForMode(mode: FlowMode): string {
-  return mode === 'daily' ? storageKeys.colorFlowSavedDaily : storageKeys.colorFlowSavedPractice;
+  if (mode === 'daily') {
+    return storageKeys.colorFlowSavedDaily;
+  }
+  if (mode === 'campaign') {
+    return storageKeys.colorFlowSavedCampaign;
+  }
+  return storageKeys.colorFlowSavedPractice;
 }
 
 function isValidSavedGame(saved: PersistedFlowGame | null): saved is PersistedFlowGame {
   return Boolean(saved && saved.board && saved.board.pairs.length > 0);
 }
 
+function difficultyForLevelSpec(spec: LevelSpec): FlowDifficulty {
+  if (spec.gridSize <= 4) {
+    return 'easy';
+  }
+  if (spec.gridSize <= 6) {
+    return 'medium';
+  }
+  return 'hard';
+}
+
 async function refreshProgressFlags(set: (partial: Partial<ColorFlowGameState>) => void): Promise<void> {
-  const [dailyInProgress, practiceInProgress] = await Promise.all([
+  const [dailyInProgress, practiceInProgress, campaignInProgress] = await Promise.all([
     loadJson<PersistedFlowGame>(storageKeys.colorFlowSavedDaily).then(
       (game) => isValidSavedGame(game) && game.status === 'playing',
     ),
     loadJson<PersistedFlowGame>(storageKeys.colorFlowSavedPractice).then(
       (game) => isValidSavedGame(game) && game.status === 'playing',
     ),
+    loadJson<PersistedFlowGame>(storageKeys.colorFlowSavedCampaign).then(
+      (game) => isValidSavedGame(game) && game.status === 'playing',
+    ),
   ]);
-  set({ dailyInProgress: Boolean(dailyInProgress), practiceInProgress: Boolean(practiceInProgress) });
+  set({
+    dailyInProgress: Boolean(dailyInProgress),
+    practiceInProgress: Boolean(practiceInProgress),
+    campaignInProgress: Boolean(campaignInProgress),
+  });
 }
 
 async function persistIfPlaying(state: ColorFlowGameState): Promise<void> {
@@ -75,6 +124,10 @@ async function persistIfPlaying(state: ColorFlowGameState): Promise<void> {
     status: state.status,
     elapsedSec: state.elapsedSec,
     activeColorId: state.activeColorId,
+    seasonId: state.seasonId || undefined,
+    level: state.level || undefined,
+    levelSpec: state.levelSpec ?? undefined,
+    timeLimitSec: state.timeLimitSec,
   };
 
   await saveJson(storageKeyForMode(state.mode), snapshot);
@@ -85,25 +138,45 @@ export const useColorFlowStore = create<ColorFlowGameState>((set, get) => ({
   mode: 'practice',
   difficulty: 'easy',
   dateKey: '',
+  seasonId: '',
+  level: 0,
+  levelSpec: null,
+  timeLimitSec: 300,
   board: null,
   gameState: null,
   activeColorId: null,
   gameSessionId: 0,
   dailyInProgress: false,
   practiceInProgress: false,
+  campaignInProgress: false,
   elapsedSec: 0,
 
   hydrateProgress: async () => {
     await refreshProgressFlags(set);
   },
 
-  resumeOrStartGame: async (mode) => {
+  resumeOrStartGame: async (mode, campaign) => {
     await useColorFlowSettingsStore.getState().ensureHydrated();
+    if (mode === 'campaign') {
+      await useColorFlowCampaignStore.getState().hydrate();
+    }
+
     const selectedDifficulty = useColorFlowSettingsStore.getState().difficulty;
     const todayDateKey = getLocalDateKey();
+    const campaignSeasonId = campaign?.seasonId;
+    const campaignLevel = campaign?.level;
 
     const current = get();
-    if (isInMemoryColorFlowResumable(current, mode, selectedDifficulty, todayDateKey)) {
+    if (
+      isInMemoryColorFlowResumable(
+        current,
+        mode,
+        selectedDifficulty,
+        todayDateKey,
+        campaignSeasonId,
+        campaignLevel,
+      )
+    ) {
       applyTimeExpiredIfNeeded(get, set);
       await persistIfPlaying(current);
       return true;
@@ -124,6 +197,8 @@ export const useColorFlowStore = create<ColorFlowGameState>((set, get) => ({
           mode,
           selectedDifficulty,
           todayDateKey,
+          campaignSeasonId,
+          campaignLevel,
         })
       ) {
         const gameState = recomputeFromSaved(saved);
@@ -132,6 +207,10 @@ export const useColorFlowStore = create<ColorFlowGameState>((set, get) => ({
           mode,
           difficulty: saved.difficulty,
           dateKey: saved.dateKey,
+          seasonId: saved.seasonId ?? '',
+          level: saved.level ?? 0,
+          levelSpec: saved.levelSpec ?? null,
+          timeLimitSec: saved.timeLimitSec ?? timeLimitSecForDifficulty(saved.difficulty),
           board: saved.board,
           gameState,
           activeColorId: saved.activeColorId,
@@ -152,27 +231,57 @@ export const useColorFlowStore = create<ColorFlowGameState>((set, get) => ({
       return false;
     }
 
-    await get().startGame(mode);
+    if (mode === 'campaign' && campaign) {
+      const playable = useColorFlowCampaignStore.getState().isLevelPlayable(campaign.seasonId, campaign.level);
+      if (!playable) {
+        return false;
+      }
+    }
+
+    await get().startGame(mode, campaign);
     return true;
   },
 
-  startGame: async (mode) => {
+  startGame: async (mode, campaign) => {
     await useColorFlowSettingsStore.getState().ensureHydrated();
     const difficulty = useColorFlowSettingsStore.getState().difficulty;
 
     await removeKey(storageKeyForMode(mode));
     const dateKey = mode === 'daily' ? getLocalDateKey() : '';
-    const board =
-      mode === 'daily'
-        ? getDailyBoard(dateKey, difficulty)
-        : getPracticeBoard(getPracticeSeed(), difficulty);
+
+    let board: FlowBoard;
+    let levelSpec: LevelSpec | null = null;
+    let timeLimitSec = timeLimitSecForDifficulty(difficulty);
+    let seasonId = '';
+    let level = 0;
+    let activeDifficulty = difficulty;
+
+    if (mode === 'campaign' && campaign) {
+      levelSpec = levelSpecForSeason(campaign.seasonId, campaign.level);
+      board = getLevelBoard(campaign.seasonId, campaign.level);
+      timeLimitSec = timeLimitSecForLevelSpec(levelSpec);
+      seasonId = campaign.seasonId;
+      level = campaign.level;
+      activeDifficulty = difficultyForLevelSpec(levelSpec);
+    } else if (mode === 'daily') {
+      board = getDailyBoard(dateKey);
+      activeDifficulty = 'medium';
+      timeLimitSec = timeLimitSecForDifficulty('medium');
+    } else {
+      board = getPracticeBoard(getPracticeSeed(), difficulty);
+    }
+
     const gameState = createInitialState(board);
 
     set({
       status: 'playing',
       mode,
-      difficulty,
+      difficulty: activeDifficulty,
       dateKey,
+      seasonId,
+      level,
+      levelSpec,
+      timeLimitSec,
       board,
       gameState,
       activeColorId: null,
@@ -210,7 +319,6 @@ export const useColorFlowStore = create<ColorFlowGameState>((set, get) => ({
     }
 
     const nextGameState = applyDragTo(state.gameState, colorId, from, to);
-    // Pan fires per pixel; a rejected step returns the same object, so skip the render.
     if (nextGameState === state.gameState && state.activeColorId === colorId) {
       return;
     }
@@ -223,7 +331,7 @@ export const useColorFlowStore = create<ColorFlowGameState>((set, get) => ({
     });
 
     if (solved) {
-      void finishSolvedGame(get, set, state.mode, state.difficulty);
+      void finishSolvedGame(get, set, state);
     }
   },
 
@@ -257,7 +365,7 @@ export const useColorFlowStore = create<ColorFlowGameState>((set, get) => ({
     }
 
     set({ status: 'lost' });
-    void finishLostGame(get, set, state.mode, state.difficulty);
+    void finishLostGame(get, set, state);
   },
 
   persistSession: async () => {
@@ -268,14 +376,13 @@ export const useColorFlowStore = create<ColorFlowGameState>((set, get) => ({
 async function finishLostGame(
   get: () => ColorFlowGameState,
   set: (partial: Partial<ColorFlowGameState>) => void,
-  mode: FlowMode,
-  difficulty: FlowDifficulty,
+  state: ColorFlowGameState,
 ): Promise<void> {
-  await removeKey(storageKeyForMode(mode));
+  await removeKey(storageKeyForMode(state.mode));
   await refreshProgressFlags(set);
   const stats = useColorFlowStatsStore.getState();
-  await stats.recordResult(difficulty, mode, false, get().elapsedSec);
-  if (mode === 'daily') {
+  await stats.recordResult(state.difficulty, state.mode, false, get().elapsedSec);
+  if (state.mode === 'daily') {
     await stats.markDailyComplete();
   }
 }
@@ -289,29 +396,40 @@ function applyTimeExpiredIfNeeded(
     return;
   }
 
-  const limitSec = timeLimitSecForDifficulty(state.difficulty);
-  if (state.elapsedSec >= limitSec) {
+  if (state.elapsedSec >= state.timeLimitSec) {
     set({ status: 'lost' });
-    void finishLostGame(get, set, state.mode, state.difficulty);
+    void finishLostGame(get, set, state);
   }
 }
 
 async function finishSolvedGame(
   get: () => ColorFlowGameState,
   set: (partial: Partial<ColorFlowGameState>) => void,
-  mode: FlowMode,
-  difficulty: FlowDifficulty,
+  state: ColorFlowGameState,
 ): Promise<void> {
-  await removeKey(storageKeyForMode(mode));
+  await removeKey(storageKeyForMode(state.mode));
   await refreshProgressFlags(set);
   const stats = useColorFlowStatsStore.getState();
-  await stats.recordResult(difficulty, mode, true, get().elapsedSec);
-  if (mode === 'daily') {
+  await stats.recordResult(state.difficulty, state.mode, true, get().elapsedSec);
+  if (state.mode === 'daily') {
     await stats.markDailyComplete();
+  }
+  if (state.mode === 'campaign' && state.seasonId && state.level > 0) {
+    await useColorFlowCampaignStore.getState().completeLevel(state.seasonId, state.level);
   }
 }
 
 function recomputeFromSaved(saved: PersistedFlowGame): FlowGameState {
+  if (saved.mode === 'campaign' && saved.seasonId && saved.level) {
+    const expectedSpec = levelSpecForSeason(saved.seasonId, saved.level);
+    if (!savedLevelSpecMatches(saved, expectedSpec)) {
+      return recomputeState({
+        board: saved.board,
+        paths: sanitizeSavedPaths(saved.board, saved.paths),
+      });
+    }
+  }
+
   return recomputeState({
     board: saved.board,
     paths: sanitizeSavedPaths(saved.board, saved.paths),

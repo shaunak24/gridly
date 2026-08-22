@@ -102,7 +102,11 @@ function collectSignedInStatsSnapshot(): Pick<
       timestamp,
     ),
     colorFlowStats: toColorFlowStatsCloud(
-      { daily: colorFlowStatsState.daily, byMode: colorFlowStatsState.byMode },
+      {
+        daily: colorFlowStatsState.daily,
+        byMode: colorFlowStatsState.byMode,
+        campaign: colorFlowStatsState.campaign,
+      },
       colorFlowStatsState.dailyCompletedDate,
       timestamp,
     ),
@@ -214,6 +218,7 @@ async function applySnapshot(snapshot: UserCloudSnapshot): Promise<void> {
   useColorFlowStatsStore.setState({
     daily: colorFlowStats.statsByMode.daily,
     byMode: colorFlowStats.statsByMode.byMode,
+    campaign: colorFlowStats.statsByMode.campaign ?? emptyColorFlowStoredStats().campaign!,
     dailyCompletedDate: colorFlowStats.dailyCompletedDate,
     hydrated: true,
   });
