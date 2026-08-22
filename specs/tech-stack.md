@@ -75,7 +75,7 @@ Corporate npm mirrors may block some packages; installs use `npm install --legac
 
 | Package | Publisher | Purpose |
 |---------|-----------|---------|
-| `expo-audio` | Expo | Win/loss sounds on game end (`gameEndSound` service) |
+| `expo-audio` | Expo | Win/loss sounds and ambient background music |
 
 ### Dev and test
 
@@ -116,9 +116,73 @@ New packages are added to this table only after verifying trustworthiness and ne
 npm install --legacy-peer-deps
 npm start                  # LAN
 npm run start:tunnel       # when LAN/firewall blocks phone
-npm test                   # 30 unit tests
+npm test                   # unit tests
 npm run build:words        # regenerate word lists
+npm run build:sounds       # regenerate win/loss WAV tones
+npm run build:music        # regenerate ambient background loop (see Audio assets below)
 ```
+
+## Audio assets
+
+Gridly bundles short game-end tones and one ambient background loop under `assets/sounds/`. Playback uses `expo-audio` (`gameEndSound.ts`, `backgroundMusic.ts`).
+
+| File | Source | Approx. size |
+|------|--------|--------------|
+| `game-win.wav`, `game-loss.wav` | `scripts/generate-game-end-sounds.mjs` | ~70 KB total |
+| `background-music.m4a` | [Exploration Theme](https://opengameart.org/) by Cleyton Kauffman (CC0) — converted from bundled `.ogg` | ~1.6 MB |
+
+Optional attribution (not required by license): *Music by Cleyton Kauffman — https://soundcloud.com/cleytonkauffman*
+
+### Regenerate the procedural background loop
+
+The shipped app uses **Exploration Theme** (see table above). To go back to the built-in procedural loop, or to tweak it, from the project root:
+
+```bash
+npm run build:music
+```
+
+This runs `scripts/generate-background-music.mjs`, which:
+
+1. Writes a 36-second seamless mono WAV (22050 Hz) with a calm pentatonic ambient pattern.
+2. On macOS, converts it to AAC with `afconvert` and deletes the intermediate WAV.
+3. Outputs `assets/sounds/background-music.m4a`.
+
+To change the melody, length, or mix, edit the constants and `MELODY` table in `scripts/generate-background-music.mjs`, then rerun `npm run build:music`.
+
+**Without macOS `afconvert`:** the script leaves `background-music.wav` in place. Convert manually, then replace the bundled file:
+
+```bash
+afconvert background-music.wav background-music.m4a -f m4af -d aac
+```
+
+(Argument order matters on some macOS versions: input, output, then `-f m4af -d aac`.)
+
+Commit the updated `.m4a` after regenerating so EAS builds pick it up.
+
+### Replace the background track
+
+To swap in another licensed track (as with Exploration Theme from OpenGameArt):
+
+1. Confirm the license allows commercial mobile use (CC0, CC-BY, etc.).
+2. Convert to **AAC in `.m4a`**. Example:
+
+```bash
+afconvert "path/to/source.ogg" assets/sounds/background-music.m4a -f m4af -d aac -b 96000
+```
+
+3. Replace `assets/sounds/background-music.m4a` — **no code changes** (`backgroundMusic.ts` already requires this path).
+4. Update the asset table in this section with attribution if required by the license.
+5. Rebuild or publish an OTA update; verify volume feels right at default (~45% in code).
+
+**Suggested sources** (verify license per track before shipping):
+
+| Source | Search terms |
+|--------|----------------|
+| [Kenney](https://kenney.nl/assets?q=music) | ambient, puzzle |
+| [OpenGameArt](https://opengameart.org/) | calm loop, puzzle ambient |
+| [Pixabay Music](https://pixabay.com/music/) | lo-fi ambient game |
+
+Win/loss tones are separate; only replace `background-music.m4a` unless you also regenerate `game-win.wav` / `game-loss.wav` via `npm run build:sounds`.
 
 ## Wireless development workflow
 

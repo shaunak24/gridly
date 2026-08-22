@@ -104,6 +104,7 @@ function mapAppSettings(row: Record<string, unknown>): AppSettingsCloud {
   const theme = row.theme;
   return {
     theme: theme === 'dark' || theme === 'light' || theme === 'system' ? theme : 'system',
+    musicEnabled: row.music_enabled !== false,
     updatedAt: String(row.updated_at ?? new Date().toISOString()),
   };
 }
@@ -225,6 +226,7 @@ export async function upsertCloudSnapshot(userId: string, snapshot: UserCloudSna
     supabase.from('app_settings').upsert({
       user_id: userId,
       theme: appSettings.theme,
+      music_enabled: appSettings.musicEnabled,
       updated_at: appSettings.updatedAt,
     }),
   ]);

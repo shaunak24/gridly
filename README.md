@@ -95,6 +95,8 @@ npm run start:tunnel
 | `npm run start:tunnel` | Start Metro via tunnel (firewalled networks) |
 | `npm test` | Run unit tests |
 | `npm run build:words` | Regenerate word lists from dictionary source |
+| `npm run build:sounds` | Regenerate win/loss WAV tones |
+| `npm run build:music` | Regenerate ambient background loop — see [specs/tech-stack.md § Audio assets](specs/tech-stack.md#audio-assets) |
 | `npm run lookup:definition -- <word>` | Look up a word on the Free Dictionary API (dev) |
 | `npm run eas login` | Log in to Expo (local CLI) |
 | `npm run build:apk` | Cloud-build an Android APK (EAS, internal testing) |

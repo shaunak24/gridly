@@ -1,6 +1,7 @@
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio';
 
 import type { GameEndPresentation } from '../gameEnd/gameEndConfig';
+import { duckBackgroundMusic } from './backgroundMusic';
 
 const WIN_SOUND = require('../../../assets/sounds/game-win.wav');
 const LOSS_SOUND = require('../../../assets/sounds/game-loss.wav');
@@ -33,6 +34,7 @@ function replay(player: AudioPlayer): void {
 
 export async function playGameEndSound(presentation: GameEndPresentation): Promise<void> {
   try {
+    void duckBackgroundMusic();
     await ensureAudioReady();
     const player = presentation === 'won' ? winPlayer : lossPlayer;
     if (!player) {

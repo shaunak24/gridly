@@ -36,6 +36,7 @@ export interface GridSnapSettingsCloud extends Timestamped {
 
 export interface AppSettingsCloud extends Timestamped {
   theme: ThemePreference;
+  musicEnabled: boolean;
 }
 
 export interface ColorFlowStatsCloud extends Timestamped {

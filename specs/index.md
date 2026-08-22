@@ -2,7 +2,7 @@
 
 Gridly is a cross-platform **grid-based games** app. These documents are the authoritative reference for product behavior, architecture, and quality standards.
 
-**Current release:** v4.5.0 — see [changelog.md](./changelog.md) and [versions/v4.5.0.md](./versions/v4.5.0.md).
+**Current release:** v4.6.0 — see [changelog.md](./changelog.md) and [versions/v4.6.0.md](./versions/v4.6.0.md).
 
 ## New session checklist
 
@@ -62,5 +62,6 @@ Gridly is a cross-platform **grid-based games** app. These documents are the aut
 | Grid Snap / Color Flow | `src/games/grid-snap/`, `src/games/color-flow/` |
 | Code layout | [architecture.md](./architecture.md) |
 | Run locally | `npm install --legacy-peer-deps`, `npm start` or `npm run start:tunnel` |
+| Background music asset | [tech-stack.md § Audio assets](./tech-stack.md#audio-assets) — `npm run build:music` |
 | Tests | `npm test` |
 | Ship to Play Store | [release/google-play.md](./release/google-play.md), [release/versioning.md](./release/versioning.md) |

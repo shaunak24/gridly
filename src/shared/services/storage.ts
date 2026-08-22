@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const KEYS = {
   theme: '@gridly/app/theme',
+  musicEnabled: '@gridly/app/musicEnabled',
   guestContinued: '@gridly/app/guestContinued',
   hardMode: '@gridly/word-hunt/hardMode',
   notifications: '@gridly/word-hunt/notifications',

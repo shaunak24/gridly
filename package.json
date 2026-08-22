@@ -1,6 +1,6 @@
 {
   "name": "gridly",
-  "version": "4.5.0",
+  "version": "4.6.0",
   "main": "index.js",
   "scripts": {
     "prepare": "git config --local core.hooksPath .githooks 2>/dev/null || true",
@@ -15,6 +15,7 @@
     "build:words": "node scripts/build-word-lists.mjs",
     "lookup:definition": "node scripts/lookup-word-definition.mjs",
     "build:sounds": "node scripts/generate-game-end-sounds.mjs",
+    "build:music": "node scripts/generate-background-music.mjs",
     "build:apk": "eas build --platform android --profile preview",
     "build:production": "eas build --platform android --profile production",
     "build:production:submit": "eas build --platform android --profile production --auto-submit",

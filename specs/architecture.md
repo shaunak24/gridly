@@ -152,6 +152,11 @@ supabase/
 | `src/shared/hooks/useGameEndFlow.ts` | Delayed modal timing, daily vs practice actions |
 | `src/shared/gameEnd/gameEndConfig.ts` | Shared copy, delay constant, `onGameEndPresented` hook for haptics |
 | `src/shared/services/gameEndSound.ts` | Win/loss sound playback via `expo-audio` |
+| `src/shared/services/backgroundMusic.ts` | App-wide ambient loop via `expo-audio`; timer urgency via playback rate |
+| `src/shared/hooks/useBackgroundMusic.ts` | Route + settings driven music lifecycle |
+| `src/shared/hooks/useMusicUrgency.ts` | Countdown-driven tempo bump for timed games |
+| `src/shared/core/musicUrgency.ts` | Pure playback-rate curve for remaining seconds |
+| `src/shared/components/BackgroundMusicHost.tsx` | Root layout host for background music |
 
 ## Navigation
 

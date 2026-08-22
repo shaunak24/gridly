@@ -16,6 +16,7 @@ import { HeaderTimer } from '../../../src/shared/components/HeaderTimer';
 import { presentAppMessage } from '../../../src/shared/components/presentAppMessage';
 import type { GameEndMode, GameEndOutcome } from '../../../src/shared/gameEnd/gameEndConfig';
 import { useGameTimeLimit } from '../../../src/shared/hooks/useGameTimeLimit';
+import { useMusicUrgency } from '../../../src/shared/hooks/useMusicUrgency';
 import { useFlushGameSessionOnBlur } from '../../../src/shared/hooks/useFlushGameSessionOnBlur';
 import { useHardwareBack } from '../../../src/shared/hooks/useHardwareBack';
 import { useTheme } from '../../../src/shared/theme/useTheme';
@@ -92,7 +93,7 @@ export default function ColorFlowPlayScreen() {
   );
 
   const getBaseElapsedSec = useCallback(() => useColorFlowStore.getState().elapsedSec, []);
-  const { remainingDisplay } = useGameTimeLimit({
+  const { remainingDisplay, remainingSec } = useGameTimeLimit({
     active: status === 'playing',
     resetKey: gameSessionId,
     getBaseElapsedSec,
@@ -100,6 +101,8 @@ export default function ColorFlowPlayScreen() {
     limitSec: timeLimitSec,
     onTimeUp: handleTimeUp,
   });
+
+  useMusicUrgency({ active: status === 'playing', remainingSec });
 
   useEffect(() => {
     const init = async () => {

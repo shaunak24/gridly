@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { HeaderBackButton } from '../src/shared/components/HeaderBackButton';
@@ -17,6 +17,8 @@ export default function AppSettingsScreen() {
   useHardwareBack('/home');
   const themePref = useAppSettingsStore((s) => s.theme);
   const setTheme = useAppSettingsStore((s) => s.setTheme);
+  const musicEnabled = useAppSettingsStore((s) => s.musicEnabled);
+  const setMusicEnabled = useAppSettingsStore((s) => s.setMusicEnabled);
 
   const cycleTheme = useCallback(() => {
     const index = THEME_ORDER.indexOf(themePref);
@@ -40,6 +42,21 @@ export default function AppSettingsScreen() {
               {themePref.charAt(0).toUpperCase() + themePref.slice(1)}
             </Text>
           </Pressable>
+
+          <View style={styles.divider} />
+
+          <View style={styles.settingRow}>
+            <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>Music</Text>
+            <Switch
+              value={musicEnabled}
+              onValueChange={(value) => {
+                void setMusicEnabled(value);
+              }}
+              trackColor={{ false: theme.border, true: theme.teal }}
+              thumbColor={theme.textPrimary}
+              accessibilityLabel="Background music"
+            />
+          </View>
 
           <View style={styles.divider} />
 

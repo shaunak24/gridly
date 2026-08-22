@@ -76,6 +76,7 @@ function collectSettingsSnapshot(): Pick<
     },
     appSettings: {
       theme: appSettingsState.theme,
+      musicEnabled: appSettingsState.musicEnabled,
       updatedAt: timestamp,
     },
   };
@@ -249,6 +250,7 @@ async function applySnapshot(snapshot: UserCloudSnapshot): Promise<void> {
 
   useAppSettingsStore.setState({
     theme: appSettings.theme,
+    musicEnabled: appSettings.musicEnabled,
     hydrated: true,
   });
 

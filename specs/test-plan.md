@@ -255,6 +255,14 @@ No iOS build exists (`eas.json` is Android-only). When one does:
 - [ ] In-game Home returns to Word Hunt hub (not platform home)
 - [ ] Legacy `gridly://game?mode=custom&code=…` opens custom puzzle
 
+### v4.6 — background music
+
+- [ ] Music plays on platform home and game hubs after welcome/auth
+- [ ] Music toggle in app settings stops and resumes playback
+- [ ] Welcome and sign-in screens are silent
+- [ ] Grid Snap / Color Flow countdown below 60s subtly speeds music; below 30s increases again
+- [ ] Win/loss sound ducks music without stopping the loop
+
 ### v4.3 — streaks, timers, back, definitions
 
 - [ ] Color Flow Flow Path: Level 1 playable; win unlocks Level 2; map shows progress

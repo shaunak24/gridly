@@ -67,7 +67,12 @@ Email/password sign-in and sign-up validate input before calling the server. Aut
 Opened from the gear icon on the platform home.
 
 - **Theme** — cycles Dark, Light, and System.
+- **Music** — toggles ambient background music (default on). Preference syncs for signed-in users.
 - **Send feedback** — opens the feedback form (general feedback or bug report).
+
+Ambient music plays on the platform home, game hubs, play screens, stats, settings, and feedback. It does not play on the welcome or auth screens. Music pauses when the app leaves the foreground. Win and loss sounds briefly duck the music volume.
+
+Timed modes (Grid Snap and Color Flow) subtly increase music tempo when less than one minute remains, and again below thirty seconds.
 
 Account actions (sign in, sign out) live in the **profile menu** on the platform home top bar. Sign-out confirmation uses the same themed in-app modal as auth messages (not a native system alert). Sign-out returns to the welcome screen immediately; cloud sync continues in the background.
 

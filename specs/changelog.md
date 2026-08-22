@@ -6,6 +6,24 @@ Version history and planned work for Gridly. Behavior specs live in the other `s
 
 ## Shipped
 
+### v4.6.0
+
+**Status:** Complete — see [v4.6.0.md](./versions/v4.6.0.md).
+
+#### Player-facing
+
+- **Ambient background music** — light looping track on home, hubs, play, stats, and settings; off on welcome/auth
+- **Music toggle** in app settings (default on); syncs across devices when signed in
+- **Timer urgency** — Grid Snap and Color Flow subtly speed up music below 60s and 30s remaining
+
+#### Engineering
+
+- `backgroundMusic` service, `BackgroundMusicHost`, `musicUrgency` playback-rate curve
+- Exploration Theme (CC0) as `background-music.m4a`; procedural fallback via `npm run build:music`
+- Supabase `app_settings.music_enabled` column (migration `008`)
+
+---
+
 ### v4.5.0
 
 **Status:** Complete — see [v4.5.0.md](./versions/v4.5.0.md).

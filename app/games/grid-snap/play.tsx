@@ -15,6 +15,7 @@ import { HeaderHomeButton } from '../../../src/shared/components/HeaderHomeButto
 import { HeaderTimer } from '../../../src/shared/components/HeaderTimer';
 import type { GameEndMode, GameEndOutcome } from '../../../src/shared/gameEnd/gameEndConfig';
 import { useGameTimeLimit } from '../../../src/shared/hooks/useGameTimeLimit';
+import { useMusicUrgency } from '../../../src/shared/hooks/useMusicUrgency';
 import { useFlushGameSessionOnBlur } from '../../../src/shared/hooks/useFlushGameSessionOnBlur';
 import { useHardwareBack } from '../../../src/shared/hooks/useHardwareBack';
 import { useTheme } from '../../../src/shared/theme/useTheme';
@@ -65,7 +66,7 @@ export default function GridSnapPlayScreen() {
   const timerActive = status === 'playing' && imageDecodeReady;
 
   const getBaseElapsedSec = useCallback(() => useGridSnapStore.getState().elapsedSec, []);
-  const { remainingDisplay } = useGameTimeLimit({
+  const { remainingDisplay, remainingSec } = useGameTimeLimit({
     active: timerActive,
     resetKey: gameSessionId,
     getBaseElapsedSec,
@@ -73,6 +74,8 @@ export default function GridSnapPlayScreen() {
     limitSec,
     onTimeUp: handleTimeUp,
   });
+
+  useMusicUrgency({ active: timerActive, remainingSec });
 
   useEffect(() => {
     const init = async () => {
